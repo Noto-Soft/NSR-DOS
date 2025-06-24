@@ -2,7 +2,7 @@ bits 16
 
 org 0x0
 
-%define endl 0x0a
+%define endl 0xa
 
 start:
     mov ax, cs
@@ -13,14 +13,18 @@ start:
 
     jmp main
 
-wrap_cursor:
-    cmp dl, 80
-    jb .done
-    xor dl, dl
-    inc dh
+scroll_if_need_be:
     cmp dh, 25
     jb .done
-    xor dh, dh
+    pusha
+    mov ah, 0x6
+    mov bh, bl
+    mov al, 1
+    xor cx, cx
+    mov dx, 0x184F
+    int 0x10
+    popa
+    mov dh, 24
 .done:
     ret
 
@@ -40,22 +44,52 @@ putc_attr:
     je .newline
     cmp al, 0xd
     je .newline
+    cmp al, 0x8
+    je .backspace
+
+    call scroll_if_need_be
+    mov ah, 0x2
+    int 0x10
 
     mov ah, 0x9
     mov cx, 1
     int 0x10
 
-    add dl, 1
-    times 2 call wrap_cursor
+    inc dl
+    cmp dl, 80
+    jb .cursor_good
+
+    xor dl, dl
+    inc dh 
+    call scroll_if_need_be
+.cursor_good:
     mov ah, 0x2
     int 0x10
 
+    pusha
+    mov ah, 0x9
+    mov al, " "
+    mov cx, 1
+    int 0x10
+    popa
+
     jmp .done
 .newline:
-    add dh, 1
+    inc dh
     xor dl, dl
+    call scroll_if_need_be
     mov ah, 0x2
     int 0x10
+    jmp .done
+.backspace:
+    dec dl
+    mov ah, 0x2
+    int 0x10
+    mov ah, 0x9
+    mov al, " "
+    mov cx, 1
+    int 0x10
+    jmp .done
 .done:
     pop dx
     pop cx
@@ -222,7 +256,8 @@ disk_reset:
     int 13h
     jc floppy_error
     lea si, [.disk_retry]
-    call puts
+    mov bl, 0x3
+    call puts_attr
     popa
     ret
 .disk_retry: db "Retry read", endl, 0
@@ -248,13 +283,49 @@ file_get:
     inc di
     jmp .locate_kernel_loop
 .not_found:
+    mov ax, cs
+    mov ds, ax
     lea si, [error_file_not_found]
-    call puts
+    mov bl, 0x4
+    call puts_attr
 
     jmp $
 .located_kernel:
     sub di, 4
     pop ax
+    ret
+
+; si - filename
+; di - entry sectors start
+; returns:
+;   - ax: 0 if exists
+file_confirm_exists:
+    push bx
+    push ax
+.locate_kernel_loop:
+    mov al, [es:di]
+    or al, al
+    jz .not_found
+    add di, 4
+    call strcmp
+    test ax, ax
+    jz .located_kernel
+    dec di
+    mov al, [es:di]
+    xor ah, ah
+    add di, ax
+    inc di
+    jmp .locate_kernel_loop
+.not_found:
+    mov bx, 1
+    jmp .done
+.located_kernel:
+    mov bx, 0
+    jmp .done
+.done:
+    pop ax
+    mov ax, bx
+    pop bx
     ret
 
 ; in:
@@ -283,8 +354,11 @@ file_read:
     ret
 
 floppy_error:
+    mov ax, cs
+    mov ds, ax
     lea si, [error_floppy]
-    call puts
+    mov bl, 0x4
+    call puts_attr
     jmp $
 
 disk_read_interrupt_wrapper:
@@ -307,30 +381,16 @@ int21:
     cmpje 0x1
     cmpje 0x2
     cmpje 0x3
-    cmpje 0xff
+    cmpje 0x4
 route 0x0, puts_attr
 route 0x1, putc_attr
 route 0x2, file_get
 route 0x3, file_read
-route 0xff, terminate
+route 0x4, file_confirm_exists
 .done:
     iret
 
-terminate:
-    add sp, 8
-    ret
-
 main:
-    push es
-    xor ax, ax
-    mov es, ax
-    mov ax, cs
-    mov word [es:0x21*4], int21
-    mov [es:0x21*4+2], ax
-    mov word [es:0x22*4], disk_read_interrupt_wrapper
-    mov [es:0x22*4+2], ax
-    pop es
-
     xor ah, ah
     mov al, 0x03
     int 0x10
@@ -349,67 +409,91 @@ main:
     mov bx, 0x0
     call file_read
 
+    mov dh, 24
+    xor dl, dl
+    mov ah, 0x2
+    int 0x10
+
     mov ax, es
     mov ds, ax
     lea si, [0x0]
     mov bl, 0xf
     call puts_attr
 
-    xor ax, ax
+    mov ax, cs
     mov ds, ax
 
-    lea si, [0x800]
-.dir_loop:
-    mov al, [si]
-    or al, al
-    jz .dir_done
-    add si, 4
     mov bl, 0xf
-    call puts_attr
-    push si
-    push ds
-    mov ax, cs
-    mov ds, ax
-    lea si, [msg_newline]
-    call puts_attr
-    pop ds
-    pop si
-    dec si
-    mov al, [si]
-    xor ah, ah
-    add si, ax
-    inc si
-    jmp .dir_loop
-.dir_done:
-    mov ax, cs
-    mov ds, ax
-
-    lea si, [msg_newline]
+    lea si, [msg_ivt]
     call puts_attr
 
-    lea si, [command_com]
+    push es
+    xor ax, ax
+    mov es, ax
+    mov ax, cs
+    mov word [es:0x21*4], int21
+    mov [es:0x21*4+2], ax
+    mov bl, 0x3
+    lea si, [msg_int21]
+    call puts_attr
+    mov word [es:0x22*4], disk_read_interrupt_wrapper
+    mov [es:0x22*4+2], ax
+    mov bl, 0x3
+    lea si, [msg_int22]
+    call puts_attr
+    pop es
+
+    mov bl, 0xf
+    lea si, [msg_newline]
+    call puts_attr
+
+    lea si, [command_exe]
     mov dl, [drive]
     mov bx, 0x1000
     mov es, bx
     mov bx, 0x0
     call file_read
 
+    mov ax, [es:0x0]
+    cmp ax, "AD"
+    jne .unknown_format
+    mov al, [es:0x2]
+    cmp al, 0x2
+    jne .unknown_format
     push ds
     push es
-    call 0x1000:0x0
+    mov dl, [drive]
+    mov ax, [es:0x4]
+    push cs
+    push word .after
+    push es
+    push ax
+    retf
+.after:
     pop es
     pop ds
 
     jmp $
 
+.unknown_format:
+    lea si, [error_unknown_format]
+    mov bl, 0x4
+    call puts_attr
+
+    jmp $
+
 msg_newline: db endl, 0
 msg_list: db "List of files on drive:", endl, endl, 0
+msg_ivt: db "Patching IVT", endl, 0
+msg_int21: db "Patched int 0x21 to IVT", endl, 0
+msg_int22: db "Patched int 0x22 to IVT", endl, 0
 
 error_floppy: db "Error reading from floppy", endl, 0
 error_file_not_found: db "File not found", endl, 0
+error_unknown_format: db "The format of the executable is not known to the kernel", endl, 0
 
 boot_txt: db "BOOT.TXT", 0
-command_com: db "COMMAND.COM", 0
+command_exe: db "COMMAND.EXE", 0
 
 drive: db 0
 

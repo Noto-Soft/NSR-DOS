@@ -1,0 +1,23 @@
+bits 16
+
+org 0x0
+
+%define endl 0xa
+
+db "AD"
+db 2
+db 0
+dw start
+
+msg: db "Hello world!", endl, 0
+
+align 256
+
+start:
+    xor ah, ah
+    mov bl, 0x7
+    lea si, [msg]
+    int 0x21
+    retf
+
+times 512-($-$$) db 0
