@@ -1,0 +1,5 @@
+Noto-Soft Retro DOS 0.1
+(c) Noto-Soft Solutions, 2025
+
+List of files on the disk:
+
