@@ -149,13 +149,27 @@ disk_read:
     mov di, 3                           ; retry count
 
 .retry:
-    pusha                               ; save all registers, we don't know what bios modifies
+    push ax
+push cx
+push dx
+push bx
+push sp
+push bp
+push si
+push di                               ; save all registers, we don't know what bios modifies
     stc                                 ; set carry flag, some BIOS'es don't set it
     int 13h                             ; carry flag cleared = success
     jnc .done                           ; jump if carry not set
 
     ; read failed
-    popa
+    pop di
+pop si
+pop bp
+pop sp
+pop bx
+pop dx
+pop cx
+pop ax
     call disk_reset
 
     dec di
@@ -167,7 +181,14 @@ disk_read:
     jmp floppy_error
 
 .done:
-    popa
+    pop di
+pop si
+pop bp
+pop sp
+pop bx
+pop dx
+pop cx
+pop ax
 
     pop di
     pop dx
@@ -183,14 +204,28 @@ disk_read:
 ;   dl: drive number
 ;
 disk_reset:
-    pusha
+    push ax
+push cx
+push dx
+push bx
+push sp
+push bp
+push si
+push di
     xor ah, ah
     stc
     int 13h
     jc floppy_error
     lea si, [.disk_retry]
     call puts
-    popa
+    pop di
+pop si
+pop bp
+pop sp
+pop bx
+pop dx
+pop cx
+pop ax
     ret
 .disk_retry: db "Retry read", endl, 0
 

@@ -165,7 +165,14 @@ not_command:
     jmp line
 
 dir:
-    pusha
+    push ax
+push cx
+push dx
+push bx
+push sp
+push bp
+push si
+push di
     push ds
 
     xor ax, ax
@@ -194,11 +201,25 @@ dir:
     jmp .loop
 .done:
     pop ds
-    popa
+    pop di
+pop si
+pop bp
+pop sp
+pop bx
+pop dx
+pop cx
+pop ax
     jmp line
 
 type:
-    pusha
+    push ax
+push cx
+push dx
+push bx
+push sp
+push bp
+push si
+push di
     
     push ds
     push es
@@ -239,11 +260,25 @@ type:
     pop es
     pop ds
 
-    popa
+    pop di
+pop si
+pop bp
+pop sp
+pop bx
+pop dx
+pop cx
+pop ax
     jmp line
 
 exec:
-    pusha
+    push ax
+push cx
+push dx
+push bx
+push sp
+push bp
+push si
+push di
     
     push ds
     push es
@@ -297,7 +332,14 @@ exec:
     pop es
     pop ds
 
-    popa
+    pop di
+pop si
+pop bp
+pop sp
+pop bx
+pop dx
+pop cx
+pop ax
     jmp line
 .unknown_format:
     xor ah, ah
