@@ -19,7 +19,7 @@ msg_newline: db endl, 0
 str_dir: db "dir", 0
 str_type: db "type", 0
 
-error_not_command: db "Not a command", endl, 0
+error_not_command: db "Not a command nor an executable file", endl, 0
 error_not_file: db "Not a file", endl, 0
 error_unknown_format: db "The format of the executable is not known to the loader", endl, 0
 
@@ -306,8 +306,17 @@ exec:
     mov al, [es:0x2]
     cmp al, 0x2
     jne .unknown_format
+    push ax
+    push cx
+    push dx
+    push bx
+    push sp
+    push bp
+    push si
+    push di
     push ds
     push es
+    push fs
     mov dl, [drive]
     mov ax, [es:0x4]
     push word cs
@@ -316,8 +325,17 @@ exec:
     push ax
     retf
 .after:
+    pop fs
     pop es
     pop ds
+    pop di
+    pop si
+    pop bp
+    pop sp
+    pop bx
+    pop dx
+    pop cx
+    pop ax
 
     jmp .done
 .not_exist:
@@ -342,12 +360,14 @@ exec:
 	pop ax
     jmp line
 .unknown_format:
+    mov ax, cs
+    mov ds, ax
     xor ah, ah
     lea si, [error_unknown_format]
     mov bl, 0x4
     int 0x21
 
-    jmp line
+    jmp .done
 
 exit:
     retf
