@@ -6,7 +6,7 @@ org 0x0
 
 db "AD"
 db 2
-db 0
+db 1
 dw start
 dw symbol_table
 dw SYMBOL_TABLE_LENGTH
