@@ -38,9 +38,7 @@ start:
     mov [0x502], dh
     mov byte [0x503], 0
 
-    push es
-    push word main
-    retf
+    jmp 0x0000:main
 
 puts:
     push ax
@@ -268,14 +266,15 @@ main:
     inc di
     jmp .locate_kernel_loop
 .not_found:
+    lea ax, [puts]
+    lea si, [kernel_sys]
+    call ax
     lea si, [error_kernel_not_found]
-    call puts
+    call ax
 
     jmp $
 .located_kernel:
     sub di, 4
-
-    mov byte [0x1000], "Z"
 
     mov ax, [di]
     mov cl, [di+2]
@@ -291,9 +290,10 @@ main:
     jmp $
 
 msg_boot: db "Small Diversified Bootloader 1.0", endl, 0
+msg_progress: db "Progress", endl, 0
 
 error_floppy: db "Error reading from floppy", endl, 0
-error_kernel_not_found: db "KERNEL.SYS not found", endl, 0
+error_kernel_not_found: db " missing", endl, 0
 
 kernel_sys: db "KERNEL.SYS", 0
 
