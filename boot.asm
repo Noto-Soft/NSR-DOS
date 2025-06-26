@@ -148,26 +148,26 @@ disk_read:
 
 .retry:
     push ax
-push cx
-push dx
-push bx
-push sp
-push bp
-push si
-push di                               ; save all registers, we don't know what bios modifies
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di                               ; save all registers, we don't know what bios modifies
     stc                                 ; set carry flag, some BIOS'es don't set it
     int 13h                             ; carry flag cleared = success
     jnc .done                           ; jump if carry not set
 
     ; read failed
     pop di
-pop si
-pop bp
-pop sp
-pop bx
-pop dx
-pop cx
-pop ax
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
     call disk_reset
 
     dec di
@@ -180,13 +180,13 @@ pop ax
 
 .done:
     pop di
-pop si
-pop bp
-pop sp
-pop bx
-pop dx
-pop cx
-pop ax
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
 
     pop di
     pop dx
@@ -203,13 +203,13 @@ pop ax
 ;
 disk_reset:
     push ax
-push cx
-push dx
-push bx
-push sp
-push bp
-push si
-push di
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
     xor ah, ah
     stc
     int 13h
@@ -217,13 +217,13 @@ push di
     lea si, [.disk_retry]
     call puts
     pop di
-pop si
-pop bp
-pop sp
-pop bx
-pop dx
-pop cx
-pop ax
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
     ret
 .disk_retry: db "Retry read", endl, 0
 

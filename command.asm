@@ -166,13 +166,13 @@ not_command:
 
 dir:
     push ax
-push cx
-push dx
-push bx
-push sp
-push bp
-push si
-push di
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
     push ds
 
     xor ax, ax
@@ -202,24 +202,24 @@ push di
 .done:
     pop ds
     pop di
-pop si
-pop bp
-pop sp
-pop bx
-pop dx
-pop cx
-pop ax
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
     jmp line
 
 type:
     push ax
-push cx
-push dx
-push bx
-push sp
-push bp
-push si
-push di
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
     
     push ds
     push es
@@ -261,24 +261,24 @@ push di
     pop ds
 
     pop di
-pop si
-pop bp
-pop sp
-pop bx
-pop dx
-pop cx
-pop ax
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
     jmp line
 
 exec:
     push ax
-push cx
-push dx
-push bx
-push sp
-push bp
-push si
-push di
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
     
     push ds
     push es
@@ -333,13 +333,13 @@ push di
     pop ds
 
     pop di
-pop si
-pop bp
-pop sp
-pop bx
-pop dx
-pop cx
-pop ax
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
     jmp line
 .unknown_format:
     xor ah, ah
