@@ -160,7 +160,6 @@ not_command:
     xor ah, ah
     mov bl, 0x4
     lea si, [error_not_command]
-    jmp $
     int 0x21
 
     jmp line
