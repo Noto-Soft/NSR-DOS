@@ -23,7 +23,7 @@ scroll_if_need_be:
     mov bh, bl
     mov al, 1
     xor cx, cx
-    mov dx, 0x184F
+    mov dx, 0x184f
     int 0x10
     popa
     mov dh, 24
