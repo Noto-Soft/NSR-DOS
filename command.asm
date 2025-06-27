@@ -292,7 +292,7 @@ exec:
     jne .not_exist
     mov ah, 0x3
     mov dl, [drive]
-    mov bx, 0x8000
+    mov bx, 0x7000
     mov es, bx
     mov bx, 0x0
     int 0x21

@@ -14,6 +14,8 @@ start:
     jmp main
 
 scroll_if_need_be:
+    cmp byte [.no_scroll], 0
+    jne .done
     cmp dh, 25
     jb .done
     push ax
@@ -41,12 +43,15 @@ scroll_if_need_be:
     mov dh, 24
 .done:
     ret
+.no_scroll: db 0
 
 putc_attr:
     push ax
     push bx
     push cx
     push dx
+
+    mov [scroll_if_need_be.no_scroll], dl
 
     push ax
     mov ah, 0x3
@@ -119,6 +124,7 @@ putc_attr:
     int 0x10
     jmp .done
 .done:
+    mov byte [scroll_if_need_be.no_scroll], 0
     pop dx
     pop cx
     pop bx
@@ -145,7 +151,9 @@ puts:
 
 puts_attr:
     push ax
+    push dx
     push si
+    xor dl, dl
 .loop:
     lodsb
     or al, al
@@ -154,6 +162,24 @@ puts_attr:
     jmp .loop
 .done:
     pop si
+    pop dx
+    pop ax
+    ret
+
+puts_attr_no_scroll:
+    push ax
+    push dx
+    push si
+    mov dl, 0x1
+.loop:
+    lodsb
+    or al, al
+    jz .done
+    call putc_attr
+    jmp .loop
+.done:
+    pop si
+    pop dx
     pop ax
     ret
 
@@ -445,17 +471,20 @@ int21:
     cmpje 0x2
     cmpje 0x3
     cmpje 0x4
+    cmpje 0x10
+    jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
 route 0x2, file_get
 route 0x3, file_read
+route 0x10, puts_attr_no_scroll
 route 0x4, file_confirm_exists
 .done:
     iret
 
 main:
     xor ah, ah
-    mov al, 0x03
+    mov al, 0x3
     int 0x10
 
     mov ah, 0x6
@@ -560,4 +589,4 @@ command_exe: db "COMMAND.EXE", 0
 
 drive: db 0
 
-times 1024-($-$$) db 0
+times 1536-($-$$) db 0
