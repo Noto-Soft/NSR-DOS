@@ -18,28 +18,14 @@ scroll_if_need_be:
     jne .done
     cmp dh, 25
     jb .done
-    push ax
-	push cx
-	push dx
-	push bx
-	push sp
-	push bp
-	push si
-	push di
+    pusha
     mov ah, 0x6
     mov bh, bl
     mov al, 1
     xor cx, cx
     mov dx, 0x184F
     int 0x10
-    pop di
-	pop si
-	pop bp
-	pop sp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+    popa
     mov dh, 24
 .done:
     ret
@@ -85,26 +71,12 @@ putc_attr:
     mov ah, 0x2
     int 0x10
 
-    push ax
-	push cx
-	push dx
-	push bx
-	push sp
-	push bp
-	push si
-	push di
+    pusha
     mov ah, 0x9
     mov al, " "
     mov cx, 1
     int 0x10
-    pop di
-	pop si
-	pop bp
-	pop sp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+    popa
 
     jmp .done
 .newline:
@@ -273,27 +245,13 @@ disk_read:
     mov ah, 02h
     mov di, 3                           ; retry count
 .retry:
-    push ax
-	push cx
-	push dx
-	push bx
-	push sp
-	push bp
-	push si
-	push di                               ; save all registers, we don't know what bios modifies
+    pusha                               ; save all registers, we don't know what bios modifies
     stc                                 ; set carry flag, some BIOS'es don't set it
     int 13h                             ; carry flag cleared = success
     jnc .done                           ; jump if carry not set
 
     ; read failed
-    pop di
-	pop si
-	pop bp
-	pop sp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+    popa
     call disk_reset
 
     dec di
@@ -303,14 +261,7 @@ disk_read:
     ; all attempts are exhausted
     jmp floppy_error
 .done:
-    pop di
-	pop si
-	pop bp
-	pop sp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+    popa
 
     pop di
     pop dx
@@ -325,14 +276,7 @@ disk_read:
 ;   dl: drive number
 ;
 disk_reset:
-    push ax
-	push cx
-	push dx
-	push bx
-	push sp
-	push bp
-	push si
-	push di
+    pusha
     xor ah, ah
     stc
     int 13h
@@ -340,14 +284,7 @@ disk_reset:
     lea si, [.disk_retry]
     mov bl, 0x3
     call puts_attr
-    pop di
-	pop si
-	pop bp
-	pop sp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+    popa
     ret
 .disk_retry: db "Retry read", endl, 0
 
