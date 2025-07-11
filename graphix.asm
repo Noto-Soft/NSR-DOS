@@ -11,8 +11,7 @@ dw start
 dw symbol_table
 dw SYMBOL_TABLE_LENGTH
 
-msg_explainy: db "Graphix.exe - Graphics mode test", endl, "Q to quit", endl, 0
-times 3 db 0 ; for some reason this memory is getting written into and i don't know why
+msg_explainy: db "Graphix.exe - Graphics mode test", endl, "Q to quit", 0
 msg_happy: db "happy", endl, 0
 
 align 256
@@ -20,58 +19,96 @@ align 256
 start:
     mov ax, cs
     mov ds, ax
-    mov es, ax
 
     mov ax, 0xa000
-    mov fs, ax
+    mov es, ax
 
     jmp main
 
+clear_screen:
+    push cx
+    push di
+    xor di, di
+    mov cx, 320*200
+.loop:
+    mov [es:di], al
+    inc di
+    loop .loop
+    pop di
+    pop cx
+    ret
+
+draw_pixel:
+    push ax
+    push bx
+    push cx
+    push dx
+    push di
+
+    mov di, ax
+
+    mov ax, dx
+    mov bx, 320
+    mul bx
+    add ax, cx
+
+    xchg di, ax
+    mov [es:di], al
+
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+
 main:
     xor ah, ah
-    mov al, 0x12
+    mov al, 0x13
     int 0x10
 
-    mov ah, 0xc
+    mov al, 0x1
+    call clear_screen
+    
     mov cx, 160
     mov dx, 100
     mov al, 0xf
-    int 0x10
+    call draw_pixel
     inc dx
-    int 0x10
+    call draw_pixel
     dec dx
     add cx, 3
-    int 0x10
+    call draw_pixel
     inc dx
-    int 0x10
+    call draw_pixel
     add dx, 2
     inc cx
-    int 0x10
+    call draw_pixel
     inc dx
     dec cx
-    int 0x10
+    call draw_pixel
     dec cx
-    int 0x10
+    call draw_pixel
     dec cx
-    int 0x10
+    call draw_pixel
     dec cx
-    int 0x10
+    call draw_pixel
     dec dx
     dec cx
-    int 0x10
+    call draw_pixel
 
     xor ah, ah
-    mov bl, 0xf
+    mov bl, 0xf0
     lea si, [msg_happy]
     int 0x21
 
     mov ah, 0x2
     xor bh, bh
-    mov dh, 28
+    mov dh, 23
     xor dl, dl
     int 0x10
 
-    mov ah, 0x10
+    xor ah, ah
     mov bl, 0xf
     lea si, [msg_explainy]
     int 0x21

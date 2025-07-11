@@ -19,9 +19,6 @@ start:
     lea si, [msg_boot]
     call puts
 
-    mov ax, 0xb800
-    mov fs, ax
-
     mov [drive], dl
 
     push es

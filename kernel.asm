@@ -13,10 +13,21 @@ start:
 
     jmp main
 
+get_rows_from_videomode:
+    cmp al, 0x12
+    je .rows30
+    mov al, 25
+    ret
+.rows30:
+    mov al, 30
+    ret
+
 scroll_if_need_be:
-    cmp byte [.no_scroll], 0
-    jne .done
-    cmp dh, 25
+    push ax
+    mov ah, 0x0F
+    int 0x10
+    call get_rows_from_videomode
+    cmp dh, al
     jb .done
     pusha
     mov ah, 0x6
@@ -26,18 +37,66 @@ scroll_if_need_be:
     mov dx, 0x184f
     int 0x10
     popa
-    mov dh, 24
+    mov dh, al
+    dec dh
 .done:
+    pop ax
     ret
-.no_scroll: db 0
+
+set_char:
+    push ax
+    mov ah, 0x0F
+    int 0x10
+    cmp al, 0x3
+    jne .graphicsMode
+    pop ax
+
+    push es
+    
+    push dx
+    push di
+
+    push ax
+    mov ax, 0xb800
+    mov es, ax
+    
+    xor ax, ax
+    mov al, dh
+    mov ah, 80
+    mul ah
+    xor dh, dh
+    add ax, dx
+    mov di, ax
+    pop ax
+
+    shl di, 1
+    mov [es:di], al
+    mov [es:di+1], bl
+
+    pop di
+    pop dx
+
+    pop es
+    ret
+.graphicsMode:
+    pop ax
+    push ax
+    push bx
+    push cx
+    mov ah, 0x9
+    xor bh, bh
+    mov cx, 1
+    int 0x10
+    pop cx
+    pop bx
+    pop ax
+    ret
 
 putc_attr:
     push ax
     push bx
     push cx
     push dx
-
-    mov [scroll_if_need_be.no_scroll], dl
 
     push ax
     mov ah, 0x3
@@ -54,11 +113,10 @@ putc_attr:
 
     call scroll_if_need_be
     mov ah, 0x2
+    xor bh, bh
     int 0x10
 
-    mov ah, 0x9
-    mov cx, 1
-    int 0x10
+    call set_char
 
     inc dl
     cmp dl, 80
@@ -69,14 +127,11 @@ putc_attr:
     call scroll_if_need_be
 .cursor_good:
     mov ah, 0x2
+    xor bh, bh
     int 0x10
 
-    pusha
-    mov ah, 0x9
     mov al, " "
-    mov cx, 1
-    int 0x10
-    popa
+    call set_char
 
     jmp .done
 .newline:
@@ -84,19 +139,18 @@ putc_attr:
     xor dl, dl
     call scroll_if_need_be
     mov ah, 0x2
+    xor bh, bh
     int 0x10
     jmp .done
 .backspace:
     dec dl
     mov ah, 0x2
+    xor bh, bh
     int 0x10
-    mov ah, 0x9
     mov al, " "
-    mov cx, 1
-    int 0x10
+    call set_char
     jmp .done
 .done:
-    mov byte [scroll_if_need_be.no_scroll], 0
     pop dx
     pop cx
     pop bx
@@ -125,24 +179,6 @@ puts_attr:
     push ax
     push dx
     push si
-    xor dl, dl
-.loop:
-    lodsb
-    or al, al
-    jz .done
-    call putc_attr
-    jmp .loop
-.done:
-    pop si
-    pop dx
-    pop ax
-    ret
-
-puts_attr_no_scroll:
-    push ax
-    push dx
-    push si
-    mov dl, 0x1
 .loop:
     lodsb
     or al, al
@@ -408,13 +444,11 @@ int21:
     cmpje 0x2
     cmpje 0x3
     cmpje 0x4
-    cmpje 0x10
     jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
 route 0x2, file_get
 route 0x3, file_read
-route 0x10, puts_attr_no_scroll
 route 0x4, file_confirm_exists
 .done:
     iret
