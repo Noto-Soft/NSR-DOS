@@ -124,6 +124,11 @@ main:
     xor ah, ah
     mov al, 0x3
     int 0x10
+    
+    mov dh, 24
+    xor dl, dl
+    mov ah, 0x2
+    int 0x10
 
     retf
 

@@ -163,6 +163,7 @@ puts:
     push si
     mov ah, 0xe
     xor bh, bh
+    cld
 .loop:
     lodsb
     or al, al
@@ -179,6 +180,7 @@ puts_attr:
     push ax
     push dx
     push si
+    cld
 .loop:
     lodsb
     or al, al
@@ -216,6 +218,30 @@ strcmp:
     pop di
     pop si
     ret
+
+case_up:
+    push ax
+    push si
+    cld
+.loop:
+    lodsb
+
+    test al, al
+    jz .print
+    cmp al, 'a'
+    jb .loop
+    cmp al, 'z'
+    ja .loop
+
+    sub al, 'a' - 'A'
+    mov [si-1], al
+    
+    jmp .loop
+.print:
+    pop si
+    pop ax
+    ret
+
 
 ;
 ; Disk routines
@@ -330,6 +356,7 @@ disk_reset:
 ;   - di: file entry
 file_get:
     push ax
+    call case_up
 .locate_kernel_loop:
     mov al, [es:di]
     or al, al
@@ -364,6 +391,7 @@ file_get:
 file_confirm_exists:
     push bx
     push ax
+    call case_up
 .locate_kernel_loop:
     mov al, [es:di]
     or al, al
@@ -486,29 +514,15 @@ main:
     mov ax, cs
     mov ds, ax
 
-    mov bl, 0xf
-    lea si, [msg_ivt]
-    call puts_attr
-
     push es
     xor ax, ax
     mov es, ax
     mov ax, cs
     mov word [es:0x21*4], int21
     mov [es:0x21*4+2], ax
-    mov bl, 0x3
-    lea si, [msg_int21]
-    call puts_attr
     mov word [es:0x22*4], disk_read_interrupt_wrapper
     mov [es:0x22*4+2], ax
-    mov bl, 0x3
-    lea si, [msg_int22]
-    call puts_attr
     pop es
-
-    mov bl, 0xf
-    lea si, [msg_newline]
-    call puts_attr
 
     lea si, [command_exe]
     mov dl, [drive]
@@ -544,12 +558,6 @@ main:
     call puts_attr
 
     jmp $
-
-msg_newline: db endl, 0
-msg_list: db "List of files on drive:", endl, endl, 0
-msg_ivt: db "Patching IVT", endl, 0
-msg_int21: db "Patched int 0x21 to IVT", endl, 0
-msg_int22: db "Patched int 0x22 to IVT", endl, 0
 
 error_floppy: db "Error reading from floppy", endl, 0
 error_file_not_found: db "File not found", endl, 0
