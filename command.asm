@@ -19,12 +19,13 @@ msg_newline: db endl, 0
 str_dir: db "dir", 0
 str_type: db "type", 0
 
-error_not_command: db "Not a command nor an executable file", endl, 0
-error_not_file: db "Not a file", endl, 0
+error_not_command_or_file: db "Not a command nor an executable file", endl, 0
+error_not_file: db "File does not exist", endl, 0
 error_unknown_format: db "The format of the executable is not known to the loader", endl, 0
 
 buffer: times 128 db 0
 BUFFER_END equ $
+times 4 db 0 ; allow some extra space for .exe autofill
 db 0
 
 align 256
@@ -139,30 +140,12 @@ line_done:
     or al, al
     jz type
 
-    push es
-    mov ah, 0x4
-    mov bx, 0x0
-    mov es, bx
-    lea di, [0x800]
-    int 0x21
-    pop es
-    cmp al, 0
-    je exec
-
     pop di
 
     cmp di, buffer
-    jne not_command
+    je line
 
-    jmp line
-
-not_command:
-    xor ah, ah
-    mov bl, 0x4
-    lea si, [error_not_command]
-    int 0x21
-
-    jmp line
+    jmp exec
 
 dir:
     pusha
@@ -253,8 +236,9 @@ exec:
     mov es, bx
     lea di, [0x800]
     int 0x21
-    cmp ax, 0
-    jne .not_exist
+    test al, al
+    jnz .check_autofill
+.after_autofill_check:
     mov ah, 0x3
     mov dl, [drive]
     mov bx, 0x7000
@@ -309,7 +293,7 @@ exec:
     
     xor ah, ah
     mov bl, 0x4
-    lea si, [error_not_file]
+    lea si, [error_not_command_or_file]
     int 0x21
 .done:
     pop es
@@ -326,6 +310,25 @@ exec:
     int 0x21
 
     jmp .done
+.check_autofill:
+    push si
+.find_terminator_loop:
+    inc si
+    cmp byte [si-1], 0
+    jne .find_terminator_loop
+    mov word [si-1], ".E"
+    mov word [si+1], "XE"
+    pop si
+
+    mov ah, 0x4
+    mov bx, 0x0
+    mov es, bx
+    lea di, [0x800]
+    int 0x21
+    test al, al
+    jnz .not_exist
+
+    jmp .after_autofill_check
 
 exit:
     retf

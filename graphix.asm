@@ -19,23 +19,27 @@ align 256
 start:
     mov ax, cs
     mov ds, ax
-
-    mov ax, 0xa000
     mov es, ax
 
     jmp main
 
 clear_screen:
+    push ax
     push cx
     push di
+    push es
+    mov ax, 0xa000
+    mov es, ax
     xor di, di
     mov cx, 320*200
 .loop:
     mov [es:di], al
     inc di
     loop .loop
+    pop es
     pop di
     pop cx
+    pop ax
     ret
 
 draw_pixel:
@@ -44,8 +48,12 @@ draw_pixel:
     push cx
     push dx
     push di
+    push es
 
     mov di, ax
+
+    mov ax, 0xa000
+    mov es, ax
 
     mov ax, dx
     mov bx, 320
@@ -55,6 +63,7 @@ draw_pixel:
     xchg di, ax
     mov [es:di], al
 
+    pop es
     pop di
     pop dx
     pop cx
