@@ -11,8 +11,8 @@ dw start
 dw symbol_table
 dw SYMBOL_TABLE_LENGTH
 
-msg_explainy: db "Graphix.exe - Graphics mode test", endl, "Q to quit", 0
-msg_happy: db "happy", endl, 0
+drive: db 0
+nsrdos_bmp: db "NSRDOS.BMP", 0
 
 align 256
 
@@ -20,6 +20,8 @@ start:
     mov ax, cs
     mov ds, ax
     mov es, ax
+
+    mov [drive], dl
 
     jmp main
 
@@ -73,6 +75,30 @@ draw_pixel:
     pop ax
     ret
 
+; ds:si - bitmap data
+draw_fullscreen_bmp:
+    push ax
+    push bx
+    push cx
+    push es
+    mov ax, 0xa000
+    mov es, ax
+
+    xor bx, bx
+    mov cx, 320*200
+.loop:
+    mov al, [si+bx]
+    mov [es:bx], al
+    inc bx
+    cmp bx, cx
+    jb .loop
+
+    pop es
+    pop cx
+    pop bx
+    pop ax
+    ret
+
 main:
     xor ah, ah
     mov al, 0x13
@@ -81,48 +107,27 @@ main:
     mov al, 0x1
     call clear_screen
     
-    mov cx, 160
-    mov dx, 100
+    mov ah, 0x3
+    mov dl, [drive]
+    lea si, [nsrdos_bmp]
+    mov bx, 0x3000
+    mov es, bx
+    mov bx, 0x0
+    int 0x21
+
     mov al, 0xf
-    call draw_pixel
-    inc dx
-    call draw_pixel
-    dec dx
-    add cx, 3
-    call draw_pixel
-    inc dx
-    call draw_pixel
-    add dx, 2
-    inc cx
-    call draw_pixel
-    inc dx
-    dec cx
-    call draw_pixel
-    dec cx
-    call draw_pixel
-    dec cx
-    call draw_pixel
-    dec cx
-    call draw_pixel
-    dec dx
-    dec cx
+    mov dx, 50
+    mov cx, 50
     call draw_pixel
 
-    xor ah, ah
-    mov bl, 0xf0
-    lea si, [msg_happy]
-    int 0x21
+    mov ax, es
+    mov ds, ax
 
-    mov ah, 0x2
-    xor bh, bh
-    mov dh, 23
-    xor dl, dl
-    int 0x10
-
-    xor ah, ah
-    mov bl, 0xf
-    lea si, [msg_explainy]
-    int 0x21
+    xor si, si
+    cmp word [si], "BM"
+    jne .done
+    add si, 6
+    call draw_fullscreen_bmp
 .wait:
     xor ah, ah
     int 0x16

@@ -15,9 +15,6 @@ def convert_bmp_to_raw(input_path, output_path):
     header += struct.pack('<H', width)   
     header += struct.pack('<H', height)  
 
-    while len(header) % 16 != 0:
-        header += b'\x00'
-
     with open(output_path, 'wb') as f:
         f.write(header)
         f.write(bytearray(pixel_data))
