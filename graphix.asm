@@ -28,8 +28,10 @@ clear_screen:
     push cx
     push di
     push es
+    push ax
     mov ax, 0xa000
     mov es, ax
+    pop ax
     xor di, di
     mov cx, 320*200
 .loop:
