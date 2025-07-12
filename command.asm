@@ -21,7 +21,6 @@ str_type: db "type", 0
 
 error_not_command_or_file: db "Not a command nor an executable file", endl, 0
 error_not_file: db "File does not exist", endl, 0
-error_unknown_format: db "The format of the executable is not known to the loader", endl, 0
 
 buffer: times 96 db 0
 BUFFER_END equ $
@@ -351,14 +350,9 @@ exec:
     popa
     jmp line
 .unknown_format:
-    mov ax, cs
-    mov ds, ax
-    xor ah, ah
-    lea si, [error_unknown_format]
-    mov bl, 0x4
-    int 0x21
-
-    jmp .done
+    pusha
+    mov al, 0x2
+    int 0x23
 .check_autofill:
     push si
 .find_terminator_loop:

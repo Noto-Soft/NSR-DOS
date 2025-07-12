@@ -724,15 +724,12 @@ main:
     jmp $
 
 .unknown_format:
-    lea si, [error_unknown_format]
-    mov bl, 0x4
-    call puts_attr
-
-    jmp $
+    pusha
+    mov al, 0x2
+    int 0x23
 
 error_floppy: db "Error reading from floppy", endl, 0
 error_file_not_found: db "File not found", endl, 0
-error_unknown_format: db "The format of the executable is not known to the kernel", endl, 0
 
 msg_newline: db endl, 0
 
