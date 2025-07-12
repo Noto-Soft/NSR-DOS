@@ -529,6 +529,10 @@ int6:
     mov bl, 0x6
     jmp fatal_exception
 
+int23:
+    mov bl, al
+    jmp fatal_exception
+
 fatal_exception:
     xor ah, ah
     mov al, 0x3
@@ -563,6 +567,17 @@ fatal_exception:
     call putc_attr
     mov ax, dx
     call print_hex_word
+    lea si, [msg_newline]
+    call puts_attr
+    xor si, si
+    mov ds, si
+    mov cx, 0x200
+.ivt_dump_loop:
+    mov al, [si]
+    mov bl, 0x17
+    call putc_attr
+    inc si
+    loop .ivt_dump_loop
     jmp $
 
 main:
@@ -579,7 +594,7 @@ main:
 
     lea si, [boot_txt]
     mov dl, [drive]
-    mov bx, 0x3f00
+    mov bx, 0x4000
     mov es, bx
     xor bx, bx
     call file_read
@@ -610,6 +625,8 @@ main:
     mov [es:0x21*4+2], ax
     mov word [es:0x22*4], disk_read_interrupt_wrapper
     mov [es:0x22*4+2], ax
+    mov word [es:0x23*4], int23
+    mov [es:0x23*4+2], ax
     pop es
 
     lea si, [command_exe]
@@ -650,6 +667,8 @@ main:
 error_floppy: db "Error reading from floppy", endl, 0
 error_file_not_found: db "File not found", endl, 0
 error_unknown_format: db "The format of the executable is not known to the kernel", endl, 0
+
+msg_newline: db endl, 0
 
 nsr_dos: db "NSR-DOS", 0
 fatal_exception_msg: db endl, endl, "A fatal exception ", 0

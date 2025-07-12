@@ -128,6 +128,14 @@ main:
     jne .done
     add si, 6
     call draw_fullscreen_bmp
+
+    mov ax, cs
+    mov ds, ax
+
+    xor ah, ah
+    mov bl, 0x7c
+    lea si, [nsrdos_bmp]
+    int 0x21
 .wait:
     xor ah, ah
     int 0x16

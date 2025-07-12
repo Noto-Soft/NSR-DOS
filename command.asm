@@ -83,6 +83,29 @@ strcmp_until_di_end:
     pop si
     ret
 
+case_up:
+    push ax
+    push si
+    cld
+.loop:
+    lodsb
+
+    test al, al
+    jz .print
+    cmp al, 'a'
+    jb .loop
+    cmp al, 'z'
+    ja .loop
+
+    sub al, 'a' - 'A'
+    mov [si-1], al
+    
+    jmp .loop
+.print:
+    pop si
+    pop ax
+    ret
+
 clear_buffer:
     push ax
     push di
@@ -213,7 +236,7 @@ type:
     jne .not_exist
     mov ah, 0x3
     mov dl, [drive]
-    mov bx, 0x3f00
+    mov bx, 0x4000
     mov es, bx
     xor bx, bx
     int 0x21
@@ -256,9 +279,15 @@ exec:
     test al, al
     jnz .check_autofill
 .after_autofill_check:
-    mov ah, 0x3
     mov dl, [drive]
-    mov bx, 0x7000
+    mov bx, 0x2000
+    mov ax, cs
+    cmp bx, ax
+    jne .after_error
+    mov al, 1
+    int 0x23
+.after_error:
+    mov ah, 0x3
     mov es, bx
     xor bx, bx
     int 0x21

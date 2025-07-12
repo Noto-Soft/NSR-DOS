@@ -1,0 +1,3 @@
+00: divide by zero
+01: invalid program overwrite (overwriting a program while in said program)
+06: invalid opcode
