@@ -106,8 +106,6 @@ putc_attr:
 
     cmp al, 0xa
     je .newline
-    cmp al, 0xd
-    je .newline
     cmp al, 0x8
     je .backspace
 
@@ -129,9 +127,6 @@ putc_attr:
     mov ah, 0x2
     xor bh, bh
     int 0x10
-
-    mov al, " "
-    call set_char
 
     jmp .done
 .newline:
@@ -217,6 +212,47 @@ strcmp:
 .done:
     pop di
     pop si
+    ret
+
+print_hex_digit:
+    push bx
+    cmp al, 10
+    jl .number
+    add al, 'A' - 10
+    jmp .print
+.number:
+    add al, '0'
+.print:
+    pop bx
+    call putc_attr
+    ret
+
+; al- byte
+; bl - format
+print_hex_byte:
+    push ax
+    push cx
+
+    mov cl, al
+
+    mov al, cl
+    shr al, 4
+    
+    call print_hex_digit
+
+    mov al, cl
+    and al, 0x0F
+    call print_hex_digit
+
+    pop cx
+    pop ax
+    ret
+
+print_hex_word:
+    xchg ah, al
+    call print_hex_byte
+    xchg ah, al
+    call print_hex_byte
     ret
 
 case_up:
@@ -481,6 +517,50 @@ route 0x4, file_confirm_exists
 .done:
     iret
 
+int0:
+    xor bl, bl
+    jmp fatal_exception
+
+int6:
+    mov bl, 0x6
+    jmp fatal_exception
+
+fatal_exception:
+    xor ah, ah
+    mov al, 0x3
+    int 0x10
+    mov ah, 0x6
+    xor al, al
+    mov bh, 0x17
+    xor cx, cx
+    mov dx, 0x184f
+    int 0x10
+    mov dh, 24
+    xor dl, dl
+    mov ah, 0x2
+    int 0x10
+    pop dx ; ip
+    pop cx ; cs
+    mov ax, cs
+    mov ds, ax
+    mov al, bl
+    mov bl, 0x71
+    lea si, [nsr_dos]
+    call puts_attr
+    mov bl, 0x17
+    lea si, [fatal_exception_msg]
+    call puts_attr
+    call print_hex_byte
+    lea si, [fatal_exception_part_2]
+    call puts_attr
+    mov ax, cx
+    call print_hex_word
+    mov al, ":"
+    call putc_attr
+    mov ax, dx
+    call print_hex_word
+    jmp $
+
 main:
     xor ah, ah
     mov al, 0x3
@@ -518,6 +598,10 @@ main:
     xor ax, ax
     mov es, ax
     mov ax, cs
+    mov word [es:0x0*4], int0
+    mov [es:0x0*4+2], ax
+    mov word [es:0x6*4], int6
+    mov [es:0x6*4+2], ax
     mov word [es:0x21*4], int21
     mov [es:0x21*4+2], ax
     mov word [es:0x22*4], disk_read_interrupt_wrapper
@@ -562,6 +646,10 @@ main:
 error_floppy: db "Error reading from floppy", endl, 0
 error_file_not_found: db "File not found", endl, 0
 error_unknown_format: db "The format of the executable is not known to the kernel", endl, 0
+
+nsr_dos: db "NSR-DOS", 0
+fatal_exception_msg: db endl, endl, "A fatal exception ", 0
+fatal_exception_part_2: db " has occured at ", 0
 
 boot_txt: db "BOOT.TXT", 0
 command_exe: db "COMMAND.EXE", 0
