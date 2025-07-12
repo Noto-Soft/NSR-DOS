@@ -43,6 +43,21 @@ scroll_if_need_be:
     pop ax
     ret
 
+get_mem_pos:
+    push ax
+    push dx
+    xor ax, ax
+    mov al, dh
+    mov ah, 80
+    mul ah
+    xor dh, dh
+    add ax, dx
+    mov di, ax
+    pop dx
+    pop ax
+    shl di, 1
+    ret
+
 set_char:
     push ax
     mov ah, 0x0F
@@ -52,24 +67,17 @@ set_char:
     pop ax
 
     push es
-    
+
     push dx
     push di
 
     push ax
     mov ax, 0xb800
     mov es, ax
-    
-    xor ax, ax
-    mov al, dh
-    mov ah, 80
-    mul ah
-    xor dh, dh
-    add ax, dx
-    mov di, ax
     pop ax
 
-    shl di, 1
+    call get_mem_pos
+
     mov [es:di], al
     mov [es:di+1], bl
 
@@ -127,6 +135,27 @@ putc_attr:
     mov ah, 0x2
     xor bh, bh
     int 0x10
+
+    push es
+
+    push di
+
+    push ax
+    mov ax, 0xb800
+    mov es, ax
+    pop ax
+
+    call get_mem_pos
+
+    mov al, [es:di+1]
+    and al, 0xf0
+    and bl, 0x0f
+    add bl, al
+    mov [es:di+1], bl
+
+    pop di
+
+    pop es
 
     jmp .done
 .newline:
@@ -233,8 +262,6 @@ print_hex_byte:
     push ax
     push cx
 
-    mov cl, al
-
     mov al, cl
     shr al, 4
     
@@ -249,9 +276,9 @@ print_hex_byte:
     ret
 
 print_hex_word:
-    xchg ah, al
+    xchg ch, cl
     call print_hex_byte
-    xchg ah, al
+    xchg ch, cl
     call print_hex_byte
     ret
 
@@ -549,9 +576,10 @@ fatal_exception:
     int 0x10
     pop dx ; ip
     pop cx ; cs
+    add sp, 2 ; flags
     mov ax, cs
     mov ds, ax
-    mov al, bl
+    mov cl, bl
     mov bl, 0x71
     lea si, [nsr_dos]
     call puts_attr
@@ -561,23 +589,61 @@ fatal_exception:
     call print_hex_byte
     lea si, [fatal_exception_part_2]
     call puts_attr
-    mov ax, cx
     call print_hex_word
     mov al, ":"
     call putc_attr
-    mov ax, dx
+    mov cx, dx
     call print_hex_word
-    lea si, [msg_newline]
-    call puts_attr
-    xor si, si
-    mov ds, si
-    mov cx, 0x200
-.ivt_dump_loop:
-    mov al, [si]
-    mov bl, 0x17
+    mov al, 0xa
     call putc_attr
-    inc si
-    loop .ivt_dump_loop
+
+    mov al, 0b10110110
+    out 0x43, al
+
+    mov ax, 1193182 / 880
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+
+    in al, 0x61
+    or al, 3
+    out 0x61, al
+
+    popa
+    push cx
+    push bx
+    mov cx, ax
+    mov bl, 0x17
+    call print_hex_word
+    mov al, " "
+    call putc_attr
+    pop cx
+    call print_hex_word
+    mov al, " "
+    call putc_attr
+    pop cx
+    call print_hex_word
+    mov al, " "
+    call putc_attr
+    mov cx, dx
+    call print_hex_word
+    mov al, " "
+    call putc_attr
+    mov cx, si
+    call print_hex_word
+    mov al, " "
+    call putc_attr
+    mov cx, di
+    call print_hex_word
+    mov al, 0xa
+    call putc_attr
+    mov cx, ds
+    call print_hex_word
+    mov al, " "
+    call putc_attr
+    mov cx, es
+    call print_hex_word
+
     jmp $
 
 main:

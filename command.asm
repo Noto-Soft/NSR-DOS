@@ -160,9 +160,9 @@ line:
     jmp .loop
 
 line_done:
-    xor ah, ah
+    mov ah, 0x1
     mov bl, 0xf
-    lea si, [msg_newline]
+    mov al, 0xa
     int 0x21
 
     push di
@@ -205,8 +205,14 @@ dir:
     push ds
     mov ax, cs
     mov ds, ax
-    xor ah, ah
-    lea si, [msg_newline]
+    mov ah, 0x1
+    mov al, " "
+    int 0x21
+    mov ah, 0x5
+    mov cl, [si-1]
+    int 0x21
+    mov ah, 0x1
+    mov al, 0xa
     int 0x21
     pop ds
     dec di
@@ -284,6 +290,7 @@ exec:
     mov ax, cs
     cmp bx, ax
     jne .after_error
+    pusha
     mov al, 1
     int 0x23
 .after_error:
