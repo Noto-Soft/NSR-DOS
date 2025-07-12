@@ -112,7 +112,7 @@ main:
     lea si, [nsrdos_bmp]
     mov bx, 0x3000
     mov es, bx
-    mov bx, 0x0
+    xor bx, bx
     int 0x21
 
     mov al, 0xf

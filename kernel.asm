@@ -446,7 +446,7 @@ file_confirm_exists:
     mov bx, 1
     jmp .done
 .located_kernel:
-    mov bx, 0
+    xor bx, bx
     jmp .done
 .done:
     pop ax
@@ -508,12 +508,16 @@ int21:
     cmpje 0x2
     cmpje 0x3
     cmpje 0x4
+    cmpje 0x5
+    cmpje 0x6
     jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
 route 0x2, file_get
 route 0x3, file_read
 route 0x4, file_confirm_exists
+route 0x5, print_hex_byte
+route 0x6, print_hex_word
 .done:
     iret
 
@@ -577,7 +581,7 @@ main:
     mov dl, [drive]
     mov bx, 0x3f00
     mov es, bx
-    mov bx, 0x0
+    xor bx, bx
     call file_read
 
     mov dh, 24
@@ -612,7 +616,7 @@ main:
     mov dl, [drive]
     mov bx, 0x1000
     mov es, bx
-    mov bx, 0x0
+    xor bx, bx
     call file_read
 
     mov ax, [es:0x0]

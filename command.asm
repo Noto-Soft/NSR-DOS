@@ -166,6 +166,7 @@ dir:
     push ds
     mov ax, cs
     mov ds, ax
+    xor ah, ah
     lea si, [msg_newline]
     int 0x21
     pop ds
@@ -188,7 +189,7 @@ type:
 
     mov ah, 0x4
     add si, 5
-    mov bx, 0x0
+    xor bx, bx
     mov es, bx
     lea di, [0x800]
     int 0x21
@@ -198,7 +199,7 @@ type:
     mov dl, [drive]
     mov bx, 0x3f00
     mov es, bx
-    mov bx, 0x0
+    xor bx, bx
     int 0x21
 
     mov ax, es
@@ -232,7 +233,7 @@ exec:
     push es
 
     mov ah, 0x4
-    mov bx, 0x0
+    xor bx, bx
     mov es, bx
     lea di, [0x800]
     int 0x21
@@ -243,7 +244,7 @@ exec:
     mov dl, [drive]
     mov bx, 0x7000
     mov es, bx
-    mov bx, 0x0
+    xor bx, bx
     int 0x21
 
     mov ax, es
@@ -321,7 +322,7 @@ exec:
     pop si
 
     mov ah, 0x4
-    mov bx, 0x0
+    xor bx, bx
     mov es, bx
     lea di, [0x800]
     int 0x21
