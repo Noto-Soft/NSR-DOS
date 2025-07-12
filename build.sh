@@ -15,6 +15,7 @@ python3 tools/thinfs.py add nsr-dos.img command.exe
 python3 tools/thinfs.py add nsr-dos.img helloworld.exe
 python3 tools/thinfs.py add nsr-dos.img graphix.exe
 python3 tools/thinfs.py add nsr-dos.img nsrdos.bmp
+python3 tools/thinfs.py add nsr-dos.img aldi.txt
 qemu-system-i386 -drive file=nsr-dos.img,if=floppy,format=raw -monitor stdio \
     -machine pcspk-audiodev=spk \
     -audiodev alsa,id=spk

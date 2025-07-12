@@ -202,19 +202,15 @@ dir:
     add di, 4
     mov si, di
     int 0x21
-    push ds
-    mov ax, cs
-    mov ds, ax
     mov ah, 0x1
     mov al, " "
     int 0x21
     mov ah, 0x5
-    mov cl, [si-1]
+    mov cl, [di-2]
     int 0x21
     mov ah, 0x1
     mov al, 0xa
     int 0x21
-    pop ds
     dec di
     mov al, [di]
     xor ah, ah
