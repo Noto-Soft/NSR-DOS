@@ -1,0 +1,12 @@
+[2 bytes for start of header]
+
+if BM
+2 bytes for width
+2 bytes for height
+the rest of image is 8bbp indexed
+
+if CM
+2 bytes for width
+2 bytes for height
+768 bytes describing the pallete
+the rest of the image is 8bbp indexed
