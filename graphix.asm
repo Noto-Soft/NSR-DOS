@@ -151,8 +151,12 @@ main:
 symbol_table:
 db "start", 0
 dw start
+db "draw_pixel", 0
+dw draw_pixel
+db "draw_fullscreen_bmp", 0
+dw draw_fullscreen_bmp
 db "main", 0
 dw main
-SYMBOL_TABLE_LENGTH equ 2
+SYMBOL_TABLE_LENGTH equ 4
 
 times 512-($-$$) db 0

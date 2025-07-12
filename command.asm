@@ -23,10 +23,11 @@ error_not_command_or_file: db "Not a command nor an executable file", endl, 0
 error_not_file: db "File does not exist", endl, 0
 error_unknown_format: db "The format of the executable is not known to the loader", endl, 0
 
-buffer: times 128 db 0
+buffer: times 96 db 0
 BUFFER_END equ $
 times 4 db 0 ; allow some extra space for .exe autofill
 db 0
+BUFFER_SPACE_END equ $
 
 align 256
 
@@ -82,6 +83,21 @@ strcmp_until_di_end:
     pop si
     ret
 
+clear_buffer:
+    push ax
+    push di
+    xor al, al
+.loop:
+    mov [di], al
+    inc di
+    cmp di, BUFFER_SPACE_END
+    ja .done
+    jmp .loop
+.done:
+    pop di
+    pop ax
+    ret
+
 main:
     mov ax, cs
     mov ds, ax
@@ -89,7 +105,7 @@ main:
 
 line:
     lea di, [buffer]
-    mov byte [di], 0
+    call clear_buffer
     xor ah, ah
     mov bl, 0xf
     lea si, [msg_command]
