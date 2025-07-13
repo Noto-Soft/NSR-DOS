@@ -13,11 +13,19 @@ dw SYMBOL_TABLE_LENGTH
 
 drive: db 0
 
-msg_command: db "# ", 0
+msg_command: db "A>", 0
 msg_newline: db endl, 0
 
+str_commands: db "List of commands:", endl, 0
+str_cls: db "cls", 0
+    db " - Clear console output", endl, 0
 str_dir: db "dir", 0
+    db " - List files on the disk directory", endl, 0
+str_help: db "help", 0
+    db " - List available commands and their functions", endl, 0
 str_type: db "type", 0
+    db " - Read a file out to the console", endl, 0
+db 0
 
 error_not_command_or_file: db "Not a command nor an executable file", endl, 0
 error_not_file: db "File does not exist", endl, 0
@@ -177,6 +185,16 @@ line_done:
     call strcmp_until_di_end
     or al, al
     jz type
+
+    lea di, [str_help]
+    call strcmp
+    or al, al
+    jz help
+
+    lea di, [str_cls]
+    call strcmp
+    or al, al
+    jz cls
 
     pop di
 
@@ -372,6 +390,37 @@ exec:
     jnz .not_exist
 
     jmp .after_autofill_check
+
+help:
+    xor ah, ah
+    mov bl, 0xf
+    lea si, [str_commands]
+    int 0x21
+.find_next_string:
+    mov al, [si]
+    inc si
+    test al, al
+    jnz .find_next_string
+    mov al, [si]
+    test al, al
+    jz line
+    int 0x21
+    jmp .find_next_string
+
+cls:
+    mov ah, 0x6
+    xor al, al
+    mov bh, 0x0f
+    xor cx, cx
+    mov dx, 0x184f
+    int 0x10
+
+    mov dh, 24
+    xor dl, dl
+    mov ah, 0x2
+    int 0x10
+
+    jmp line
 
 exit:
     retf
