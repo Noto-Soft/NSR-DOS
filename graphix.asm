@@ -12,7 +12,14 @@ dw symbol_table
 dw SYMBOL_TABLE_LENGTH
 
 drive: db 0
-nsrdos_bmp: db "NSRDOS.BMP", 0
+
+msg_choose_image: db "Enter image filename (Or leave blank for default)", endl, "When finished viewing the beauty you desire, press q", endl, 0
+msg_image_doesnt_exist: db "Image file requested does not exist", endl, 0
+
+default_image: db "NSRDOS.BMP", 0
+image_file_name: times 64 db 0
+FILENAME_BUFFER_LENGTH equ $-image_file_name
+db 0
 
 align 256
 
@@ -140,6 +147,45 @@ set_pallete:
 
 main:
     xor ah, ah
+    mov bl, 0x3
+    lea si, [msg_choose_image]
+    int 0x21
+
+    lea di, [image_file_name]
+    xor bx, bx
+    mov byte [di], 0
+.get_filename_loop:
+    xor ah, ah
+    int 0x16
+    cmp al, 0xd
+    je .got_filename
+    cmp al, 0x8
+    je .backspace
+    cmp bx, FILENAME_BUFFER_LENGTH
+    jnb .get_filename_loop
+    mov ah, 0x1
+    push bx
+    mov bl, 0xf
+    int 0x21
+    pop bx
+    mov [di+bx], al
+    inc bx
+    mov byte [di+bx], 0
+    jmp .get_filename_loop
+.backspace:
+    cmp bx, 0
+    jna .get_filename_loop
+    mov ah, 0x1
+    push bx
+    mov al, 0x8
+    mov bl, 0xf
+    int 0x21
+    pop bx
+    mov byte [di+bx], 0
+    dec bx
+    jmp .get_filename_loop
+.got_filename:
+    xor ah, ah
     mov al, 0x13
     int 0x10
 
@@ -151,9 +197,19 @@ main:
     xor al, al
     call set_pallete
 
+    lea si, [image_file_name]
+    cmp byte [si], 0
+    jne .continue
+
+    lea si, [default_image]
+.continue:
+    mov ah, 0x4
+    int 0x21
+    test al, al
+    jnz .not_exist
+
     mov ah, 0x3
     mov dl, [drive]
-    lea si, [nsrdos_bmp]
     mov bx, 0x3000
     mov es, bx
     xor bx, bx
@@ -193,8 +249,8 @@ main:
     mov ds, ax
 
     xor ah, ah
-    mov bl, 0x7c
-    lea si, [nsrdos_bmp]
+    xor bl, bl
+    lea si, [image_file_name]
     int 0x21
 .wait:
     xor ah, ah
@@ -215,6 +271,22 @@ main:
     int 0x10
 
     retf
+.not_exist:
+    xor ah, ah
+    mov al, 0x3
+    int 0x10
+
+    mov dh, 24
+    xor dl, dl
+    mov ah, 0x2
+    int 0x10
+
+    xor ah, ah
+    mov bl, 0x4
+    lea si, [msg_image_doesnt_exist]
+    int 0x21
+
+    retf
 
 symbol_table:
 db "start", 0
@@ -223,8 +295,12 @@ db "draw_pixel", 0
 dw draw_pixel
 db "draw_fullscreen_bmp", 0
 dw draw_fullscreen_bmp
+db "set_pallete", 0
+dw set_pallete
+db "get_pallete", 0
+dw get_pallete
 db "main", 0
 dw main
-SYMBOL_TABLE_LENGTH equ 4
+SYMBOL_TABLE_LENGTH equ 6
 
 times 1024-($-$$) db 0

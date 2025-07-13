@@ -447,13 +447,16 @@ file_get:
     pop ax
     ret
 
-; si - filename
-; di - entry sectors start
+; ds:si - filename
 ; returns:
 ;   - ax: 0 if exists
 file_confirm_exists:
     push bx
     push ax
+    push es
+    xor ax, ax
+    mov es, ax
+    lea di, [0x800]
     call case_up
 .locate_kernel_loop:
     mov al, [es:di]
@@ -476,6 +479,7 @@ file_confirm_exists:
     xor bx, bx
     jmp .done
 .done:
+    pop es
     pop ax
     mov ax, bx
     pop bx

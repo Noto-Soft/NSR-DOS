@@ -48,6 +48,9 @@ def add_file(img_name, input_file, output_name=None):
         output_name = to_upper_ascii(input_file)
     else:
         output_name = output_name.upper()
+    
+    if (len(output_name) > 64):
+        raise ValueError("Target filename must be under 64 characters")
 
     # Read the file to add
     with open(input_file, "rb") as f:
