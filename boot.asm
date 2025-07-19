@@ -7,7 +7,7 @@ org 0x7c00
 jmp start
 
 ; THIN header
-db "R-DOS0.1 "
+db "R-DOS0.3 "
 
 start:
     xor ax, ax
@@ -190,9 +190,8 @@ disk_reset:
 .disk_retry: db "Retry read", endl, 0
 
 floppy_error:
-    lea si, [error_floppy]
-    call puts
-    jmp $
+    mov al, 0x4
+    int 0x23
 
 main:
     mov ax, 1

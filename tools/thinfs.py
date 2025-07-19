@@ -19,10 +19,16 @@ def create_image(img_name, bootloader_path, fs_name):
     fs_name = fs_name.upper().ljust(11).encode("ascii")[:11]
 
     # Read bootloader
-    with open(bootloader_path, "rb") as f:
-        bootloader = f.read()
-    if len(bootloader) > SECTOR_SIZE:
-        raise ValueError("Bootloader too large")
+    if os.path.exists(bootloader_path):
+        with open(bootloader_path, "rb") as f:
+            bootloader = f.read()
+        if len(bootloader) > SECTOR_SIZE:
+            raise ValueError("Bootloader too large")
+        bootloader = pad(bootloader, SECTOR_SIZE)
+    else:
+        # Default blank boot sector with R-DOS0.1 signature
+        bootloader = bytearray(SECTOR_SIZE)
+        bootloader[0x2:0x2+len(b"R-DOS0.1")] = b"R-DOS0.1"
 
     # Prepare image file
     with open(img_name, "wb") as f:
@@ -102,7 +108,8 @@ def add_file(img_name, input_file, output_name=None):
 
 def usage():
     print("Usage:")
-    print("  thinfs.py create <image> <bootloader> <fs_name>")
+    print("  thinfs.py createbootable <image> <bootloader> <fs_name>")
+    print("  thinfs.py create <image> <fs_name>")
     print("  thinfs.py add <image> <file.in> [FILE.OUT]")
 
 if __name__ == "__main__":
@@ -112,9 +119,12 @@ if __name__ == "__main__":
 
     command = sys.argv[1]
 
-    if command == "create" and len(sys.argv) == 5:
+    if command == "createbootable" and len(sys.argv) == 5:
         _, _, img, bootloader, fs_name = sys.argv
         create_image(img, bootloader, fs_name)
+    elif command == "create" and len(sys.argv) == 4:
+        _, _, img, fs_name = sys.argv
+        create_image(img, "", fs_name)
     elif command == "add" and (len(sys.argv) == 4 or len(sys.argv) == 5):
         _, _, img, file_in, *rest = sys.argv
         output_name = rest[0] if rest else None

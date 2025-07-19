@@ -203,12 +203,11 @@ main:
 
     lea si, [default_image]
 .continue:
-    mov ah, 0x4
+    mov ah, 0x7
     int 0x21
-    test al, al
-    jnz .not_exist
-
-    mov ah, 0x3
+    test di, di
+    jz .not_exist
+    mov ah, 0x8
     mov dl, [drive]
     mov bx, 0x3000
     mov es, bx
@@ -275,6 +274,9 @@ main:
     xor dl, dl
     mov ah, 0x2
     int 0x10
+
+    mov ax, cs
+    mov ds, ax
 
     xor ah, ah
     mov bl, 0x4

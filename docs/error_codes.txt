@@ -2,4 +2,6 @@
 01: invalid program overwrite (overwriting a program while in said program)
 02: invalid executable
 03: file doesn't exist
+04: some sort of error with the floppy
+05: incorrectly formatted disk
 06: invalid opcode

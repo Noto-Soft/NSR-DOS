@@ -17,6 +17,10 @@ msg_command: db "A>", 0
 msg_newline: db endl, 0
 
 str_commands: db "List of commands:", endl, 0
+str_a: db "a:", 0
+    db " - Set drive to drive a: (drive #0)", endl, 0
+str_b: db "b:", 0
+    db " - Set drive to drive b: (drive #1)", endl, 0
 str_cls: db "cls", 0
     db " - Clear console output", endl, 0
 str_dir: db "dir", 0
@@ -29,6 +33,7 @@ db 0
 
 error_not_command_or_file: db "Not a command nor an executable file", endl, 0
 error_not_file: db "File does not exist", endl, 0
+error_drive_missing: db "Disk is not inserted into the drive", endl, 0
 
 buffer: times 96 db 0
 BUFFER_END equ $
@@ -195,6 +200,16 @@ line_done:
     call strcmp
     or al, al
     jz cls
+
+    lea di, [str_a]
+    call strcmp
+    or al, al
+    jz a
+
+    lea di, [str_b]
+    call strcmp
+    or al, al
+    jz b
 
     pop di
 
@@ -411,6 +426,83 @@ cls:
 
     jmp line
 
+a:
+    mov al, "A"
+    xor dl, dl
+    jmp set_drive
+
+b:
+    mov al, "B"
+    mov dl, 1
+    jmp set_drive
+
+set_drive:
+    pusha
+    push es
+    mov ah, 0x8
+    int 0x13
+    jc drive_empty
+    pop es
+    popa
+    mov byte [drive], dl
+    mov byte [msg_command], al
+    jmp drive_switch
+
+drive_empty:
+    xor ah, ah
+    mov bl, 0x4
+    lea si, [error_drive_missing]
+    int 0x21
+    jmp line
+
+drive_invalid_fs:
+    mov al, 0x5
+    int 0x23
+
+drive_switch:
+    push es
+    xor ax, ax
+    mov es, ax
+
+    mov dl, [drive]
+
+    push es
+    mov ah, 08h
+    int 13h
+    pop es
+
+    and cl, 0x3F
+    xor ch, ch
+    mov [0x500], cx
+ 
+    inc dh
+    mov [0x502], dh
+    mov byte [0x503], 0
+
+    mov ax, 1
+    mov cl, 1
+    mov dl, [drive]
+    lea bx, [0x600]
+    int 0x22
+
+    mov al, [es:0x600+2]
+    test al, al
+    jz drive_invalid_fs
+
+    mov ax, 2
+    mov cl, [es:0x600+13]
+    mov dl, [drive]
+    lea bx, [0x800]
+    int 0x22
+
+    pop es
+
+    jmp dir
+
+floppy_error:
+    mov al, 0x4
+    int 0x23
+
 exit:
     retf
 
@@ -419,10 +511,4 @@ align 256
 symbol_table:
 db "start", 0
 dw start
-db "strcmp", 0
-dw strcmp
-db "strcmp_until_di_end", 0
-dw strcmp_until_di_end
-db "main", 0
-dw main
-SYMBOL_TABLE_LENGTH equ 4
+SYMBOL_TABLE_LENGTH equ 1

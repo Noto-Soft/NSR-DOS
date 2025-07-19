@@ -563,12 +563,8 @@ file_read_entry:
     ret
 
 floppy_error:
-    mov ax, cs
-    mov ds, ax
-    lea si, [error_floppy]
-    mov bl, 0x4
-    call puts_attr
-    jmp $
+    mov al, 0x4
+    int 0x23
 
 disk_read_interrupt_wrapper:
     call disk_read
