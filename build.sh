@@ -1,13 +1,8 @@
-nasme() {
-    nasm -o $2 -f bin $1
-    echo $2
-}
-
-nasme boot.asm boot.bin
-nasme kernel.asm kernel.bin
-nasme command.asm command.exe
-nasme helloworld.asm helloworld.exe
-nasme graphix.asm graphix.exe
+nasm boot.asm -f bin -o boot.bin
+nasm kernel.asm -f bin -o kernel.bin
+nasm command.asm -f bin -o command.exe
+nasm helloworld.asm -f bin -o helloworld.exe
+nasm graphix.asm -f bin -o graphix.exe
 python3 tools/thinfs.py create nsr-dos.img boot.bin NSRDOS
 python3 tools/thinfs.py add nsr-dos.img kernel.bin KERNEL.SYS
 python3 tools/thinfs.py add nsr-dos.img boot.txt

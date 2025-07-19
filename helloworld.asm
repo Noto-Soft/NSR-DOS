@@ -31,5 +31,3 @@ symbol_table:
 db "start", 0
 dw start
 SYMBOL_TABLE_LENGTH equ 2
-
-times 512-($-$$) db 0

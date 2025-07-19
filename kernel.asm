@@ -414,11 +414,14 @@ disk_reset:
 .disk_retry: db "Retry read", endl, 0
 
 ; si - filename
-; di - entry sectors start
 ; returns:
 ;   - di: file entry
 file_get:
     push ax
+    push es
+    push word 0
+    pop es
+    lea di, [0x800]
     call case_up
 .locate_kernel_loop:
     mov al, [es:di]
@@ -435,15 +438,48 @@ file_get:
     inc di
     jmp .locate_kernel_loop
 .not_found:
-    mov ax, cs
-    mov ds, ax
-    lea si, [error_file_not_found]
-    mov bl, 0x4
-    call puts_attr
-
-    jmp $
+    pop ax
+    add si, 2
+    mov bl, 0x3
+    jmp fatal_exception
 .located_kernel:
     sub di, 4
+    pop es
+    pop ax
+    ret
+
+; ds:si - filename
+; returns:
+;   - di: file entry, null if not found
+file_safe_get:
+    push ax
+    push es
+    push word 0
+    pop es
+    lea di, [0x800]
+    call case_up
+.locate_kernel_loop:
+    mov al, [es:di]
+    or al, al
+    jz .not_found ; end of entries
+    add di, 4
+    call strcmp
+    test ax, ax
+    jz .located_kernel
+    dec di
+    mov al, [es:di]
+    xor ah, ah
+    add di, ax
+    inc di
+    jmp .locate_kernel_loop
+.not_found:
+    xor di, di
+    pop es
+    pop ax
+    ret
+.located_kernel:
+    sub di, 4
+    pop es
     pop ax
     ret
 
@@ -510,6 +546,22 @@ file_read:
     pop ax
     ret
 
+; in:
+;   - dl: drive
+;   - es:bx: buffer
+;   - di: file entry (segment 0)
+file_read_entry:
+    push es
+
+    xor ax, ax
+    mov es, ax
+    mov ax, [es:di]
+    mov cl, [es:di+2]
+    pop es
+    call disk_read
+
+    ret
+
 floppy_error:
     mov ax, cs
     mov ds, ax
@@ -533,6 +585,21 @@ disk_read_interrupt_wrapper:
     jmp .done
 %endmacro
 
+%macro routel 2
+.ah%1:
+    push ax
+    push ds
+    mov ax, cs
+    mov ds, ax
+    cmp byte [.legacy_enabled], 1
+    pop ds
+    pop ax
+    jne %%not_legacy
+    call %2
+%%not_legacy:
+    jmp .done
+%endmacro
+
 int21:
     cmpje 0x0
     cmpje 0x1
@@ -541,16 +608,21 @@ int21:
     cmpje 0x4
     cmpje 0x5
     cmpje 0x6
+    cmpje 0x7
+    cmpje 0x8
     jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
-route 0x2, file_get
-route 0x3, file_read
-route 0x4, file_confirm_exists
+routel 0x2, file_get
+routel 0x3, file_read
+routel 0x4, file_confirm_exists
 route 0x5, print_hex_byte
 route 0x6, print_hex_word
+route 0x7, file_safe_get
+route 0x8, file_read_entry
 .done:
     iret
+.legacy_enabled: db 1
 
 int0:
     xor bl, bl
@@ -593,15 +665,8 @@ fatal_exception:
     call print_hex_byte
     lea si, [fatal_exception_part_2]
     call puts_attr
-    call print_hex_word
-    mov al, ":"
-    call putc_attr
-    mov cx, dx
-    call print_hex_word
-    mov al, 0xa
-    call putc_attr
 
-    mov al, 0b10110110
+    mov al, 0xb6
     out 0x43, al
 
     mov ax, 1193182 / 880
@@ -612,41 +677,6 @@ fatal_exception:
     in al, 0x61
     or al, 3
     out 0x61, al
-
-    popa
-    push cx
-    push bx
-    mov cx, ax
-    mov bl, 0x17
-    call print_hex_word
-    mov al, " "
-    call putc_attr
-    pop cx
-    call print_hex_word
-    mov al, " "
-    call putc_attr
-    pop cx
-    call print_hex_word
-    mov al, " "
-    call putc_attr
-    mov cx, dx
-    call print_hex_word
-    mov al, " "
-    call putc_attr
-    mov cx, si
-    call print_hex_word
-    mov al, " "
-    call putc_attr
-    mov cx, di
-    call print_hex_word
-    mov al, 0xa
-    call putc_attr
-    mov cx, ds
-    call print_hex_word
-    mov al, " "
-    call putc_attr
-    mov cx, es
-    call print_hex_word
 
     jmp $
 
@@ -663,11 +693,19 @@ main:
     int 0x10
 
     lea si, [boot_txt]
+    call file_safe_get
+    test di, di
+    jnz .boot_txt_not_null
+    mov bl, 0x3
+    sub sp, 2
+    push cs
+    call fatal_exception
+.boot_txt_not_null:
     mov dl, [drive]
     mov bx, 0x4000
     mov es, bx
     xor bx, bx
-    call file_read
+    call file_read_entry
 
     mov dh, 24
     xor dl, dl
@@ -676,7 +714,7 @@ main:
 
     mov ax, es
     mov ds, ax
-    lea si, [0x0]
+    xor si, si
     mov bl, 0xf
     call puts_attr
 
@@ -700,11 +738,17 @@ main:
     pop es
 
     lea si, [command_exe]
+    call file_safe_get
+    test di, di
+    jnz .command_exe_not_null
+    mov al, 0x3
+    int 0x23
+.command_exe_not_null:
     mov dl, [drive]
     mov bx, 0x1000
     mov es, bx
     xor bx, bx
-    call file_read
+    call file_read_entry
 
     mov ax, [es:0x0]
     cmp ax, "AD"
@@ -728,7 +772,6 @@ main:
     jmp $
 
 .unknown_format:
-    pusha
     mov al, 0x2
     int 0x23
 
@@ -739,11 +782,9 @@ msg_newline: db endl, 0
 
 nsr_dos: db "NSR-DOS", 0
 fatal_exception_msg: db endl, endl, "A fatal exception ", 0
-fatal_exception_part_2: db " has occured at ", 0
+fatal_exception_part_2: db " has occured", endl, 0
 
 boot_txt: db "BOOT.TXT", 0
 command_exe: db "COMMAND.EXE", 0
 
 drive: db 0
-
-times 1536-($-$$) db 0

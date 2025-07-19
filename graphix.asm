@@ -247,11 +247,6 @@ main:
 
     mov ax, cs
     mov ds, ax
-
-    xor ah, ah
-    xor bl, bl
-    lea si, [image_file_name]
-    int 0x21
 .wait:
     xor ah, ah
     int 0x16
@@ -302,5 +297,3 @@ dw get_pallete
 db "main", 0
 dw main
 SYMBOL_TABLE_LENGTH equ 6
-
-times 1024-($-$$) db 0

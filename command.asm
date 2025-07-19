@@ -245,15 +245,12 @@ type:
     push ds
     push es
 
-    mov ah, 0x4
     add si, 5
-    xor bx, bx
-    mov es, bx
-    lea di, [0x800]
+    mov ah, 0x7
     int 0x21
-    cmp ax, 0
-    jne .not_exist
-    mov ah, 0x3
+    test di, di
+    jz .not_exist
+    mov ah, 0x8
     mov dl, [drive]
     mov bx, 0x4000
     mov es, bx
@@ -290,24 +287,20 @@ exec:
     push ds
     push es
 
-    mov ah, 0x4
-    xor bx, bx
-    mov es, bx
-    lea di, [0x800]
+    mov ah, 0x7
     int 0x21
-    test al, al
-    jnz .check_autofill
+    test di, di
+    jz .check_autofill
 .after_autofill_check:
     mov dl, [drive]
     mov bx, 0x2000
     mov ax, cs
     cmp bx, ax
     jne .after_error
-    pusha
     mov al, 1
     int 0x23
 .after_error:
-    mov ah, 0x3
+    mov ah, 0x8
     mov es, bx
     xor bx, bx
     int 0x21
@@ -368,7 +361,6 @@ exec:
     popa
     jmp line
 .unknown_format:
-    pusha
     mov al, 0x2
     int 0x23
 .check_autofill:
@@ -381,13 +373,10 @@ exec:
     mov word [si+1], "XE"
     pop si
 
-    mov ah, 0x4
-    xor bx, bx
-    mov es, bx
-    lea di, [0x800]
+    mov ah, 0x7
     int 0x21
-    test al, al
-    jnz .not_exist
+    test di, di
+    jz .not_exist
 
     jmp .after_autofill_check
 
@@ -437,5 +426,3 @@ dw strcmp_until_di_end
 db "main", 0
 dw main
 SYMBOL_TABLE_LENGTH equ 4
-
-times 2048-($-$$) db 0

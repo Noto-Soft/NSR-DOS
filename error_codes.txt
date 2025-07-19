@@ -1,4 +1,5 @@
 00: divide by zero
 01: invalid program overwrite (overwriting a program while in said program)
 02: invalid executable
+03: file doesn't exist
 06: invalid opcode

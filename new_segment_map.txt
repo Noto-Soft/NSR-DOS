@@ -1,4 +1,4 @@
-0x0000: bootloader, ivt, filesystem
+0x0000: bootloader, ivt, filesystem (always at 0x800)
 0x07e0: kernel
 0x1000: primary programs (programs that run other programs, or don't get ran by other programs)
 0x2000: secondary programs (programs ran by other programs, these can run programs too)
