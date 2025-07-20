@@ -562,8 +562,57 @@ file_read_entry:
 
     ret
 
+drive_switch:
+    pusha
+
+    push es
+    xor ax, ax
+    mov es, ax
+
+    push dx
+
+    push es
+    mov ah, 08h
+    int 13h
+    jc floppy_error
+    pop es
+
+    and cl, 0x3F
+    xor ch, ch
+    mov [es:0x500], cx
+ 
+    inc dh
+    mov [es:0x502], dh
+    mov byte [es:0x503], 0
+
+    mov ax, 1
+    mov cl, 1
+    pop dx
+    push dx
+    lea bx, [0x600]
+    int 0x22
+
+    mov al, [es:0x600+2]
+    test al, al
+    jz drive_invalid_fs
+
+    mov ax, 2
+    mov cl, [es:0x600+13]
+    pop dx
+    lea bx, [0x800]
+    int 0x22
+
+    pop es
+
+    popa
+    ret
+
 floppy_error:
     mov al, 0x4
+    int 0x23
+
+drive_invalid_fs:
+    mov al, 0x5
     int 0x23
 
 disk_read_interrupt_wrapper:
@@ -606,6 +655,7 @@ int21:
     cmpje 0x6
     cmpje 0x7
     cmpje 0x8
+    cmpje 0x9
     jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
@@ -616,6 +666,7 @@ route 0x5, print_hex_byte
 route 0x6, print_hex_word
 route 0x7, file_safe_get
 route 0x8, file_read_entry
+route 0x9, drive_switch
 .done:
     iret
 .legacy_enabled: db 1
@@ -770,11 +821,6 @@ main:
 .unknown_format:
     mov al, 0x2
     int 0x23
-
-error_floppy: db "Error reading from floppy", endl, 0
-error_file_not_found: db "File not found", endl, 0
-
-msg_newline: db endl, 0
 
 nsr_dos: db "NSR-DOS", 0
 fatal_exception_msg: db endl, endl, "A fatal exception ", 0

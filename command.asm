@@ -13,14 +13,14 @@ dw SYMBOL_TABLE_LENGTH
 
 drive: db 0
 
+msg_directory_of: db "Directory of drive ", 0
 msg_command: db "A>", 0
-msg_newline: db endl, 0
 
 str_commands: db "List of commands:", endl, 0
 str_a: db "a:", 0
-    db " - Set drive to drive a: (drive #0)", endl, 0
+    db " - Set drive to drive A: (drive #0)", endl, 0
 str_b: db "b:", 0
-    db " - Set drive to drive b: (drive #1)", endl, 0
+    db " - Set drive to drive B: (drive #1)", endl, 0
 str_cls: db "cls", 0
     db " - Clear console output", endl, 0
 str_dir: db "dir", 0
@@ -138,6 +138,8 @@ main:
     mov ds, ax
     mov es, ax
 
+    jmp dir
+
 line:
     lea di, [buffer]
     call clear_buffer
@@ -222,6 +224,21 @@ dir:
     pusha
     push ds
 
+    xor ah, ah
+    inc ah
+    mov al, 0xa
+    mov bl, 0xf
+    int 0x21
+    dec ah
+    lea si, [msg_directory_of]
+    int 0x21
+    inc ah
+    mov al, [msg_command] ; holds drive letter conveniently
+    int 0x21
+    mov al, 0xa
+    int 0x21
+    int 0x21
+
     xor ax, ax
     mov ds, ax
     lea di, [0x800]
@@ -251,6 +268,12 @@ dir:
     jmp .loop
 .done:
     pop ds
+
+    mov ah, 0x1
+    mov al, 0xa
+    mov bl, 0xf
+    int 0x21
+
     popa
     jmp line
 
@@ -446,7 +469,9 @@ set_drive:
     popa
     mov byte [drive], dl
     mov byte [msg_command], al
-    jmp drive_switch
+    mov ah, 0x9
+    int 0x21
+    jmp dir
 
 drive_empty:
     xor ah, ah
@@ -458,46 +483,6 @@ drive_empty:
 drive_invalid_fs:
     mov al, 0x5
     int 0x23
-
-drive_switch:
-    push es
-    xor ax, ax
-    mov es, ax
-
-    mov dl, [drive]
-
-    push es
-    mov ah, 08h
-    int 13h
-    pop es
-
-    and cl, 0x3F
-    xor ch, ch
-    mov [0x500], cx
- 
-    inc dh
-    mov [0x502], dh
-    mov byte [0x503], 0
-
-    mov ax, 1
-    mov cl, 1
-    mov dl, [drive]
-    lea bx, [0x600]
-    int 0x22
-
-    mov al, [es:0x600+2]
-    test al, al
-    jz drive_invalid_fs
-
-    mov ax, 2
-    mov cl, [es:0x600+13]
-    mov dl, [drive]
-    lea bx, [0x800]
-    int 0x22
-
-    pop es
-
-    jmp dir
 
 floppy_error:
     mov al, 0x4
