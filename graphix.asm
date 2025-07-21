@@ -21,8 +21,6 @@ image_file_name: times 64 db 0
 FILENAME_BUFFER_LENGTH equ $-image_file_name
 db 0
 
-align 256
-
 start:
     mov ax, cs
     mov ds, ax

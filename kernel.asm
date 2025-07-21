@@ -690,11 +690,11 @@ drive_switch:
 
 floppy_error:
     mov al, 0x4
-    int 0x23
+    int 0x2f
 
 drive_invalid_fs:
     mov al, 0x5
-    int 0x23
+    int 0x2f
 
 disk_read_interrupt_wrapper:
     call disk_read
@@ -766,7 +766,7 @@ int6:
     mov bl, 0x6
     jmp fatal_exception
 
-int23:
+int2f:
     mov bl, al
     jmp fatal_exception
 
@@ -867,10 +867,10 @@ main:
     mov [es:0x21*4+2], ax
     mov word [es:0x22*4], disk_read_interrupt_wrapper
     mov [es:0x22*4+2], ax
-    mov word [es:0x23*4], int23
+    mov word [es:0x23*4], disk_write_interrupt_wrapper
     mov [es:0x23*4+2], ax
-    mov word [es:0x24*4], disk_write_interrupt_wrapper
-    mov [es:0x24*4+2], ax
+    mov word [es:0x2f*4], int2f
+    mov [es:0x2f*4+2], ax
     pop es
 
     lea si, [command_exe]
@@ -878,7 +878,7 @@ main:
     test di, di
     jnz .command_exe_not_null
     mov al, 0x3
-    int 0x23
+    int 0x2f
 .command_exe_not_null:
     mov dl, [drive]
     mov bx, 0x1000
@@ -909,7 +909,7 @@ main:
 
 .unknown_format:
     mov al, 0x2
-    int 0x23
+    int 0x2f
 
 nsr_dos: db "NSR-DOS", 0
 fatal_exception_msg: db endl, endl, "A fatal exception ", 0

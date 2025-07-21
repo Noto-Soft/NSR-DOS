@@ -13,8 +13,6 @@ dw SYMBOL_TABLE_LENGTH
 
 msg: db "Hello world!", endl, 0
 
-align 256
-
 start:
     mov ax, cs
     mov ds, ax

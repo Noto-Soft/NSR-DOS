@@ -191,7 +191,7 @@ disk_reset:
 
 floppy_error:
     mov al, 0x4
-    int 0x23
+    int 0x2f
 
 main:
     mov ax, 1

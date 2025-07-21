@@ -43,8 +43,6 @@ times 4 db 0 ; allow some extra space for .exe autofill
 db 0
 BUFFER_SPACE_END equ $
 
-align 256
-
 start:
     mov [drive], dl
     jmp main
@@ -376,7 +374,7 @@ exec:
     cmp bx, ax
     jne .after_error
     mov al, 1
-    int 0x23
+    int 0x2f
 .after_error:
     mov ah, 0x8
     mov es, bx
@@ -440,7 +438,7 @@ exec:
     jmp line
 .unknown_format:
     mov al, 0x2
-    int 0x23
+    int 0x2f
 .check_autofill:
     push si
 .find_terminator_loop:
@@ -535,16 +533,14 @@ drive_empty:
 
 drive_invalid_fs:
     mov al, 0x5
-    int 0x23
+    int 0x2f
 
 floppy_error:
     mov al, 0x4
-    int 0x23
+    int 0x2f
 
 exit:
     retf
-
-align 256
 
 symbol_table:
 db "start", 0
