@@ -14,16 +14,16 @@ dw SYMBOL_TABLE_LENGTH
 msg: db "Hello world!", endl, 0
 
 start:
-    mov ax, cs
-    mov ds, ax
-    mov es, ax
+	mov ax, cs
+	mov ds, ax
+	mov es, ax
 
-    xor ah, ah
-    mov bl, 0x7
-    lea si, [msg]
-    int 0x21
+	xor ah, ah
+	mov bl, 0x7
+	lea si, [msg]
+	int 0x21
 
-    retf
+	retf
 
 symbol_table:
 db "start", 0

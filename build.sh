@@ -18,12 +18,12 @@ python3 tools/thinfs.py create disk-2.img DISK2
 python3 tools/thinfs.py add disk-2.img bdrive.txt
 truncate -s 1440k disk-2.img
 for FILE in docs/*; do
-    if [ -f "$FILE" ]; then
-        python3 tools/thinfs.py add disk-2.img $FILE
-    fi
+	if [ -f "$FILE" ]; then
+		python3 tools/thinfs.py add disk-2.img $FILE
+	fi
 done
 qemu-system-i386 -monitor stdio \
-    -drive file=nsr-dos.img,if=floppy,format=raw \
-    -drive file=disk-2.img,if=floppy,format=raw \
-    # -machine pcspk-audiodev=spk \
-    # -audiodev alsa,id=spk
+	-drive file=nsr-dos.img,if=floppy,format=raw \
+	-drive file=disk-2.img,if=floppy,format=raw \
+	# -machine pcspk-audiodev=spk \
+	# -audiodev alsa,id=spk

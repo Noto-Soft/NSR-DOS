@@ -5,330 +5,330 @@ org 0x0
 %define endl 0xa
 
 start:
-    mov ax, cs
-    mov ds, ax
-    mov es, ax
+	mov ax, cs
+	mov ds, ax
+	mov es, ax
 
-    mov [drive], dl
+	mov [drive], dl
 
-    jmp main
+	jmp main
 
 get_rows_from_videomode:
-    cmp al, 0x12
-    je .rows30
-    mov al, 25
-    ret
+	cmp al, 0x12
+	je .rows30
+	mov al, 25
+	ret
 .rows30:
-    mov al, 30
-    ret
+	mov al, 30
+	ret
 
 scroll_if_need_be:
-    push ax
-    mov ah, 0xF
-    int 0x10
-    call get_rows_from_videomode
-    cmp dh, al
-    jb .done
-    push ax
-    push cx
-    push dx
-    push bx
-    push sp
-    push bp
-    push si
-    push di
-    mov ah, 0x6
-    mov bh, bl
-    mov al, 1
-    xor cx, cx
-    mov dx, 0x184f
-    int 0x10
-    pop di
-    pop si
-    pop bp
-    pop sp
-    pop bx
-    pop dx
-    pop cx
-    pop ax
-    mov dh, al
-    dec dh
+	push ax
+	mov ah, 0xF
+	int 0x10
+	call get_rows_from_videomode
+	cmp dh, al
+	jb .done
+	push ax
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
+	mov ah, 0x6
+	mov bh, bl
+	mov al, 1
+	xor cx, cx
+	mov dx, 0x184f
+	int 0x10
+	pop di
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
+	mov dh, al
+	dec dh
 .done:
-    pop ax
-    ret
+	pop ax
+	ret
 
 get_mem_pos:
-    push ax
-    push dx
-    xor ax, ax
-    mov al, dh
-    mov ah, 80
-    mul ah
-    xor dh, dh
-    add ax, dx
-    mov di, ax
-    pop dx
-    pop ax
-    shl di, 1
-    ret
+	push ax
+	push dx
+	xor ax, ax
+	mov al, dh
+	mov ah, 80
+	mul ah
+	xor dh, dh
+	add ax, dx
+	mov di, ax
+	pop dx
+	pop ax
+	shl di, 1
+	ret
 
 set_char:
-    push ax
-    mov ah, 0xF
-    int 0x10
-    cmp al, 0x3
-    jne .graphicsMode
-    pop ax
+	push ax
+	mov ah, 0xF
+	int 0x10
+	cmp al, 0x3
+	jne .graphicsMode
+	pop ax
 
-    push es
+	push es
 
-    push dx
-    push di
+	push dx
+	push di
 
-    push ax
-    mov ax, 0xb800
-    mov es, ax
-    pop ax
+	push ax
+	mov ax, 0xb800
+	mov es, ax
+	pop ax
 
-    call get_mem_pos
+	call get_mem_pos
 
-    mov [es:di], al
-    mov [es:di+1], bl
+	mov [es:di], al
+	mov [es:di+1], bl
 
-    pop di
-    pop dx
+	pop di
+	pop dx
 
-    pop es
-    ret
+	pop es
+	ret
 .graphicsMode:
-    pop ax
-    push ax
-    push bx
-    push cx
-    mov ah, 0x9
-    xor bh, bh
-    mov cx, 1
-    int 0x10
-    pop cx
-    pop bx
-    pop ax
-    ret
+	pop ax
+	push ax
+	push bx
+	push cx
+	mov ah, 0x9
+	xor bh, bh
+	mov cx, 1
+	int 0x10
+	pop cx
+	pop bx
+	pop ax
+	ret
 
 putc_attr:
-    push ax
-    push bx
-    push cx
-    push dx
+	push ax
+	push bx
+	push cx
+	push dx
 
-    push ax
-    mov ah, 0x3
-    xor bh, bh
-    int 0x10
-    pop ax
+	push ax
+	mov ah, 0x3
+	xor bh, bh
+	int 0x10
+	pop ax
 
-    cmp al, 0xa
-    je .newline
-    cmp al, 0x8
-    je .backspace
-    cmp al, 0x9
-    je .tab
+	cmp al, 0xa
+	je .newline
+	cmp al, 0x8
+	je .backspace
+	cmp al, 0x9
+	je .tab
 
-    call scroll_if_need_be
-    mov ah, 0x2
-    xor bh, bh
-    int 0x10
+	call scroll_if_need_be
+	mov ah, 0x2
+	xor bh, bh
+	int 0x10
 
-    call set_char
+	call set_char
 
-    inc dl
-    cmp dl, 80
-    jb .cursor_good
+	inc dl
+	cmp dl, 80
+	jb .cursor_good
 
-    xor dl, dl
-    inc dh 
-    call scroll_if_need_be
+	xor dl, dl
+	inc dh 
+	call scroll_if_need_be
 .cursor_good:
-    mov ah, 0x2
-    xor bh, bh
-    int 0x10
+	mov ah, 0x2
+	xor bh, bh
+	int 0x10
 
-    push es
+	push es
 
-    push di
+	push di
 
-    push ax
-    mov ax, 0xb800
-    mov es, ax
-    pop ax
+	push ax
+	mov ax, 0xb800
+	mov es, ax
+	pop ax
 
-    call get_mem_pos
+	call get_mem_pos
 
-    mov al, [es:di+1]
-    and al, 0xf0
-    and bl, 0xf
-    add bl, al
-    mov [es:di+1], bl
+	mov al, [es:di+1]
+	and al, 0xf0
+	and bl, 0xf
+	add bl, al
+	mov [es:di+1], bl
 
-    pop di
+	pop di
 
-    pop es
+	pop es
 
-    jmp .done
+	jmp .done
 .newline:
-    inc dh
-    xor dl, dl
-    call scroll_if_need_be
-    mov ah, 0x2
-    xor bh, bh
-    int 0x10
-    jmp .done
+	inc dh
+	xor dl, dl
+	call scroll_if_need_be
+	mov ah, 0x2
+	xor bh, bh
+	int 0x10
+	jmp .done
 .backspace:
-    dec dl
-    mov ah, 0x2
-    xor bh, bh
-    int 0x10
-    mov al, " "
-    call set_char
-    jmp .done
+	dec dl
+	mov ah, 0x2
+	xor bh, bh
+	int 0x10
+	mov al, " "
+	call set_char
+	jmp .done
 .tab:
-    mov al, dl
-    add al, 3
-    and al, 0xFC
-    mov dl, al
-    mov ah, 0x2
-    xor bh, bh
-    int 0x10
-    jmp .done
+	mov al, dl
+	add al, 3
+	and al, 0xFC
+	mov dl, al
+	mov ah, 0x2
+	xor bh, bh
+	int 0x10
+	jmp .done
 .done:
-    pop dx
-    pop cx
-    pop bx
-    pop ax
-    ret
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
 
 puts:
-    push ax
-    push bx
-    push si
-    mov ah, 0xe
-    xor bh, bh
-    cld
+	push ax
+	push bx
+	push si
+	mov ah, 0xe
+	xor bh, bh
+	cld
 .loop:
-    lodsb
-    or al, al
-    jz .done
-    int 0x10
-    jmp .loop
+	lodsb
+	or al, al
+	jz .done
+	int 0x10
+	jmp .loop
 .done:
-    pop si
-    pop bx
-    pop ax
-    ret
+	pop si
+	pop bx
+	pop ax
+	ret
 
 puts_attr:
-    push ax
-    push dx
-    push si
-    cld
+	push ax
+	push dx
+	push si
+	cld
 .loop:
-    lodsb
-    or al, al
-    jz .done
-    call putc_attr
-    jmp .loop
+	lodsb
+	or al, al
+	jz .done
+	call putc_attr
+	jmp .loop
 .done:
-    pop si
-    pop dx
-    pop ax
-    ret
+	pop si
+	pop dx
+	pop ax
+	ret
 
 ; si
 ; di
 strcmp:
-    push si
-    push di
+	push si
+	push di
 .loop:
-    mov al, [si]
-    mov ah, [es:di]
-    inc si
-    inc di
-    cmp al, ah
-    jne .notequal
-    cmp al, 0
-    je .endofstring
-    jmp .loop
+	mov al, [si]
+	mov ah, [es:di]
+	inc si
+	inc di
+	cmp al, ah
+	jne .notequal
+	cmp al, 0
+	je .endofstring
+	jmp .loop
 .endofstring:
-    xor ax, ax
-    jmp .done
+	xor ax, ax
+	jmp .done
 .notequal:
-    mov ax, 1
-    jmp .done
+	mov ax, 1
+	jmp .done
 .done:
-    pop di
-    pop si
-    ret
+	pop di
+	pop si
+	ret
 
 print_hex_digit:
-    push bx
-    cmp al, 10
-    jl .number
-    add al, 'A' - 10
-    jmp .print
+	push bx
+	cmp al, 10
+	jl .number
+	add al, 'A' - 10
+	jmp .print
 .number:
-    add al, '0'
+	add al, '0'
 .print:
-    pop bx
-    call putc_attr
-    ret
+	pop bx
+	call putc_attr
+	ret
 
 ; al- byte
 ; bl - format
 print_hex_byte:
-    push ax
-    push cx
+	push ax
+	push cx
 
-    mov al, cl
-    shr al, 4
-    
-    call print_hex_digit
+	mov al, cl
+	shr al, 4
+	
+	call print_hex_digit
 
-    mov al, cl
-    and al, 0xF
-    call print_hex_digit
+	mov al, cl
+	and al, 0xF
+	call print_hex_digit
 
-    pop cx
-    pop ax
-    ret
+	pop cx
+	pop ax
+	ret
 
 print_hex_word:
-    xchg ch, cl
-    call print_hex_byte
-    xchg ch, cl
-    call print_hex_byte
-    ret
+	xchg ch, cl
+	call print_hex_byte
+	xchg ch, cl
+	call print_hex_byte
+	ret
 
 case_up:
-    push ax
-    push si
-    cld
+	push ax
+	push si
+	cld
 .loop:
-    lodsb
+	lodsb
 
-    test al, al
-    jz .print
-    cmp al, 'a'
-    jb .loop
-    cmp al, 'z'
-    ja .loop
+	test al, al
+	jz .print
+	cmp al, 'a'
+	jb .loop
+	cmp al, 'z'
+	ja .loop
 
-    sub al, 'a' - 'A'
-    mov [si-1], al
-    
-    jmp .loop
+	sub al, 'a' - 'A'
+	mov [si-1], al
+	
+	jmp .loop
 .print:
-    pop si
-    pop ax
-    ret
+	pop si
+	pop ax
+	ret
 
 ;
 ; Disk routines
@@ -346,41 +346,41 @@ case_up:
 ;
 
 lba_to_chs:
-    push ax
-    push dx
-    push ds
+	push ax
+	push dx
+	push ds
 
-    ; dx = 0
-    xor dx, dx
-    mov ds, dx
-    ; ax = LBA / SectorsPerTrack
-    div word [0x500]
-                                        ; dx = LBA % SectorsPerTrack
+	; dx = 0
+	xor dx, dx
+	mov ds, dx
+	; ax = LBA / SectorsPerTrack
+	div word [0x500]
+										; dx = LBA % SectorsPerTrack
 
-    ; dx = (LBA % SectorsPerTrack + 1) = sector
-    inc dx
-    ; cx = sector
-    mov cx, dx
+	; dx = (LBA % SectorsPerTrack + 1) = sector
+	inc dx
+	; cx = sector
+	mov cx, dx
 
-    ; dx = 0
-    xor dx, dx
-    ; ax = (LBA / SectorsPerTrack) / Heads = cylinder
-    div word [0x502]
-                                        ; dx = (LBA / SectorsPerTrack) % Heads = head
-    ; dh = head
-    mov dh, dl
-    ; ch = cylinder (lower 8 bits)
-    mov ch, al
-    shl ah, 6
-    ; put upper 2 bits of cylinder in CL
-    or cl, ah
+	; dx = 0
+	xor dx, dx
+	; ax = (LBA / SectorsPerTrack) / Heads = cylinder
+	div word [0x502]
+										; dx = (LBA / SectorsPerTrack) % Heads = head
+	; dh = head
+	mov dh, dl
+	; ch = cylinder (lower 8 bits)
+	mov ch, al
+	shl ah, 6
+	; put upper 2 bits of cylinder in CL
+	or cl, ah
 
-    pop ds
-    pop ax
-    ; restore DL
-    mov dl, al
-    pop ax
-    ret
+	pop ds
+	pop ax
+	; restore DL
+	mov dl, al
+	pop ax
+	ret
 
 ;
 ; Reads sectors from a disk
@@ -391,74 +391,74 @@ lba_to_chs:
 ;   - es:bx: memory address where to store read data
 ;
 disk_read:
-    ; save registers we will modify
-    push ax
-    push bx
-    push cx
-    push dx
-    push di
+	; save registers we will modify
+	push ax
+	push bx
+	push cx
+	push dx
+	push di
 
-    ; temporarily save CL (number of sectors to read)
-    push cx
-    ; compute CHS
-    call lba_to_chs
-    ; AL = number of sectors to read
-    pop ax
-    
-    mov ah, 0x02
-    ; retry count
-    mov di, 3
+	; temporarily save CL (number of sectors to read)
+	push cx
+	; compute CHS
+	call lba_to_chs
+	; AL = number of sectors to read
+	pop ax
+	
+	mov ah, 0x02
+	; retry count
+	mov di, 3
 .retry:
-    ; save all registers, we don't know what bios modifies
-    push ax
-    push cx
-    push dx
-    push bx
-    push sp
-    push bp
-    push si
-    push di
-    ; set carry flag, some BIOS'es don't set it
-    stc
-    ; carry flag cleared = success
-    int 0x13
-    ; jump if carry not set
-    jnc .done
+	; save all registers, we don't know what bios modifies
+	push ax
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
+	; set carry flag, some BIOS'es don't set it
+	stc
+	; carry flag cleared = success
+	int 0x13
+	; jump if carry not set
+	jnc .done
 
-    ; read failed
-    pop di
-    pop si
-    pop bp
-    pop sp
-    pop bx
-    pop dx
-    pop cx
-    pop ax
-    call disk_reset
+	; read failed
+	pop di
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
+	call disk_reset
 
-    dec di
-    test di, di
-    jnz .retry
+	dec di
+	test di, di
+	jnz .retry
 .fail:
-    ; all attempts are exhausted
-    jmp floppy_error
+	; all attempts are exhausted
+	jmp floppy_error
 .done:
-    pop di
-    pop si
-    pop bp
-    pop sp
-    pop bx
-    pop dx
-    pop cx
-    pop ax
+	pop di
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
 
-    pop di
-    pop dx
-    pop cx
-    pop bx
-    ; restore registers modified
-    pop ax
-    ret
+	pop di
+	pop dx
+	pop cx
+	pop bx
+	; restore registers modified
+	pop ax
+	ret
 
 ;
 ; Reads sectors to a disk
@@ -469,74 +469,74 @@ disk_read:
 ;   - es:bx: memory address where to read write data
 ;
 disk_write:
-    ; save registers we will modify
-    push ax
-    push bx
-    push cx
-    push dx
-    push di
+	; save registers we will modify
+	push ax
+	push bx
+	push cx
+	push dx
+	push di
 
-    ; temporarily save CL (number of sectors to read)
-    push cx
-    ; compute CHS
-    call lba_to_chs
-    ; AL = number of sectors to read
-    pop ax
-    
-    mov ah, 0x3
-    ; retry count
-    mov di, 3
+	; temporarily save CL (number of sectors to read)
+	push cx
+	; compute CHS
+	call lba_to_chs
+	; AL = number of sectors to read
+	pop ax
+	
+	mov ah, 0x3
+	; retry count
+	mov di, 3
 .retry:
-    ; save all registers, we don't know what bios modifies
-    push ax
-    push cx
-    push dx
-    push bx
-    push sp
-    push bp
-    push si
-    push di
-    ; set carry flag, some BIOS'es don't set it
-    stc
-    ; carry flag cleared = success
-    int 0x13
-    ; jump if carry not set
-    jnc .done
+	; save all registers, we don't know what bios modifies
+	push ax
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
+	; set carry flag, some BIOS'es don't set it
+	stc
+	; carry flag cleared = success
+	int 0x13
+	; jump if carry not set
+	jnc .done
 
-    ; read failed
-    pop di
-    pop si
-    pop bp
-    pop sp
-    pop bx
-    pop dx
-    pop cx
-    pop ax
-    call disk_reset
+	; read failed
+	pop di
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
+	call disk_reset
 
-    dec di
-    test di, di
-    jnz .retry
+	dec di
+	test di, di
+	jnz .retry
 .fail:
-    ; all attempts are exhausted
-    jmp floppy_error
+	; all attempts are exhausted
+	jmp floppy_error
 .done:
-    pop di
-    pop si
-    pop bp
-    pop sp
-    pop bx
-    pop dx
-    pop cx
-    pop ax
+	pop di
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
 
-    pop di
-    pop dx
-    pop cx
-    pop bx
-    ; restore registers modified
-    pop ax
-    ret
+	pop di
+	pop dx
+	pop cx
+	pop bx
+	; restore registers modified
+	pop ax
+	ret
 
 ;
 ; Resets disk controller
@@ -544,361 +544,361 @@ disk_write:
 ;   dl: drive number
 ;
 disk_reset:
-    push ax
-    push cx
-    push dx
-    push bx
-    push sp
-    push bp
-    push si
-    push di
-    xor ah, ah
-    stc
-    int 0x13
-    jc floppy_error
-    lea si, [.disk_retry]
-    mov bl, 0x3
-    call puts_attr
-    pop di
-    pop si
-    pop bp
-    pop sp
-    pop bx
-    pop dx
-    pop cx
-    pop ax
-    ret
+	push ax
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
+	xor ah, ah
+	stc
+	int 0x13
+	jc floppy_error
+	lea si, [.disk_retry]
+	mov bl, 0x3
+	call puts_attr
+	pop di
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
+	ret
 .disk_retry: db "Retry read", endl, 0
 
 ; si - filename
 ; returns:
 ;   - di: file entry
 file_get:
-    push ax
-    push es
-    push word 0
-    pop es
-    lea di, [0x800]
-    call case_up
+	push ax
+	push es
+	push word 0
+	pop es
+	lea di, [0x800]
+	call case_up
 .locate_kernel_loop:
-    mov al, [es:di]
-    test al, al
-    ; end of entries
-    jz .not_found
-    add di, 4
-    mov al, [es:di]
-    test al, al
-    jz .skip
-    call strcmp
-    test ax, ax
-    jz .located_kernel
+	mov al, [es:di]
+	test al, al
+	; end of entries
+	jz .not_found
+	add di, 4
+	mov al, [es:di]
+	test al, al
+	jz .skip
+	call strcmp
+	test ax, ax
+	jz .located_kernel
 .skip:
-    dec di
-    mov al, [es:di]
-    xor ah, ah
-    add di, ax
-    inc di
-    jmp .locate_kernel_loop
+	dec di
+	mov al, [es:di]
+	xor ah, ah
+	add di, ax
+	inc di
+	jmp .locate_kernel_loop
 .not_found:
-    pop ax
-    add si, 2
-    mov bl, 0x3
-    jmp fatal_exception
+	pop ax
+	add si, 2
+	mov bl, 0x3
+	jmp fatal_exception
 .located_kernel:
-    sub di, 4
-    pop es
-    pop ax
-    ret
+	sub di, 4
+	pop es
+	pop ax
+	ret
 
 ; ds:si - filename
 ; returns:
 ;   - di: file entry, null if not found
 file_safe_get:
-    push ax
-    push es
-    push word 0
-    pop es
-    lea di, [0x800]
-    call case_up
+	push ax
+	push es
+	push word 0
+	pop es
+	lea di, [0x800]
+	call case_up
 .locate_kernel_loop:
-    mov al, [es:di]
-    test al, al 
-    ; end of entries
-    jz .not_found
-    add di, 4
-    mov al, [es:di]
-    test al, al
-    jz .skip
-    call strcmp
-    test al, al
-    jz .located_kernel
+	mov al, [es:di]
+	test al, al 
+	; end of entries
+	jz .not_found
+	add di, 4
+	mov al, [es:di]
+	test al, al
+	jz .skip
+	call strcmp
+	test al, al
+	jz .located_kernel
 .skip:
-    dec di
-    mov al, [es:di]
-    xor ah, ah
-    add di, ax
-    inc di
-    jmp .locate_kernel_loop
+	dec di
+	mov al, [es:di]
+	xor ah, ah
+	add di, ax
+	inc di
+	jmp .locate_kernel_loop
 .not_found:
-    xor di, di
-    pop es
-    pop ax
-    ret
+	xor di, di
+	pop es
+	pop ax
+	ret
 .located_kernel:
-    sub di, 4
-    pop es
-    pop ax
-    ret
+	sub di, 4
+	pop es
+	pop ax
+	ret
 
 ; ds:si - filename
 ; returns:
 ;   - ax: 0 if exists
 file_confirm_exists:
-    push bx
-    push ax
-    push es
-    xor ax, ax
-    mov es, ax
-    lea di, [0x800]
-    call case_up
+	push bx
+	push ax
+	push es
+	xor ax, ax
+	mov es, ax
+	lea di, [0x800]
+	call case_up
 .locate_kernel_loop:
-    mov al, [es:di]
-    or al, al
-    jz .not_found
-    add di, 4
-    call strcmp
-    test ax, ax
-    jz .located_kernel
-    dec di
-    mov al, [es:di]
-    xor ah, ah
-    add di, ax
-    inc di
-    jmp .locate_kernel_loop
+	mov al, [es:di]
+	or al, al
+	jz .not_found
+	add di, 4
+	call strcmp
+	test ax, ax
+	jz .located_kernel
+	dec di
+	mov al, [es:di]
+	xor ah, ah
+	add di, ax
+	inc di
+	jmp .locate_kernel_loop
 .not_found:
-    mov bx, 1
-    jmp .done
+	mov bx, 1
+	jmp .done
 .located_kernel:
-    xor bx, bx
-    jmp .done
+	xor bx, bx
+	jmp .done
 .done:
-    pop es
-    pop ax
-    mov ax, bx
-    pop bx
-    ret
+	pop es
+	pop ax
+	mov ax, bx
+	pop bx
+	ret
 
 ; in:
 ;   - ds:si: filename
 ;   - dl: drive
 ;   - es:bx: buffer
 file_read:
-    push ax
-    push cx
-    push di
+	push ax
+	push cx
+	push di
 
-    push es
-    xor ax, ax
-    mov es, ax
-    lea di, [0x800]
-    call file_get
+	push es
+	xor ax, ax
+	mov es, ax
+	lea di, [0x800]
+	call file_get
 
-    mov ax, [es:di]
-    mov cl, [es:di+2]
-    pop es
-    call disk_read
+	mov ax, [es:di]
+	mov cl, [es:di+2]
+	pop es
+	call disk_read
 
-    pop di
-    pop cx
-    pop ax
-    ret
+	pop di
+	pop cx
+	pop ax
+	ret
 
 ; in:
 ;   - dl: drive
 ;   - es:bx: buffer
 ;   - di: file entry (segment 0)
 file_read_entry:
-    push ax
-    push cx
-    push dx
-    push bx
-    push sp
-    push bp
-    push si
-    push di
+	push ax
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
 
-    push es
+	push es
 
-    xor ax, ax
-    mov es, ax
-    mov ax, [es:di]
-    mov cl, [es:di+2]
-    pop es
-    call disk_read
+	xor ax, ax
+	mov es, ax
+	mov ax, [es:di]
+	mov cl, [es:di+2]
+	pop es
+	call disk_read
 
-    pop di
-    pop si
-    pop bp
-    pop sp
-    pop bx
-    pop dx
-    pop cx
-    pop ax
-    ret
+	pop di
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
+	ret
 
 ; in:
 ;   - dl: drive
 ;   - di: file entry (segment 0)
 file_soft_delete_entry:
-    push ax
-    push cx
-    push dx
-    push bx
-    push sp
-    push bp
-    push si
-    push di
+	push ax
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
 
-    push es
+	push es
 
-    xor ax, ax
-    mov es, ax
-    
-    mov byte [es:di+4], 0
+	xor ax, ax
+	mov es, ax
+	
+	mov byte [es:di+4], 0
 
-    mov ax, 2
-    ; get the length of the entry sectors
-    mov cl, [es:0x600+13]
-    lea bx, [0x800]
-    call disk_write
+	mov ax, 2
+	; get the length of the entry sectors
+	mov cl, [es:0x600+13]
+	lea bx, [0x800]
+	call disk_write
 
-    pop es
-    call disk_read
+	pop es
+	call disk_read
 
-    pop di
-    pop si
-    pop bp
-    pop sp
-    pop bx
-    pop dx
-    pop cx
-    pop ax
-    ret
+	pop di
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
+	ret
 
 drive_switch:
-    push ax
-    push cx
-    push dx
-    push bx
-    push sp
-    push bp
-    push si
-    push di
+	push ax
+	push cx
+	push dx
+	push bx
+	push sp
+	push bp
+	push si
+	push di
 
-    push es
-    xor ax, ax
-    mov es, ax
+	push es
+	xor ax, ax
+	mov es, ax
 
-    push dx
+	push dx
 
-    push es
-    mov ah, 0x08
-    int 0x13
-    jc floppy_error
-    pop es
+	push es
+	mov ah, 0x08
+	int 0x13
+	jc floppy_error
+	pop es
 
-    and cl, 0x3F
-    xor ch, ch
-    mov [es:0x500], cx
+	and cl, 0x3F
+	xor ch, ch
+	mov [es:0x500], cx
  
-    inc dh
-    mov [es:0x502], dh
-    mov byte [es:0x503], 0
+	inc dh
+	mov [es:0x502], dh
+	mov byte [es:0x503], 0
 
-    mov ax, 1
-    mov cl, 1
-    pop dx
-    push dx
-    lea bx, [0x600]
-    int 0x22
+	mov ax, 1
+	mov cl, 1
+	pop dx
+	push dx
+	lea bx, [0x600]
+	int 0x22
 
-    mov al, [es:0x600+2]
-    test al, al
-    jz drive_invalid_fs
+	mov al, [es:0x600+2]
+	test al, al
+	jz drive_invalid_fs
 
-    mov ax, 2
-    mov cl, [es:0x600+13]
-    pop dx
-    lea bx, [0x800]
-    int 0x22
+	mov ax, 2
+	mov cl, [es:0x600+13]
+	pop dx
+	lea bx, [0x800]
+	int 0x22
 
-    pop es
+	pop es
 
-    pop di
-    pop si
-    pop bp
-    pop sp
-    pop bx
-    pop dx
-    pop cx
-    pop ax
-    ret
+	pop di
+	pop si
+	pop bp
+	pop sp
+	pop bx
+	pop dx
+	pop cx
+	pop ax
+	ret
 
 floppy_error:
-    mov al, 0x4
-    int 0x2f
+	mov al, 0x4
+	int 0x2f
 
 drive_invalid_fs:
-    mov al, 0x5
-    int 0x2f
+	mov al, 0x5
+	int 0x2f
 
 disk_read_interrupt_wrapper:
-    call disk_read
-    iret
+	call disk_read
+	iret
 
 disk_write_interrupt_wrapper:
-    call disk_write
-    iret
+	call disk_write
+	iret
 
 %macro cmpje 1
-    cmp ah, %1
-    je .ah%1
+	cmp ah, %1
+	je .ah%1
 %endmacro
 
 %macro route 2
 .ah%1:
-    call %2
-    jmp .done
+	call %2
+	jmp .done
 %endmacro
 
 %macro routel 2
 .ah%1:
-    push ax
-    push ds
-    mov ax, cs
-    mov ds, ax
-    cmp byte [.legacy_enabled], 1
-    pop ds
-    pop ax
-    jne %%not_legacy
-    call %2
+	push ax
+	push ds
+	mov ax, cs
+	mov ds, ax
+	cmp byte [.legacy_enabled], 1
+	pop ds
+	pop ax
+	jne %%not_legacy
+	call %2
 %%not_legacy:
-    jmp .done
+	jmp .done
 %endmacro
 
 int21:
-    cmpje 0x0
-    cmpje 0x1
-    cmpje 0x2
-    cmpje 0x3
-    cmpje 0x4
-    cmpje 0x5
-    cmpje 0x6
-    cmpje 0x7
-    cmpje 0x8
-    cmpje 0x9
-    cmpje 0xa
-    jmp .done
+	cmpje 0x0
+	cmpje 0x1
+	cmpje 0x2
+	cmpje 0x3
+	cmpje 0x4
+	cmpje 0x5
+	cmpje 0x6
+	cmpje 0x7
+	cmpje 0x8
+	cmpje 0x9
+	cmpje 0xa
+	jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
 routel 0x2, file_get
@@ -911,164 +911,164 @@ route 0x8, file_read_entry
 route 0x9, drive_switch
 route 0xa, file_soft_delete_entry
 .done:
-    iret
+	iret
 .legacy_enabled: db 1
 
 int0:
-    xor bl, bl
-    jmp fatal_exception
+	xor bl, bl
+	jmp fatal_exception
 
 int6:
-    mov bl, 0x6
-    jmp fatal_exception
+	mov bl, 0x6
+	jmp fatal_exception
 
 int2f:
-    mov bl, al
-    jmp fatal_exception
+	mov bl, al
+	jmp fatal_exception
 
 fatal_exception:
-    xor ah, ah
-    mov al, 0x3
-    int 0x10
-    mov ah, 0x6
-    xor al, al
-    mov bh, 0x17
-    xor cx, cx
-    mov dx, 0x184f
-    int 0x10
-    mov dh, 24
-    xor dl, dl
-    mov ah, 0x2
-    int 0x10
-    ; ip
-    pop dx
-    ; cs
-    pop cx
-    ; flags
-    add sp, 2
-    mov ax, cs
-    mov ds, ax
-    mov cl, bl
-    mov bl, 0x71
-    lea si, [nsr_dos]
-    call puts_attr
-    mov bl, 0x17
-    lea si, [fatal_exception_msg]
-    call puts_attr
-    call print_hex_byte
-    lea si, [fatal_exception_part_2]
-    call puts_attr
+	xor ah, ah
+	mov al, 0x3
+	int 0x10
+	mov ah, 0x6
+	xor al, al
+	mov bh, 0x17
+	xor cx, cx
+	mov dx, 0x184f
+	int 0x10
+	mov dh, 24
+	xor dl, dl
+	mov ah, 0x2
+	int 0x10
+	; ip
+	pop dx
+	; cs
+	pop cx
+	; flags
+	add sp, 2
+	mov ax, cs
+	mov ds, ax
+	mov cl, bl
+	mov bl, 0x71
+	lea si, [nsr_dos]
+	call puts_attr
+	mov bl, 0x17
+	lea si, [fatal_exception_msg]
+	call puts_attr
+	call print_hex_byte
+	lea si, [fatal_exception_part_2]
+	call puts_attr
 
-    mov al, 0xb6
-    out 0x43, al
+	mov al, 0xb6
+	out 0x43, al
 
-    mov ax, 1193182 / 880
-    out 0x42, al
-    mov al, ah
-    out 0x42, al
+	mov ax, 1193182 / 880
+	out 0x42, al
+	mov al, ah
+	out 0x42, al
 
-    in al, 0x61
-    or al, 3
-    out 0x61, al
+	in al, 0x61
+	or al, 3
+	out 0x61, al
 
-    jmp $
+	jmp $
 
 main:
-    xor ah, ah
-    mov al, 0x3
-    int 0x10
+	xor ah, ah
+	mov al, 0x3
+	int 0x10
 
-    mov ah, 0x6
-    xor al, al
-    mov bh, 0xf
-    xor cx, cx
-    mov dx, 0x184f
-    int 0x10
+	mov ah, 0x6
+	xor al, al
+	mov bh, 0xf
+	xor cx, cx
+	mov dx, 0x184f
+	int 0x10
 
-    lea si, [boot_txt]
-    call file_safe_get
-    test di, di
-    jnz .boot_txt_not_null
-    mov bl, 0x3
-    sub sp, 2
-    push cs
-    call fatal_exception
+	lea si, [boot_txt]
+	call file_safe_get
+	test di, di
+	jnz .boot_txt_not_null
+	mov bl, 0x3
+	sub sp, 2
+	push cs
+	call fatal_exception
 .boot_txt_not_null:
-    mov dl, [drive]
-    mov bx, 0x4000
-    mov es, bx
-    xor bx, bx
-    call file_read_entry
+	mov dl, [drive]
+	mov bx, 0x4000
+	mov es, bx
+	xor bx, bx
+	call file_read_entry
 
-    mov dh, 24
-    xor dl, dl
-    mov ah, 0x2
-    int 0x10
+	mov dh, 24
+	xor dl, dl
+	mov ah, 0x2
+	int 0x10
 
-    mov ax, es
-    mov ds, ax
-    xor si, si
-    mov bl, 0xf
-    call puts_attr
+	mov ax, es
+	mov ds, ax
+	xor si, si
+	mov bl, 0xf
+	call puts_attr
 
-    mov ax, cs
-    mov ds, ax
+	mov ax, cs
+	mov ds, ax
 
-    push es
-    xor ax, ax
-    mov es, ax
-    mov ax, cs
-    mov word [es:0x0*4], int0
-    mov [es:0x0*4+2], ax
-    mov word [es:0x6*4], int6
-    mov [es:0x6*4+2], ax
-    mov word [es:0x21*4], int21
-    mov [es:0x21*4+2], ax
-    mov word [es:0x22*4], disk_read_interrupt_wrapper
-    mov [es:0x22*4+2], ax
-    mov word [es:0x23*4], disk_write_interrupt_wrapper
-    mov [es:0x23*4+2], ax
-    mov word [es:0x2f*4], int2f
-    mov [es:0x2f*4+2], ax
-    pop es
+	push es
+	xor ax, ax
+	mov es, ax
+	mov ax, cs
+	mov word [es:0x0*4], int0
+	mov [es:0x0*4+2], ax
+	mov word [es:0x6*4], int6
+	mov [es:0x6*4+2], ax
+	mov word [es:0x21*4], int21
+	mov [es:0x21*4+2], ax
+	mov word [es:0x22*4], disk_read_interrupt_wrapper
+	mov [es:0x22*4+2], ax
+	mov word [es:0x23*4], disk_write_interrupt_wrapper
+	mov [es:0x23*4+2], ax
+	mov word [es:0x2f*4], int2f
+	mov [es:0x2f*4+2], ax
+	pop es
 
-    lea si, [command_exe]
-    call file_safe_get
-    test di, di
-    jnz .command_exe_not_null
-    mov al, 0x3
-    int 0x2f
+	lea si, [command_exe]
+	call file_safe_get
+	test di, di
+	jnz .command_exe_not_null
+	mov al, 0x3
+	int 0x2f
 .command_exe_not_null:
-    mov dl, [drive]
-    mov bx, 0x1000
-    mov es, bx
-    xor bx, bx
-    call file_read_entry
+	mov dl, [drive]
+	mov bx, 0x1000
+	mov es, bx
+	xor bx, bx
+	call file_read_entry
 
-    mov ax, [es:0x0]
-    cmp ax, "AD"
-    jne .unknown_format
-    mov al, [es:0x2]
-    cmp al, 0x2
-    jne .unknown_format
-    push ds
-    push es
-    mov dl, [drive]
-    mov ax, [es:0x4]
-    push cs
-    push word .after
-    push es
-    push ax
-    retf
+	mov ax, [es:0x0]
+	cmp ax, "AD"
+	jne .unknown_format
+	mov al, [es:0x2]
+	cmp al, 0x2
+	jne .unknown_format
+	push ds
+	push es
+	mov dl, [drive]
+	mov ax, [es:0x4]
+	push cs
+	push word .after
+	push es
+	push ax
+	retf
 .after:
-    pop es
-    pop ds
+	pop es
+	pop ds
 
-    jmp $
+	jmp $
 
 .unknown_format:
-    mov al, 0x2
-    int 0x2f
+	mov al, 0x2
+	int 0x2f
 
 nsr_dos: db "NSR-DOS", 0
 fatal_exception_msg: db endl, endl, "A fatal exception ", 0
