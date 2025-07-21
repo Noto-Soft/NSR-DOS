@@ -262,7 +262,6 @@ dir:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -338,7 +337,6 @@ dir:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -350,7 +348,6 @@ type:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -394,7 +391,6 @@ type:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -406,7 +402,6 @@ exec:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -445,13 +440,11 @@ exec:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
 	push ds
 	push es
-	push fs
 	mov dl, [drive]
 	mov ax, [es:0x4]
 	push word cs
@@ -460,13 +453,11 @@ exec:
 	push ax
 	retf
 .after:
-	pop fs
 	pop es
 	pop ds
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -488,7 +479,6 @@ exec:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -538,10 +528,13 @@ cls:
 	mov dx, 0x184f
 	int 0x10
 
+	push bx
 	mov dh, 24
 	xor dl, dl
 	mov ah, 0x2
+	xor bh, bh
 	int 0x10
+	pop bx
 
 	jmp line
 
@@ -550,7 +543,6 @@ del:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -565,7 +557,6 @@ del:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -587,7 +578,6 @@ set_drive:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -599,7 +589,6 @@ set_drive:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx

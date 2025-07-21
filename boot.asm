@@ -164,7 +164,6 @@ disk_read:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -179,7 +178,6 @@ disk_read:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -198,7 +196,6 @@ disk_read:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -223,7 +220,6 @@ disk_reset:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -236,7 +232,6 @@ disk_reset:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx

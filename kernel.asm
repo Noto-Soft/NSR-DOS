@@ -33,7 +33,6 @@ scroll_if_need_be:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -46,7 +45,6 @@ scroll_if_need_be:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -414,7 +412,6 @@ disk_read:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -429,7 +426,6 @@ disk_read:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -446,7 +442,6 @@ disk_read:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -492,7 +487,6 @@ disk_write:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -507,7 +501,6 @@ disk_write:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -524,7 +517,6 @@ disk_write:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -548,7 +540,6 @@ disk_reset:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -562,7 +553,6 @@ disk_reset:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -722,7 +712,6 @@ file_read_entry:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -739,7 +728,6 @@ file_read_entry:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -754,7 +742,6 @@ file_soft_delete_entry:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -778,7 +765,6 @@ file_soft_delete_entry:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -790,7 +776,6 @@ drive_switch:
 	push cx
 	push dx
 	push bx
-	push sp
 	push bp
 	push si
 	push di
@@ -837,7 +822,6 @@ drive_switch:
 	pop di
 	pop si
 	pop bp
-	pop sp
 	pop bx
 	pop dx
 	pop cx
@@ -936,10 +920,13 @@ fatal_exception:
 	xor cx, cx
 	mov dx, 0x184f
 	int 0x10
+	push bx
 	mov dh, 24
 	xor dl, dl
 	mov ah, 0x2
+	xor bh, bh
 	int 0x10
+	pop bx
 	; ip
 	pop dx
 	; cs
@@ -985,6 +972,14 @@ main:
 	mov dx, 0x184f
 	int 0x10
 
+	push bx
+	mov dh, 24
+	xor dl, dl
+	mov ah, 0x2
+	xor bh, bh
+	int 0x10
+	pop bx
+
 	lea si, [boot_txt]
 	call file_safe_get
 	test di, di
@@ -999,11 +994,6 @@ main:
 	mov es, bx
 	xor bx, bx
 	call file_read_entry
-
-	mov dh, 24
-	xor dl, dl
-	mov ah, 0x2
-	int 0x10
 
 	mov ax, es
 	mov ds, ax
