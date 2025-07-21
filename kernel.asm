@@ -112,17 +112,37 @@ set_char:
 	pop ax
 	ret
 
+set_cursor:
+	push ax
+	push bx
+
+	mov ah, 0x2
+	xor bh, bh
+	int 0x10
+
+	pop bx
+	pop ax
+	ret
+
+read_cursor:
+	push ax
+	push bx
+	
+	mov ah, 0x3
+	xor bh, bh
+	int 0x10
+
+	pop bx
+	pop ax
+	ret
+
 putc_attr:
 	push ax
 	push bx
 	push cx
 	push dx
 
-	push ax
-	mov ah, 0x3
-	xor bh, bh
-	int 0x10
-	pop ax
+	call read_cursor
 
 	cmp al, 0xa
 	je .newline
@@ -132,9 +152,7 @@ putc_attr:
 	je .tab
 
 	call scroll_if_need_be
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
+	call set_cursor
 
 	call set_char
 
@@ -146,9 +164,7 @@ putc_attr:
 	inc dh 
 	call scroll_if_need_be
 .cursor_good:
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
+	call set_cursor
 
 	push es
 
@@ -176,15 +192,11 @@ putc_attr:
 	inc dh
 	xor dl, dl
 	call scroll_if_need_be
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
+	call set_cursor
 	jmp .done
 .backspace:
 	dec dl
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
+	call set_cursor
 	mov al, " "
 	call set_char
 	jmp .done
@@ -193,9 +205,7 @@ putc_attr:
 	add al, 3
 	and al, 0xFC
 	mov dl, al
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
+	call set_cursor
 	jmp .done
 .done:
 	pop dx
@@ -882,6 +892,8 @@ int21:
 	cmpje 0x8
 	cmpje 0x9
 	cmpje 0xa
+	cmpje 0xb
+	cmpje 0xc
 	jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
@@ -894,6 +906,8 @@ route 0x7, file_safe_get
 route 0x8, file_read_entry
 route 0x9, drive_switch
 route 0xa, file_soft_delete_entry
+route 0xb, set_cursor
+route 0xc, read_cursor
 .done:
 	iret
 .legacy_enabled: db 1
@@ -920,13 +934,9 @@ fatal_exception:
 	xor cx, cx
 	mov dx, 0x184f
 	int 0x10
-	push bx
 	mov dh, 24
 	xor dl, dl
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
-	pop bx
+	call set_cursor
 	; ip
 	pop dx
 	; cs
@@ -972,13 +982,9 @@ main:
 	mov dx, 0x184f
 	int 0x10
 
-	push bx
 	mov dh, 24
 	xor dl, dl
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
-	pop bx
+	call set_cursor
 
 	lea si, [boot_txt]
 	call file_safe_get

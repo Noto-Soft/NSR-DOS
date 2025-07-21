@@ -257,13 +257,10 @@ main:
 	mov al, 0x3
 	int 0x10
 	
-	push bx
+	mov ah, 0xb
 	mov dh, 24
 	xor dl, dl
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
-	pop bx
+	int 0x21
 
 	retf
 .not_exist:
@@ -271,13 +268,10 @@ main:
 	mov al, 0x3
 	int 0x10
 
-	push bx
+	mov ah, 0xb
 	mov dh, 24
 	xor dl, dl
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
-	pop bx
+	int 0x21
 
 	mov ax, cs
 	mov ds, ax

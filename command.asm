@@ -528,13 +528,10 @@ cls:
 	mov dx, 0x184f
 	int 0x10
 
-	push bx
+	mov ah, 0xb
 	mov dh, 24
 	xor dl, dl
-	mov ah, 0x2
-	xor bh, bh
-	int 0x10
-	pop bx
+	int 0x21
 
 	jmp line
 
