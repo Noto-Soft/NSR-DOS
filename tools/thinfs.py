@@ -28,7 +28,7 @@ def create_image(img_name, bootloader_path, fs_name):
     else:
         # Default blank boot sector with R-DOS0.1 signature
         bootloader = bytearray(SECTOR_SIZE)
-        bootloader[0x2:0x2+len(b"R-DOS0.1")] = b"R-DOS0.1"
+        bootloader[2h:2h+len(b"R-DOS0.1")] = b"R-DOS0.1"
 
     # Prepare image file
     with open(img_name, "wb") as f:
@@ -77,7 +77,7 @@ def add_file(img_name, input_file, output_name=None):
         pos = 0
         entries = 0
         while pos < len(entry_data):
-            if entry_data[pos] == 0x00:
+            if entry_data[pos] == 00h:
                 break
             filename_length = entry_data[pos + 3]
             pos += 4 + filename_length

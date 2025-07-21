@@ -1,8 +1,8 @@
 bits 16
 
-org 0x0
+org 0h
 
-%define endl 0xa
+%define endl 0ah
 
 db "AD"
 db 2
@@ -19,9 +19,9 @@ start:
     mov es, ax
 
     xor ah, ah
-    mov bl, 0x7
+    mov bl, 7h
     lea si, [msg]
-    int 0x21
+    int 21h
 
     retf
 

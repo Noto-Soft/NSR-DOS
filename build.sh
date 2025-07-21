@@ -13,9 +13,10 @@ python3 tools/thinfs.py add nsr-dos.img graphix.exe
 python3 tools/thinfs.py add nsr-dos.img nsrdos.bmp
 python3 tools/thinfs.py add nsr-dos.img wisconsin.bmp
 python3 tools/thinfs.py add nsr-dos.img meme.bmp
+truncate -s 1440k nsr-dos.img
 python3 tools/thinfs.py create disk-2.img DISK2
 python3 tools/thinfs.py add disk-2.img bdrive.txt
-python3 tools/thinfs.py add disk-2.img docs/nsxf.txt
+truncate -s 1440k disk-2.img
 for FILE in docs/*; do
     if [ -f "$FILE" ]; then
         python3 tools/thinfs.py add disk-2.img $FILE

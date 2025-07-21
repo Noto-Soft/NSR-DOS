@@ -1,8 +1,8 @@
 bits 16
 
-org 0x0
+org 0h
 
-%define endl 0xa
+%define endl 0ah
 
 start:
     mov ax, cs
@@ -14,7 +14,7 @@ start:
     jmp main
 
 get_rows_from_videomode:
-    cmp al, 0x12
+    cmp al, 12h
     je .rows30
     mov al, 25
     ret
@@ -24,18 +24,18 @@ get_rows_from_videomode:
 
 scroll_if_need_be:
     push ax
-    mov ah, 0x0F
-    int 0x10
+    mov ah, 0Fh
+    int 10h
     call get_rows_from_videomode
     cmp dh, al
     jb .done
     pusha
-    mov ah, 0x6
+    mov ah, 6h
     mov bh, bl
     mov al, 1
     xor cx, cx
-    mov dx, 0x184f
-    int 0x10
+    mov dx, 184fh
+    int 10h
     popa
     mov dh, al
     dec dh
@@ -60,9 +60,9 @@ get_mem_pos:
 
 set_char:
     push ax
-    mov ah, 0x0F
-    int 0x10
-    cmp al, 0x3
+    mov ah, 0Fh
+    int 10h
+    cmp al, 3h
     jne .graphicsMode
     pop ax
 
@@ -72,7 +72,7 @@ set_char:
     push di
 
     push ax
-    mov ax, 0xb800
+    mov ax, 0b800h
     mov es, ax
     pop ax
 
@@ -91,10 +91,10 @@ set_char:
     push ax
     push bx
     push cx
-    mov ah, 0x9
+    mov ah, 9h
     xor bh, bh
     mov cx, 1
-    int 0x10
+    int 10h
     pop cx
     pop bx
     pop ax
@@ -107,20 +107,20 @@ putc_attr:
     push dx
 
     push ax
-    mov ah, 0x3
+    mov ah, 3h
     xor bh, bh
-    int 0x10
+    int 10h
     pop ax
 
-    cmp al, 0xa
+    cmp al, 0ah
     je .newline
-    cmp al, 0x8
+    cmp al, 8h
     je .backspace
 
     call scroll_if_need_be
-    mov ah, 0x2
+    mov ah, 2h
     xor bh, bh
-    int 0x10
+    int 10h
 
     call set_char
 
@@ -132,24 +132,24 @@ putc_attr:
     inc dh 
     call scroll_if_need_be
 .cursor_good:
-    mov ah, 0x2
+    mov ah, 2h
     xor bh, bh
-    int 0x10
+    int 10h
 
     push es
 
     push di
 
     push ax
-    mov ax, 0xb800
+    mov ax, 0b800h
     mov es, ax
     pop ax
 
     call get_mem_pos
 
     mov al, [es:di+1]
-    and al, 0xf0
-    and bl, 0x0f
+    and al, 0f0h
+    and bl, 0fh
     add bl, al
     mov [es:di+1], bl
 
@@ -162,15 +162,15 @@ putc_attr:
     inc dh
     xor dl, dl
     call scroll_if_need_be
-    mov ah, 0x2
+    mov ah, 2h
     xor bh, bh
-    int 0x10
+    int 10h
     jmp .done
 .backspace:
     dec dl
-    mov ah, 0x2
+    mov ah, 2h
     xor bh, bh
-    int 0x10
+    int 10h
     mov al, " "
     call set_char
     jmp .done
@@ -185,14 +185,14 @@ puts:
     push ax
     push bx
     push si
-    mov ah, 0xe
+    mov ah, 0eh
     xor bh, bh
     cld
 .loop:
     lodsb
     or al, al
     jz .done
-    int 0x10
+    int 10h
     jmp .loop
 .done:
     pop si
@@ -268,7 +268,7 @@ print_hex_byte:
     call print_hex_digit
 
     mov al, cl
-    and al, 0x0F
+    and al, 0Fh
     call print_hex_digit
 
     pop cx
@@ -327,14 +327,14 @@ lba_to_chs:
 
     xor dx, dx                          ; dx = 0
     mov ds, dx
-    div word [0x500]                    ; ax = LBA / SectorsPerTrack
+    div word [500h]                    ; ax = LBA / SectorsPerTrack
                                         ; dx = LBA % SectorsPerTrack
 
     inc dx                              ; dx = (LBA % SectorsPerTrack + 1) = sector
     mov cx, dx                          ; cx = sector
 
     xor dx, dx                          ; dx = 0
-    div word [0x502]                    ; ax = (LBA / SectorsPerTrack) / Heads = cylinder
+    div word [502h]                    ; ax = (LBA / SectorsPerTrack) / Heads = cylinder
                                         ; dx = (LBA / SectorsPerTrack) % Heads = head
     mov dh, dl                          ; dh = head
     mov ch, al                          ; ch = cylinder (lower 8 bits)
@@ -413,7 +413,7 @@ disk_write:
     call lba_to_chs                     ; compute CHS
     pop ax                              ; AL = number of sectors to read
     
-    mov ah, 0x3
+    mov ah, 3h
     mov di, 3                           ; retry count
 .retry:
     pusha                               ; save all registers, we don't know what bios modifies
@@ -453,7 +453,7 @@ disk_reset:
     int 13h
     jc floppy_error
     lea si, [.disk_retry]
-    mov bl, 0x3
+    mov bl, 3h
     call puts_attr
     popa
     ret
@@ -467,7 +467,7 @@ file_get:
     push es
     push word 0
     pop es
-    lea di, [0x800]
+    lea di, [800h]
     call case_up
 .locate_kernel_loop:
     mov al, [es:di]
@@ -490,7 +490,7 @@ file_get:
 .not_found:
     pop ax
     add si, 2
-    mov bl, 0x3
+    mov bl, 3h
     jmp fatal_exception
 .located_kernel:
     sub di, 4
@@ -506,7 +506,7 @@ file_safe_get:
     push es
     push word 0
     pop es
-    lea di, [0x800]
+    lea di, [800h]
     call case_up
 .locate_kernel_loop:
     mov al, [es:di]
@@ -546,7 +546,7 @@ file_confirm_exists:
     push es
     xor ax, ax
     mov es, ax
-    lea di, [0x800]
+    lea di, [800h]
     call case_up
 .locate_kernel_loop:
     mov al, [es:di]
@@ -587,7 +587,7 @@ file_read:
     push es
     xor ax, ax
     mov es, ax
-    lea di, [0x800]
+    lea di, [800h]
     call file_get
 
     mov ax, [es:di]
@@ -633,8 +633,8 @@ file_soft_delete_entry:
     mov byte [es:di+4], 0
 
     mov ax, 2
-    mov cl, [es:0x600+13] ; get the length of the entry sectors
-    lea bx, [0x800]
+    mov cl, [es:600h+13] ; get the length of the entry sectors
+    lea bx, [800h]
     call disk_write
 
     pop es
@@ -658,30 +658,30 @@ drive_switch:
     jc floppy_error
     pop es
 
-    and cl, 0x3F
+    and cl, 3Fh
     xor ch, ch
-    mov [es:0x500], cx
+    mov [es:500h], cx
  
     inc dh
-    mov [es:0x502], dh
-    mov byte [es:0x503], 0
+    mov [es:502h], dh
+    mov byte [es:503h], 0
 
     mov ax, 1
     mov cl, 1
     pop dx
     push dx
-    lea bx, [0x600]
-    int 0x22
+    lea bx, [600h]
+    int 22h
 
-    mov al, [es:0x600+2]
+    mov al, [es:600h+2]
     test al, al
     jz drive_invalid_fs
 
     mov ax, 2
-    mov cl, [es:0x600+13]
+    mov cl, [es:600h+13]
     pop dx
-    lea bx, [0x800]
-    int 0x22
+    lea bx, [800h]
+    int 22h
 
     pop es
 
@@ -689,12 +689,12 @@ drive_switch:
     ret
 
 floppy_error:
-    mov al, 0x4
-    int 0x2f
+    mov al, 4h
+    int 2fh
 
 drive_invalid_fs:
-    mov al, 0x5
-    int 0x2f
+    mov al, 5h
+    int 2fh
 
 disk_read_interrupt_wrapper:
     call disk_read
@@ -731,29 +731,29 @@ disk_write_interrupt_wrapper:
 %endmacro
 
 int21:
-    cmpje 0x0
-    cmpje 0x1
-    cmpje 0x2
-    cmpje 0x3
-    cmpje 0x4
-    cmpje 0x5
-    cmpje 0x6
-    cmpje 0x7
-    cmpje 0x8
-    cmpje 0x9
-    cmpje 0xa
+    cmpje 0h
+    cmpje 1h
+    cmpje 2h
+    cmpje 3h
+    cmpje 4h
+    cmpje 5h
+    cmpje 6h
+    cmpje 7h
+    cmpje 8h
+    cmpje 9h
+    cmpje 0ah
     jmp .done
-route 0x0, puts_attr
-route 0x1, putc_attr
-routel 0x2, file_get
-routel 0x3, file_read
-routel 0x4, file_confirm_exists
-route 0x5, print_hex_byte
-route 0x6, print_hex_word
-route 0x7, file_safe_get
-route 0x8, file_read_entry
-route 0x9, drive_switch
-route 0xa, file_soft_delete_entry
+route 0h, puts_attr
+route 1h, putc_attr
+routel 2h, file_get
+routel 3h, file_read
+routel 4h, file_confirm_exists
+route 5h, print_hex_byte
+route 6h, print_hex_word
+route 7h, file_safe_get
+route 8h, file_read_entry
+route 9h, drive_switch
+route 0ah, file_soft_delete_entry
 .done:
     iret
 .legacy_enabled: db 1
@@ -763,7 +763,7 @@ int0:
     jmp fatal_exception
 
 int6:
-    mov bl, 0x6
+    mov bl, 6h
     jmp fatal_exception
 
 int2f:
@@ -772,84 +772,84 @@ int2f:
 
 fatal_exception:
     xor ah, ah
-    mov al, 0x3
-    int 0x10
-    mov ah, 0x6
+    mov al, 3h
+    int 10h
+    mov ah, 6h
     xor al, al
-    mov bh, 0x17
+    mov bh, 17h
     xor cx, cx
-    mov dx, 0x184f
-    int 0x10
+    mov dx, 184fh
+    int 10h
     mov dh, 24
     xor dl, dl
-    mov ah, 0x2
-    int 0x10
+    mov ah, 2h
+    int 10h
     pop dx ; ip
     pop cx ; cs
     add sp, 2 ; flags
     mov ax, cs
     mov ds, ax
     mov cl, bl
-    mov bl, 0x71
+    mov bl, 71h
     lea si, [nsr_dos]
     call puts_attr
-    mov bl, 0x17
+    mov bl, 17h
     lea si, [fatal_exception_msg]
     call puts_attr
     call print_hex_byte
     lea si, [fatal_exception_part_2]
     call puts_attr
 
-    mov al, 0xb6
-    out 0x43, al
+    mov al, 0b6h
+    out 43h, al
 
     mov ax, 1193182 / 880
-    out 0x42, al
+    out 42h, al
     mov al, ah
-    out 0x42, al
+    out 42h, al
 
-    in al, 0x61
+    in al, 61h
     or al, 3
-    out 0x61, al
+    out 61h, al
 
     jmp $
 
 main:
     xor ah, ah
-    mov al, 0x3
-    int 0x10
+    mov al, 3h
+    int 10h
 
-    mov ah, 0x6
+    mov ah, 6h
     xor al, al
-    mov bh, 0x0f
+    mov bh, 0fh
     xor cx, cx
-    mov dx, 0x184f
-    int 0x10
+    mov dx, 184fh
+    int 10h
 
     lea si, [boot_txt]
     call file_safe_get
     test di, di
     jnz .boot_txt_not_null
-    mov bl, 0x3
+    mov bl, 3h
     sub sp, 2
     push cs
     call fatal_exception
 .boot_txt_not_null:
     mov dl, [drive]
-    mov bx, 0x4000
+    mov bx, 4000h
     mov es, bx
     xor bx, bx
     call file_read_entry
 
     mov dh, 24
     xor dl, dl
-    mov ah, 0x2
-    int 0x10
+    mov ah, 2h
+    int 10h
 
     mov ax, es
     mov ds, ax
     xor si, si
-    mov bl, 0xf
+    mov bl, 0fh
     call puts_attr
 
     mov ax, cs
@@ -859,43 +859,43 @@ main:
     xor ax, ax
     mov es, ax
     mov ax, cs
-    mov word [es:0x0*4], int0
-    mov [es:0x0*4+2], ax
-    mov word [es:0x6*4], int6
-    mov [es:0x6*4+2], ax
-    mov word [es:0x21*4], int21
-    mov [es:0x21*4+2], ax
-    mov word [es:0x22*4], disk_read_interrupt_wrapper
-    mov [es:0x22*4+2], ax
-    mov word [es:0x23*4], disk_write_interrupt_wrapper
-    mov [es:0x23*4+2], ax
-    mov word [es:0x2f*4], int2f
-    mov [es:0x2f*4+2], ax
+    mov word [es:0h*4], int0
+    mov [es:0h*4+2], ax
+    mov word [es:6h*4], int6
+    mov [es:6h*4+2], ax
+    mov word [es:21h*4], int21
+    mov [es:21h*4+2], ax
+    mov word [es:22h*4], disk_read_interrupt_wrapper
+    mov [es:22h*4+2], ax
+    mov word [es:23h*4], disk_write_interrupt_wrapper
+    mov [es:23h*4+2], ax
+    mov word [es:2fh*4], int2f
+    mov [es:2fh*4+2], ax
     pop es
 
     lea si, [command_exe]
     call file_safe_get
     test di, di
     jnz .command_exe_not_null
-    mov al, 0x3
-    int 0x2f
+    mov al, 3h
+    int 2fh
 .command_exe_not_null:
     mov dl, [drive]
-    mov bx, 0x1000
+    mov bx, 1000h
     mov es, bx
     xor bx, bx
     call file_read_entry
 
-    mov ax, [es:0x0]
+    mov ax, [es:0h]
     cmp ax, "AD"
     jne .unknown_format
-    mov al, [es:0x2]
-    cmp al, 0x2
+    mov al, [es:2h]
+    cmp al, 2h
     jne .unknown_format
     push ds
     push es
     mov dl, [drive]
-    mov ax, [es:0x4]
+    mov ax, [es:4h]
     push cs
     push word .after
     push es
@@ -908,8 +908,8 @@ main:
     jmp $
 
 .unknown_format:
-    mov al, 0x2
-    int 0x2f
+    mov al, 2h
+    int 2fh
 
 nsr_dos: db "NSR-DOS", 0
 fatal_exception_msg: db endl, endl, "A fatal exception ", 0

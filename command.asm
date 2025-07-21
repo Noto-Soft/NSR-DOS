@@ -1,8 +1,8 @@
 bits 16
 
-org 0x0
+org 0h
 
-%define endl 0xa
+%define endl 0ah
 
 db "AD"
 db 2
@@ -15,6 +15,9 @@ drive: db 0
 
 msg_directory_of: db "Directory of drive ", 0
 msg_command: db "A>", 0
+msg_sectors_used: db endl, "Sectors used: ", 0
+msg_sectors_free: db endl, "Sectors free: ", 0
+msg_sectors_total: db endl, "Total sectors: ", 0
 
 str_commands: db "List of commands:", endl, 0
 str_a: db "a:", 0
@@ -170,21 +173,21 @@ line:
     lea di, [buffer]
     call clear_buffer
     xor ah, ah
-    mov bl, 0xf
+    mov bl, 0fh
     lea si, [msg_command]
-    int 0x21
+    int 21h
 .loop:
     xor ah, ah
-    int 0x16
-    cmp al, 0xd
+    int 16h
+    cmp al, 0dh
     je line_done
-    cmp al, 0x8
+    cmp al, 8h
     je .backspace
     cmp di, BUFFER_END
     jnb .loop
-    mov ah, 0x1
-    mov bl, 0xf
-    int 0x21
+    mov ah, 1h
+    mov bl, 0fh
+    int 21h
     mov [di], al
     inc di
     mov byte [di], 0
@@ -192,18 +195,18 @@ line:
 .backspace:
     cmp di, buffer
     jna .loop
-    mov ah, 0x1
-    mov bl, 0xf
-    int 0x21
+    mov ah, 1h
+    mov bl, 0fh
+    int 21h
     dec di
     mov byte [di], 0
     jmp .loop
 
 line_done:
-    mov ah, 0x1
-    mov bl, 0xf
-    mov al, 0xa
-    int 0x21
+    mov ah, 1h
+    mov bl, 0fh
+    mov al, 0ah
+    int 21h
 
     push di
 
@@ -259,25 +262,26 @@ dir:
 
     xor ah, ah
     inc ah
-    mov al, 0xa
-    mov bl, 0xf
-    int 0x21
+    mov al, 0ah
+    mov bl, 0fh
+    int 21h
     dec ah
     lea si, [msg_directory_of]
-    int 0x21
+    int 21h
     inc ah
     mov al, [msg_command] ; holds drive letter conveniently
-    int 0x21
-    mov al, 0xa
-    int 0x21
-    int 0x21
+    int 21h
+    mov al, 0ah
+    int 21h
+    int 21h
 
     xor ax, ax
     mov ds, ax
-    lea di, [0x800]
+    lea di, [800h]
     xor ah, ah
-    mov bl, 0xf
-    xor cl, cl
+    mov bl, 0fh
+    xor cx, cx
+    xor dx, dx
 .loop:
     mov al, [di]
     cmp al, 0
@@ -287,16 +291,17 @@ dir:
     cmp al, 0
     je .skip
     mov si, di
-    int 0x21
-    mov ah, 0x1
+    int 21h
+    mov ah, 1h
     mov al, " "
-    int 0x21
-    mov ah, 0x5
+    int 21h
+    mov ah, 5h
     mov cl, [di-2]
-    int 0x21
-    mov ah, 0x1
-    mov al, 0xa
-    int 0x21
+    int 21h
+    add dx, cx
+    mov ah, 1h
+    mov al, 0ah
+    int 21h
 .skip:
     dec di
     mov al, [di]
@@ -307,10 +312,19 @@ dir:
 .done:
     pop ds
 
-    mov ah, 0x1
-    mov al, 0xa
-    mov bl, 0xf
-    int 0x21
+    xor ah, ah
+    mov bl, 0fh
+    lea si, [msg_sectors_used]
+    int 21h
+
+    mov ah, 6h
+    mov cx, dx
+    int 21h
+
+    mov ah, 1h
+    mov al, 0ah
+    int 21h
+    int 21h
 
     popa
     jmp line
@@ -322,24 +336,24 @@ type:
     push es
 
     add si, 5
-    mov ah, 0x7
-    int 0x21
+    mov ah, 7h
+    int 21h
     test di, di
     jz .not_exist
-    mov ah, 0x8
+    mov ah, 8h
     mov dl, [drive]
-    lea bx, [0x4000]
+    lea bx, [4000h]
     mov es, bx
     xor bx, bx
-    int 0x21
+    int 21h
 
     mov ax, es
     mov ds, ax
 
     xor ah, ah
-    mov bl, 0xf
-    lea si, [0x0]
-    int 0x21
+    mov bl, 0fh
+    lea si, [0h]
+    int 21h
 
     jmp .done
 .not_exist:
@@ -347,9 +361,9 @@ type:
     mov ds, ax
     
     xor ah, ah
-    mov bl, 0x4
+    mov bl, 4h
     lea si, [error_not_file]
-    int 0x21
+    int 21h
 .done:
     pop es
     pop ds
@@ -363,32 +377,32 @@ exec:
     push ds
     push es
 
-    mov ah, 0x7
-    int 0x21
+    mov ah, 7h
+    int 21h
     test di, di
     jz .check_autofill
 .after_autofill_check:
     mov dl, [drive]
-    lea bx, [0x2000]
+    lea bx, [2000h]
     mov ax, cs
     cmp bx, ax
     jne .after_error
     mov al, 1
-    int 0x2f
+    int 2fh
 .after_error:
-    mov ah, 0x8
+    mov ah, 8h
     mov es, bx
     xor bx, bx
-    int 0x21
+    int 21h
 
     mov ax, es
     mov ds, ax
 
-    mov ax, [es:0x0]
+    mov ax, [es:0h]
     cmp ax, "AD"
     jne .unknown_format
-    mov al, [es:0x2]
-    cmp al, 0x2
+    mov al, [es:2h]
+    cmp al, 2h
     jne .unknown_format
     push ax
     push cx
@@ -402,7 +416,7 @@ exec:
     push es
     push fs
     mov dl, [drive]
-    mov ax, [es:0x4]
+    mov ax, [es:4h]
     push word cs
     push word .after
     push word es
@@ -427,9 +441,9 @@ exec:
     mov ds, ax
     
     xor ah, ah
-    mov bl, 0x4
+    mov bl, 4h
     lea si, [error_not_command_or_file]
-    int 0x21
+    int 21h
 .done:
     pop es
     pop ds
@@ -437,8 +451,8 @@ exec:
     popa
     jmp line
 .unknown_format:
-    mov al, 0x2
-    int 0x2f
+    mov al, 2h
+    int 2fh
 .check_autofill:
     push si
 .find_terminator_loop:
@@ -449,8 +463,8 @@ exec:
     mov word [si+1], "XE"
     pop si
 
-    mov ah, 0x7
-    int 0x21
+    mov ah, 7h
+    int 21h
     test di, di
     jz .not_exist
 
@@ -458,9 +472,9 @@ exec:
 
 help:
     xor ah, ah
-    mov bl, 0xf
+    mov bl, 0fh
     lea si, [str_commands]
-    int 0x21
+    int 21h
 .find_next_string:
     mov al, [si]
     inc si
@@ -469,33 +483,33 @@ help:
     mov al, [si]
     test al, al
     jz line
-    int 0x21
+    int 21h
     jmp .find_next_string
 
 cls:
-    mov ah, 0x6
+    mov ah, 6h
     xor al, al
-    mov bh, 0x0f
+    mov bh, 0fh
     xor cx, cx
-    mov dx, 0x184f
-    int 0x10
+    mov dx, 184fh
+    int 10h
 
     mov dh, 24
     xor dl, dl
-    mov ah, 0x2
-    int 0x10
+    mov ah, 2h
+    int 10h
 
     jmp line
 
 del:
     pusha
 
-    mov ah, 0x7
+    mov ah, 7h
     add si, 4
     mov dl, [drive]
-    int 0x21
-    mov ah, 0xa
-    int 0x21
+    int 21h
+    mov ah, 0ah
+    int 21h
 
     popa
     jmp line
@@ -513,31 +527,31 @@ b:
 set_drive:
     pusha
     push es
-    mov ah, 0x8
-    int 0x13
+    mov ah, 8h
+    int 13h
     jc drive_empty
     pop es
     popa
     mov byte [drive], dl
     mov byte [msg_command], al
-    mov ah, 0x9
-    int 0x21
+    mov ah, 9h
+    int 21h
     jmp dir
 
 drive_empty:
     xor ah, ah
-    mov bl, 0x4
+    mov bl, 4h
     lea si, [error_drive_missing]
-    int 0x21
+    int 21h
     jmp line
 
 drive_invalid_fs:
-    mov al, 0x5
-    int 0x2f
+    mov al, 5h
+    int 2fh
 
 floppy_error:
-    mov al, 0x4
-    int 0x2f
+    mov al, 4h
+    int 2fh
 
 exit:
     retf

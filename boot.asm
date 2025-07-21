@@ -1,8 +1,8 @@
 bits 16
 
-org 0x7c00
+org 7c00h
 
-%define endl 0xd, 0xa
+%define endl 0dh, 0ah
 
 jmp start
 
@@ -14,7 +14,7 @@ start:
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov sp, 0x7c00
+    mov sp, 7c00h
 
     lea si, [msg_boot]
     call puts
@@ -27,27 +27,27 @@ start:
     jc floppy_error
     pop es
 
-    and cl, 0x3F
+    and cl, 3Fh
     xor ch, ch
-    mov [0x500], cx
+    mov [500h], cx
  
     inc dh
-    mov [0x502], dh
-    mov byte [0x503], 0
+    mov [502h], dh
+    mov byte [503h], 0
 
-    jmp 0x0000:main
+    jmp 0000h:main
 
 puts:
     push ax
     push bx
     push si
-    mov ah, 0xe
+    mov ah, 0eh
     xor bh, bh
 .loop:
     lodsb
     or al, al
     jz .done
-    int 0x10
+    int 10h
     jmp .loop
 .done:
     pop si
@@ -100,14 +100,14 @@ lba_to_chs:
     push dx
 
     xor dx, dx                          ; dx = 0
-    div word [0x500]                    ; ax = LBA / SectorsPerTrack
+    div word [500h]                    ; ax = LBA / SectorsPerTrack
                                         ; dx = LBA % SectorsPerTrack
 
     inc dx                              ; dx = (LBA % SectorsPerTrack + 1) = sector
     mov cx, dx                          ; cx = sector
 
     xor dx, dx                          ; dx = 0
-    div word [0x502]                    ; ax = (LBA / SectorsPerTrack) / Heads = cylinder
+    div word [502h]                    ; ax = (LBA / SectorsPerTrack) / Heads = cylinder
                                         ; dx = (LBA / SectorsPerTrack) % Heads = head
     mov dh, dl                          ; dh = head
     mov ch, al                          ; ch = cylinder (lower 8 bits)
@@ -190,28 +190,28 @@ disk_reset:
 .disk_retry: db "Retry read", endl, 0
 
 floppy_error:
-    mov al, 0x4
-    int 0x2f
+    mov al, 4h
+    int 2fh
 
 main:
     mov ax, 1
     mov cl, 1
     mov dl, [drive]
-    lea bx, [0x600]
+    lea bx, [600h]
     push 0
     pop es
     call disk_read
 
     mov ax, 2
-    mov cl, [0x600+13]
+    mov cl, [600h+13]
     mov dl, [drive]
-    lea bx, [0x800]
+    lea bx, [800h]
     push 0
     pop es
     call disk_read
 
     lea si, [kernel_sys]
-    lea di, [0x800]
+    lea di, [800h]
 .locate_kernel_loop:
     mov al, [di]
     or al, al
@@ -240,13 +240,13 @@ main:
     mov ax, [di]
     mov cl, [di+2]
     mov dl, [drive]
-    lea bx, [0x7e00]
+    lea bx, [7e00h]
     push 0
     pop es
     call disk_read
 
     mov dl, [drive]
-    jmp 0x7e0:0x0
+    jmp 7e0h:0h
 
     jmp $
 
@@ -259,4 +259,4 @@ kernel_sys: db "KERNEL.SYS", 0
 drive: db 0
 
 times 510-($-$$) db 0
-dw 0xaa55
+dw 0aa55h
