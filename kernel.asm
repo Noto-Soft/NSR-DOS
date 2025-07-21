@@ -305,7 +305,6 @@ case_up:
     pop ax
     ret
 
-
 ;
 ; Disk routines
 ;   - stolen from nanobytes
@@ -396,6 +395,53 @@ disk_read:
     ret
 
 ;
+; Reads sectors to a disk
+; Parameters:
+;   - ax: LBA address
+;   - cl: number of sectors to write (up to 128)
+;   - dl: drive number
+;   - es:bx: memory address where to read write data
+;
+disk_write:
+    push ax                             ; save registers we will modify
+    push bx
+    push cx
+    push dx
+    push di
+
+    push cx                             ; temporarily save CL (number of sectors to read)
+    call lba_to_chs                     ; compute CHS
+    pop ax                              ; AL = number of sectors to read
+    
+    mov ah, 0x3
+    mov di, 3                           ; retry count
+.retry:
+    pusha                               ; save all registers, we don't know what bios modifies
+    stc                                 ; set carry flag, some BIOS'es don't set it
+    int 13h                             ; carry flag cleared = success
+    jnc .done                           ; jump if carry not set
+
+    ; read failed
+    popa
+    call disk_reset
+
+    dec di
+    test di, di
+    jnz .retry
+.fail:
+    ; all attempts are exhausted
+    jmp floppy_error
+.done:
+    popa
+
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    pop ax                             ; restore registers modified
+    ret
+
+;
 ; Resets disk controller
 ; Parameters:
 ;   dl: drive number
@@ -425,12 +471,16 @@ file_get:
     call case_up
 .locate_kernel_loop:
     mov al, [es:di]
-    or al, al
+    test al, al
     jz .not_found ; end of entries
     add di, 4
+    mov al, [es:di]
+    test al, al
+    jz .skip
     call strcmp
     test ax, ax
     jz .located_kernel
+.skip:
     dec di
     mov al, [es:di]
     xor ah, ah
@@ -460,12 +510,16 @@ file_safe_get:
     call case_up
 .locate_kernel_loop:
     mov al, [es:di]
-    or al, al
+    test al, al 
     jz .not_found ; end of entries
     add di, 4
+    mov al, [es:di]
+    test al, al
+    jz .skip
     call strcmp
-    test ax, ax
+    test al, al
     jz .located_kernel
+.skip:
     dec di
     mov al, [es:di]
     xor ah, ah
@@ -551,6 +605,8 @@ file_read:
 ;   - es:bx: buffer
 ;   - di: file entry (segment 0)
 file_read_entry:
+    pusha
+
     push es
 
     xor ax, ax
@@ -560,6 +616,92 @@ file_read_entry:
     pop es
     call disk_read
 
+    popa
+    ret
+
+; in:
+;   - dl: drive
+;   - di: file entry (segment 0)
+file_soft_delete_entry:
+    pusha
+
+    push es
+
+    xor ax, ax
+    mov es, ax
+    
+    mov byte [es:di+4], 0
+
+    mov ax, 2
+    mov cl, [es:0x600+13] ; get the length of the entry sectors
+    lea bx, [0x800]
+    call disk_write
+
+    pop es
+    call disk_read
+
+    popa
+    ret
+
+; in:
+;   - cl: file size
+;   - dl: drive
+;   - ds:si: filename
+;   - es:bx: file data to write
+file_write_entry:
+    pusha
+
+    push es
+
+    xor ax, ax
+    mov es, ax
+    lea di, [0x800]
+    push bx
+    push cx
+    xor bx, bx
+    xor cx, cx
+.find_last:
+    ; keep track of the last max lba and last file's size
+    mov bx, [es:di]
+    cmp bx, cx
+    jng .lba_not_max
+    mov cx, bx
+    mov dh, [es:di+2]
+.lba_not_max:
+    mov al, [es:di+3]
+    add di, ax
+    inc di
+    mov al, [es:di]
+    test al, al
+    jz .found
+    jmp .find_last
+.found:
+    ; di now has the next free space for an entry
+    ; cx holds the highest lba in the file system
+    ; dh holds the size of the last file
+    push dx
+    xor dl, dl
+    xchg dh, dl
+    add cx, dx
+    pop dx
+    mov [es:di], cx
+    pop cx
+    mov [es:di+2], cl
+
+    push cx
+    mov ax, 2
+    mov cl, [es:0x600+13] ; get the length of the entry sectors
+    lea bx, [0x800]
+    call disk_write
+    pop cx
+
+    pop bx
+    pop es
+
+    mov ax, 2
+    call disk_write
+
+    popa
     ret
 
 drive_switch:
@@ -619,6 +761,10 @@ disk_read_interrupt_wrapper:
     call disk_read
     iret
 
+disk_write_interrupt_wrapper:
+    call disk_write
+    iret
+
 %macro cmpje 1
     cmp ah, %1
     je .ah%1
@@ -656,6 +802,8 @@ int21:
     cmpje 0x7
     cmpje 0x8
     cmpje 0x9
+    cmpje 0xa
+    cmpje 0xb
     jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
@@ -667,6 +815,8 @@ route 0x6, print_hex_word
 route 0x7, file_safe_get
 route 0x8, file_read_entry
 route 0x9, drive_switch
+route 0xa, file_soft_delete_entry
+route 0xb, file_write_entry
 .done:
     iret
 .legacy_enabled: db 1
@@ -782,6 +932,8 @@ main:
     mov [es:0x22*4+2], ax
     mov word [es:0x23*4], int23
     mov [es:0x23*4+2], ax
+    mov word [es:0x24*4], disk_write_interrupt_wrapper
+    mov [es:0x24*4+2], ax
     pop es
 
     lea si, [command_exe]

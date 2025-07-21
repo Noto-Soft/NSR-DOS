@@ -251,7 +251,6 @@ main:
     jmp $
 
 msg_boot: db "Small Diversified Bootloader 1.0", endl, 0
-msg_progress: db "Progress", endl, 0
 
 error_kernel_not_found: db " missing", endl, 0
 
