@@ -21,19 +21,19 @@ msg_sectors_total: db endl, "Total sectors: ", 0
 
 str_commands: db "List of commands:", endl, 0
 str_a: db "a:", 0
-    db " - Set drive to drive A: (drive #0)", endl, 0
+    db 9h, " - Set drive to drive A: (drive #0)", endl, 0
 str_b: db "b:", 0
-    db " - Set drive to drive B: (drive #1)", endl, 0
+    db 9h, " - Set drive to drive B: (drive #1)", endl, 0
 str_cls: db "cls", 0
-    db " - Clear console output", endl, 0
+    db 9h, " - Clear console output", endl, 0
 str_del: db "del", 0
-    db " - Deletes a file from the disk directory", endl, 0
+    db 9h, " - Deletes a file from the disk directory", endl, 0
 str_dir: db "dir", 0
-    db " - List files on the disk directory", endl, 0
+    db 9h, " - List files on the disk directory", endl, 0
 str_help: db "help", 0
-    db " - List available commands and their functions", endl, 0
+    db 9h, " - List available commands and their functions", endl, 0
 str_type: db "type", 0
-    db " - Read a file out to the console", endl, 0
+    db 9h, " - Read a file out to the console", endl, 0
 db 0
 
 error_not_command_or_file: db "Not a command nor an executable file", endl, 0

@@ -116,6 +116,8 @@ putc_attr:
     je .newline
     cmp al, 8h
     je .backspace
+    cmp al, 9h
+    je .tab
 
     call scroll_if_need_be
     mov ah, 2h
@@ -173,6 +175,15 @@ putc_attr:
     int 10h
     mov al, " "
     call set_char
+    jmp .done
+.tab:
+    mov al, dl
+    add al, 3
+    and al, 0FCh
+    mov dl, al
+    mov ah, 2h
+    xor bh, bh
+    int 10h
     jmp .done
 .done:
     pop dx
