@@ -1,8 +1,8 @@
 bits 16
 
-org 7c00h
+org 0x7c00
 
-%define endl 0dh, 0ah
+%define endl 0xd, 0xa
 
 jmp start
 
@@ -14,7 +14,7 @@ start:
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov sp, 7c00h
+    mov sp, 0x7c00
 
     lea si, [msg_boot]
     call puts
@@ -22,32 +22,32 @@ start:
     mov [drive], dl
 
     push es
-    mov ah, 08h
-    int 13h
+    mov ah, 0x08
+    int 0x13
     jc floppy_error
     pop es
 
-    and cl, 3Fh
+    and cl, 0x3F
     xor ch, ch
-    mov [500h], cx
+    mov [0x500], cx
  
     inc dh
-    mov [502h], dh
-    mov byte [503h], 0
+    mov [0x502], dh
+    mov byte [0x503], 0
 
-    jmp 0000h:main
+    jmp 0x0000:main
 
 puts:
     push ax
     push bx
     push si
-    mov ah, 0eh
+    mov ah, 0xe
     xor bh, bh
 .loop:
     lodsb
     or al, al
     jz .done
-    int 10h
+    int 0x10
     jmp .loop
 .done:
     pop si
@@ -99,23 +99,33 @@ lba_to_chs:
     push ax
     push dx
 
-    xor dx, dx                          ; dx = 0
-    div word [500h]                    ; ax = LBA / SectorsPerTrack
+    ; dx = 0
+    xor dx, dx
+    ; ax = LBA / SectorsPerTrack
+    div word [0x500]
                                         ; dx = LBA % SectorsPerTrack
 
-    inc dx                              ; dx = (LBA % SectorsPerTrack + 1) = sector
-    mov cx, dx                          ; cx = sector
+    ; dx = (LBA % SectorsPerTrack + 1) = sector
+    inc dx
+    ; cx = sector
+    mov cx, dx
 
-    xor dx, dx                          ; dx = 0
-    div word [502h]                    ; ax = (LBA / SectorsPerTrack) / Heads = cylinder
+    ; dx = 0
+    xor dx, dx
+    ; ax = (LBA / SectorsPerTrack) / Heads = cylinder
+    div word [0x502]
                                         ; dx = (LBA / SectorsPerTrack) % Heads = head
-    mov dh, dl                          ; dh = head
-    mov ch, al                          ; ch = cylinder (lower 8 bits)
+    ; dh = head
+    mov dh, dl
+    ; ch = cylinder (lower 8 bits)
+    mov ch, al
     shl ah, 6
-    or cl, ah                           ; put upper 2 bits of cylinder in CL
+    ; put upper 2 bits of cylinder in CL
+    or cl, ah
 
     pop ax
-    mov dl, al                          ; restore DL
+    ; restore DL
+    mov dl, al
     pop ax
     ret
 
@@ -130,27 +140,50 @@ lba_to_chs:
 ;
 disk_read:
 
-    push ax                             ; save registers we will modify
+    ; save registers we will modify
+    push ax
     push bx
     push cx
     push dx
     push di
 
-    push cx                             ; temporarily save CL (number of sectors to read)
-    call lba_to_chs                     ; compute CHS
-    pop ax                              ; AL = number of sectors to read
+    ; temporarily save CL (number of sectors to read)
+    push cx
+    ; compute CHS
+    call lba_to_chs
+    ; AL = number of sectors to read
+    pop ax
     
-    mov ah, 02h
-    mov di, 3                           ; retry count
+    mov ah, 0x02
+    ; retry count
+    mov di, 3
 
 .retry:
-    pusha                               ; save all registers, we don't know what bios modifies
-    stc                                 ; set carry flag, some BIOS'es don't set it
-    int 13h                             ; carry flag cleared = success
-    jnc .done                           ; jump if carry not set
+    ; save all registers, we don't know what bios modifies
+    push ax
+    push cx
+    push dx
+    push bx
+    push sp
+    push bp
+    push si
+    push di
+    ; set carry flag, some BIOS'es don't set it
+    stc
+    ; carry flag cleared = success
+    int 0x13
+    ; jump if carry not set
+    jnc .done
 
     ; read failed
-    popa
+    pop di
+    pop si
+    pop bp
+    pop sp
+    pop bx
+    pop dx
+    pop cx
+    pop ax
     call disk_reset
 
     dec di
@@ -162,13 +195,21 @@ disk_read:
     jmp floppy_error
 
 .done:
-    popa
+    pop di
+    pop si
+    pop bp
+    pop sp
+    pop bx
+    pop dx
+    pop cx
+    pop ax
 
     pop di
     pop dx
     pop cx
     pop bx
-    pop ax                             ; restore registers modified
+    ; restore registers modified
+    pop ax
     ret
 
 
@@ -178,44 +219,59 @@ disk_read:
 ;   dl: drive number
 ;
 disk_reset:
-    pusha
+    push ax
+    push cx
+    push dx
+    push bx
+    push sp
+    push bp
+    push si
+    push di
     xor ah, ah
     stc
-    int 13h
+    int 0x13
     jc floppy_error
     lea si, [.disk_retry]
     call puts
-    popa
+    pop di
+    pop si
+    pop bp
+    pop sp
+    pop bx
+    pop dx
+    pop cx
+    pop ax
     ret
 .disk_retry: db "Retry read", endl, 0
 
 floppy_error:
-    mov al, 4h
-    int 2fh
+    mov al, 0x4
+    int 0x2f
 
 main:
     mov ax, 1
     mov cl, 1
     mov dl, [drive]
-    lea bx, [600h]
+    lea bx, [0x600]
     push 0
     pop es
     call disk_read
 
     mov ax, 2
-    mov cl, [600h+13]
+    mov cl, [0x600+13]
     mov dl, [drive]
-    lea bx, [800h]
+    lea bx, [0x800]
     push 0
     pop es
     call disk_read
 
     lea si, [kernel_sys]
-    lea di, [800h]
+    lea di, [0x800]
 .locate_kernel_loop:
     mov al, [di]
     or al, al
-    jz .not_found ; end of entries
+    ; end of entries
+    jz .not_found
     add di, 4
     call strcmp
     test ax, ax
@@ -240,13 +296,13 @@ main:
     mov ax, [di]
     mov cl, [di+2]
     mov dl, [drive]
-    lea bx, [7e00h]
+    lea bx, [0x7e00]
     push 0
     pop es
     call disk_read
 
     mov dl, [drive]
-    jmp 7e0h:0h
+    jmp 0x7e0:0x0
 
     jmp $
 
@@ -259,4 +315,4 @@ kernel_sys: db "KERNEL.SYS", 0
 drive: db 0
 
 times 510-($-$$) db 0
-dw 0aa55h
+dw 0xaa55

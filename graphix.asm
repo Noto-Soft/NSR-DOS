@@ -1,8 +1,8 @@
 bits 16
 
-org 0h
+org 0x0
 
-%define endl 0ah
+%define endl 0xa
 
 db "AD"
 db 2
@@ -36,7 +36,7 @@ clear_screen:
     push di
     push es
     push ax
-    mov ax, 0a000h
+    mov ax, 0xa000
     mov es, ax
     pop ax
     xor di, di
@@ -61,7 +61,7 @@ draw_pixel:
 
     mov di, ax
 
-    mov ax, 0a000h
+    mov ax, 0xa000
     mov es, ax
 
     mov ax, dx
@@ -86,7 +86,7 @@ draw_fullscreen_bmp:
     push bx
     push cx
     push es
-    mov ax, 0a000h
+    mov ax, 0xa000
     mov es, ax
 
     xor bx, bx
@@ -110,10 +110,10 @@ draw_fullscreen_bmp:
 get_pallete:
     push ax
     push dx
-    mov dx, 3C7h
+    mov dx, 0x3C7
     out dx, al
 
-    mov dx, 3C9h
+    mov dx, 0x3C9
     in  al, dx
     mov bl, al
     in  al, dx
@@ -129,7 +129,7 @@ get_pallete:
 set_pallete:
     push ax
     push dx
-    mov dx, 3C8h
+    mov dx, 0x3C8
     out dx, al
 
     inc dx
@@ -145,26 +145,26 @@ set_pallete:
 
 main:
     xor ah, ah
-    mov bl, 3h
+    mov bl, 0x3
     lea si, [msg_choose_image]
-    int 21h
+    int 0x21
 
     lea di, [image_file_name]
     xor bx, bx
     mov byte [di], 0
 .get_filename_loop:
     xor ah, ah
-    int 16h
-    cmp al, 0dh
+    int 0x16
+    cmp al, 0xd
     je .got_filename
-    cmp al, 8h
+    cmp al, 0x8
     je .backspace
     cmp bx, FILENAME_BUFFER_LENGTH
     jnb .get_filename_loop
-    mov ah, 1h
+    mov ah, 0x1
     push bx
-    mov bl, 0fh
-    int 21h
+    mov bl, 0xf
+    int 0x21
     pop bx
     mov [di+bx], al
     inc bx
@@ -173,21 +173,21 @@ main:
 .backspace:
     cmp bx, 0
     jna .get_filename_loop
-    mov ah, 1h
+    mov ah, 0x1
     push bx
-    mov al, 8h
-    mov bl, 0fh
-    int 21h
+    mov al, 0x8
+    mov bl, 0xf
+    int 0x21
     pop bx
     mov byte [di+bx], 0
     dec bx
     jmp .get_filename_loop
 .got_filename:
     xor ah, ah
-    mov al, 13h
-    int 10h
+    mov al, 0x13
+    int 0x10
 
-    mov al, 1h
+    mov al, 0x1
     call clear_screen
     
     mov al, 3
@@ -201,18 +201,18 @@ main:
 
     lea si, [default_image]
 .continue:
-    mov ah, 7h
-    int 21h
+    mov ah, 0x7
+    int 0x21
     test di, di
     jz .not_exist
-    mov ah, 8h
+    mov ah, 0x8
     mov dl, [drive]
-    mov bx, 3000h
+    mov bx, 0x3000
     mov es, bx
     xor bx, bx
-    int 21h
+    int 0x21
 
-    mov al, 0fh
+    mov al, 0xf
     mov dx, 50
     mov cx, 50
     call draw_pixel
@@ -246,7 +246,7 @@ main:
     mov ds, ax
 .wait:
     xor ah, ah
-    int 16h
+    int 0x16
     cmp al, "q"
     je .done
     cmp al, "Q"
@@ -254,32 +254,32 @@ main:
     jmp .wait
 .done:
     xor ah, ah
-    mov al, 3h
-    int 10h
+    mov al, 0x3
+    int 0x10
     
     mov dh, 24
     xor dl, dl
-    mov ah, 2h
-    int 10h
+    mov ah, 0x2
+    int 0x10
 
     retf
 .not_exist:
     xor ah, ah
-    mov al, 3h
-    int 10h
+    mov al, 0x3
+    int 0x10
 
     mov dh, 24
     xor dl, dl
-    mov ah, 2h
-    int 10h
+    mov ah, 0x2
+    int 0x10
 
     mov ax, cs
     mov ds, ax
 
     xor ah, ah
-    mov bl, 4h
+    mov bl, 0x4
     lea si, [msg_image_doesnt_exist]
-    int 21h
+    int 0x21
 
     retf
 

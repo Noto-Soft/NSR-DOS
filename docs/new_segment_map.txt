@@ -1,6 +1,6 @@
-0000h: bootloader, ivt, filesystem (always at 800h)
-07e0h: kernel
-1000h: primary programs (programs that run other programs, or don't get ran by other programs)
-2000h: secondary programs (programs ran by other programs, these can run programs too)
-3000h: tertiary programs (these programs are ran by secondary programs, they shouldn't run their own but they still can if they want to)
-4000h: file loading segment (non program files)
+0x0000: bootloader, ivt, filesystem (always at 0x800)
+0x07e0: kernel
+0x1000: primary programs (programs that run other programs, or don't get ran by other programs)
+0x2000: secondary programs (programs ran by other programs, these can run programs too)
+0x3000: tertiary programs (these programs are ran by secondary programs, they shouldn't run their own but they still can if they want to)
+0x4000: file loading segment (non program files)
