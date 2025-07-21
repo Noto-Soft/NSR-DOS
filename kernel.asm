@@ -643,67 +643,6 @@ file_soft_delete_entry:
     popa
     ret
 
-; in:
-;   - cl: file size
-;   - dl: drive
-;   - ds:si: filename
-;   - es:bx: file data to write
-file_write_entry:
-    pusha
-
-    push es
-
-    xor ax, ax
-    mov es, ax
-    lea di, [0x800]
-    push bx
-    push cx
-    xor bx, bx
-    xor cx, cx
-.find_last:
-    ; keep track of the last max lba and last file's size
-    mov bx, [es:di]
-    cmp bx, cx
-    jng .lba_not_max
-    mov cx, bx
-    mov dh, [es:di+2]
-.lba_not_max:
-    mov al, [es:di+3]
-    add di, ax
-    inc di
-    mov al, [es:di]
-    test al, al
-    jz .found
-    jmp .find_last
-.found:
-    ; di now has the next free space for an entry
-    ; cx holds the highest lba in the file system
-    ; dh holds the size of the last file
-    push dx
-    xor dl, dl
-    xchg dh, dl
-    add cx, dx
-    pop dx
-    mov [es:di], cx
-    pop cx
-    mov [es:di+2], cl
-
-    push cx
-    mov ax, 2
-    mov cl, [es:0x600+13] ; get the length of the entry sectors
-    lea bx, [0x800]
-    call disk_write
-    pop cx
-
-    pop bx
-    pop es
-
-    mov ax, 2
-    call disk_write
-
-    popa
-    ret
-
 drive_switch:
     pusha
 
@@ -803,7 +742,6 @@ int21:
     cmpje 0x8
     cmpje 0x9
     cmpje 0xa
-    cmpje 0xb
     jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
@@ -816,7 +754,6 @@ route 0x7, file_safe_get
 route 0x8, file_read_entry
 route 0x9, drive_switch
 route 0xa, file_soft_delete_entry
-route 0xb, file_write_entry
 .done:
     iret
 .legacy_enabled: db 1

@@ -23,9 +23,6 @@ str_b: db "b:", 0
     db " - Set drive to drive B: (drive #1)", endl, 0
 str_cls: db "cls", 0
     db " - Clear console output", endl, 0
-str_copy: db "copy", 0
-    db " - Copies a file from the current drive", endl
-    db "    to the other drive", endl, 0
 str_del: db "del", 0
     db " - Deletes a file from the disk directory", endl, 0
 str_dir: db "dir", 0
@@ -62,8 +59,8 @@ strcmp:
     inc di
     cmp al, ah
     jne .notequal
-    cmp al, 0
-    je .endofstring
+    test al, al
+    jz .endofstring
     jmp .loop
 .endofstring:
     xor ax, ax
@@ -84,8 +81,34 @@ strcmp_until_di_end:
     mov ah, [di]
     inc si
     inc di
-    cmp ah, 0
+    test ah, ah
+    jz .endofstring
+    cmp al, ah
+    jne .notequal
+    jmp .loop
+.endofstring:
+    xor ax, ax
+    jmp .done
+.notequal:
+    mov ax, 1
+    jmp .done
+.done:
+    pop di
+    pop si
+    ret
+
+strcmp_until_delimiter:
+    push si
+    push di
+.loop:
+    mov al, [si]
+    mov ah, [di]
+    inc si
+    inc di
+    cmp al, bl
     je .endofstring
+    test al, al
+    jz .endofstring
     cmp al, ah
     jne .notequal
     jmp .loop
@@ -194,19 +217,16 @@ line_done:
     jz dir
 
     lea di, [str_type]
-    call strcmp_until_di_end
+    mov bl, " "
+    call strcmp_until_delimiter
     or al, al
     jz type
 
     lea di, [str_del]
-    call strcmp_until_di_end
+    mov bl, " "
+    call strcmp_until_delimiter
     or al, al
     jz del
-
-    lea di, [str_copy]
-    call strcmp_until_di_end
-    or al, al
-    jz copy
 
     lea di, [str_help]
     call strcmp
@@ -478,51 +498,6 @@ del:
     int 0x21
     mov ah, 0xa
     int 0x21
-
-    popa
-    jmp line
-
-copy:
-    pusha
-    
-    push es
-
-    add si, 5
-    mov ah, 0x7
-    int 0x21
-    test di, di
-    jz .not_exist
-    push di
-    mov ah, 0x8
-    mov dl, [drive]
-    mov dh, dl
-    mov dl, 1
-    sub dl, dh
-    lea bx, [0x4000]
-    mov es, bx
-    xor bx, bx
-    int 0x21
-
-    mov ah, 0xb
-    pop di
-    push es
-    xor cx, cx
-    mov es, cx
-    mov cl, [es:di+2]
-    pop es
-    int 0x21
-
-    jmp .done
-.not_exist:
-    mov ax, cs
-    mov ds, ax
-    
-    xor ah, ah
-    mov bl, 0x4
-    lea si, [error_not_file]
-    int 0x21
-.done:
-    pop es
 
     popa
     jmp line
