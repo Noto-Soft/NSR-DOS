@@ -1,4 +1,4 @@
-nsr-dos is an 8088<br />
+nsr-dos is an 8088 (hopefully) compatible os<br />
 TRY RUNNING ON YOUR IBM XT!!
 ## note
 when running build.sh make sure you change it to an lf line breaks file because git is annoying and just does that for no reason
