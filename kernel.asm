@@ -73,24 +73,29 @@ set_char:
 set_cursor:
 	push ax
 	push bx
+	push es
 
+	xor ax, ax
+	mov es, ax
+	mov [es:cursor], dx
 	mov ah, 0x2
 	xor bh, bh
 	int 0x10
 
+	pop es
 	pop bx
 	pop ax
 	ret
 
 read_cursor:
 	push ax
-	push bx
-	
-	mov ah, 0x3
-	xor bh, bh
-	int 0x10
+	push es
 
-	pop bx
+	xor ax, ax
+	mov es, ax
+	mov dx, [es:cursor]
+
+	pop es
 	pop ax
 	ret
 
@@ -943,5 +948,7 @@ fatal_exception_part_2: db " has occured", endl, 0
 
 boot_txt: db "BOOT.TXT", 0
 command_exe: db "COMMAND.EXE", 0
+
+cursor: dw 0
 
 drive: db 0
