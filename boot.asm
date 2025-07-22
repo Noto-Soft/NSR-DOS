@@ -3,6 +3,7 @@ bits 16
 org 0x7c00
 
 %define endl 0xd, 0xa
+%include "8086.inc"
 
 jmp start
 
@@ -160,13 +161,7 @@ disk_read:
 
 .retry:
 	; save all registers, we don't know what bios modifies
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	; set carry flag, some BIOS'es don't set it
 	stc
 	; carry flag cleared = success
@@ -175,13 +170,7 @@ disk_read:
 	jnc .done
 
 	; read failed
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	call disk_reset
 
 	dec di
@@ -193,13 +182,7 @@ disk_read:
 	jmp floppy_error
 
 .done:
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 
 	pop di
 	pop dx
@@ -216,32 +199,20 @@ disk_read:
 ;   dl: drive number
 ;
 disk_reset:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	xor ah, ah
 	stc
 	int 0x13
 	jc floppy_error
 	lea si, [.disk_retry]
 	call puts
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	ret
 .disk_retry: db "Retry read", endl, 0
 
 floppy_error:
 	mov al, 0x4
-	int 0x2f
+	int 0xff
 
 main:
 	mov ax, 1

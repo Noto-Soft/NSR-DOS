@@ -3,6 +3,7 @@ bits 16
 org 0x0
 
 %define endl 0xa
+%include "8086.inc"
 
 start:
 	mov ax, cs
@@ -29,26 +30,14 @@ scroll_if_need_be:
 	call get_rows_from_videomode
 	cmp dh, al
 	jb .done
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	mov ah, 0x6
 	mov bh, bl
 	mov al, 1
 	xor cx, cx
 	mov dx, 0x184f
 	int 0x10
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	mov dh, al
 	dec dh
 .done:
@@ -418,13 +407,7 @@ disk_read:
 	mov di, 3
 .retry:
 	; save all registers, we don't know what bios modifies
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	; set carry flag, some BIOS'es don't set it
 	stc
 	; carry flag cleared = success
@@ -433,13 +416,7 @@ disk_read:
 	jnc .done
 
 	; read failed
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	call disk_reset
 
 	dec di
@@ -449,13 +426,7 @@ disk_read:
 	; all attempts are exhausted
 	jmp floppy_error
 .done:
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 
 	pop di
 	pop dx
@@ -493,13 +464,7 @@ disk_write:
 	mov di, 3
 .retry:
 	; save all registers, we don't know what bios modifies
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	; set carry flag, some BIOS'es don't set it
 	stc
 	; carry flag cleared = success
@@ -508,13 +473,7 @@ disk_write:
 	jnc .done
 
 	; read failed
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	call disk_reset
 
 	dec di
@@ -524,13 +483,7 @@ disk_write:
 	; all attempts are exhausted
 	jmp floppy_error
 .done:
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 
 	pop di
 	pop dx
@@ -546,13 +499,7 @@ disk_write:
 ;   dl: drive number
 ;
 disk_reset:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	xor ah, ah
 	stc
 	int 0x13
@@ -560,13 +507,7 @@ disk_reset:
 	lea si, [.disk_retry]
 	mov bl, 0x3
 	call puts_attr
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	ret
 .disk_retry: db "Retry read", endl, 0
 
@@ -718,13 +659,7 @@ file_read:
 ;   - es:bx: buffer
 ;   - di: file entry (segment 0)
 file_read_entry:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 
 	push es
 
@@ -735,26 +670,14 @@ file_read_entry:
 	pop es
 	call disk_read
 
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	ret
 
 ; in:
 ;   - dl: drive
 ;   - di: file entry (segment 0)
 file_soft_delete_entry:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 
 	push es
 
@@ -772,23 +695,11 @@ file_soft_delete_entry:
 	pop es
 	call disk_read
 
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	ret
 
 drive_switch:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 
 	push es
 	xor ax, ax
@@ -815,7 +726,7 @@ drive_switch:
 	pop dx
 	push dx
 	lea bx, [0x600]
-	int 0x22
+	call disk_read
 
 	mov al, [es:0x600+2]
 	test al, al
@@ -825,26 +736,20 @@ drive_switch:
 	mov cl, [es:0x600+13]
 	pop dx
 	lea bx, [0x800]
-	int 0x22
+	call disk_read
 
 	pop es
 
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	ret
 
 floppy_error:
 	mov al, 0x4
-	int 0x2f
+	int 0xff
 
 drive_invalid_fs:
 	mov al, 0x5
-	int 0x2f
+	int 0xff
 
 disk_read_interrupt_wrapper:
 	call disk_read
@@ -920,7 +825,7 @@ int6:
 	mov bl, 0x6
 	jmp fatal_exception
 
-int2f:
+intff:
 	mov bl, al
 	jmp fatal_exception
 
@@ -1024,8 +929,8 @@ main:
 	mov [es:0x22*4+2], ax
 	mov word [es:0x23*4], disk_write_interrupt_wrapper
 	mov [es:0x23*4+2], ax
-	mov word [es:0x2f*4], int2f
-	mov [es:0x2f*4+2], ax
+	mov word [es:0xff*4], intff
+	mov [es:0xff*4+2], ax
 	pop es
 
 	lea si, [command_exe]
@@ -1033,7 +938,7 @@ main:
 	test di, di
 	jnz .command_exe_not_null
 	mov al, 0x3
-	int 0x2f
+	int 0xff
 .command_exe_not_null:
 	mov dl, [drive]
 	mov bx, 0x1000
@@ -1064,7 +969,7 @@ main:
 
 .unknown_format:
 	mov al, 0x2
-	int 0x2f
+	int 0xff
 
 nsr_dos: db "NSR-DOS", 0
 fatal_exception_msg: db endl, endl, "A fatal exception ", 0

@@ -3,6 +3,7 @@ bits 16
 org 0x0
 
 %define endl 0xa
+%include "8086.inc"
 
 db "AD"
 db 2
@@ -258,13 +259,7 @@ line_done:
 	jmp exec
 
 dir:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	push ds
 
 	xor ah, ah
@@ -334,23 +329,11 @@ dir:
 	int 0x21
 	int 0x21
 
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	jmp line
 
 type:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	
 	push ds
 	push es
@@ -388,23 +371,11 @@ type:
 	pop es
 	pop ds
 
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	jmp line
 
 exec:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	
 	push ds
 	push es
@@ -420,7 +391,7 @@ exec:
 	cmp bx, ax
 	jne .after_error
 	mov al, 1
-	int 0x2f
+	int 0xff
 .after_error:
 	mov ah, 0x8
 	mov es, bx
@@ -436,13 +407,7 @@ exec:
 	mov al, [es:0x2]
 	cmp al, 0x2
 	jne .unknown_format
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	push ds
 	push es
 	mov dl, [drive]
@@ -455,13 +420,7 @@ exec:
 .after:
 	pop es
 	pop ds
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 
 	jmp .done
 .not_exist:
@@ -476,17 +435,11 @@ exec:
 	pop es
 	pop ds
 
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	jmp line
 .unknown_format:
 	mov al, 0x2
-	int 0x2f
+	int 0xff
 .check_autofill:
 	push si
 .find_terminator_loop:
@@ -536,13 +489,7 @@ cls:
 	jmp line
 
 del:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 
 	mov ah, 0x7
 	add si, 4
@@ -551,13 +498,7 @@ del:
 	mov ah, 0xa
 	int 0x21
 
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	jmp line
 
 a:
@@ -571,25 +512,13 @@ b:
 	jmp set_drive
 
 set_drive:
-	push ax
-	push cx
-	push dx
-	push bx
-	push bp
-	push si
-	push di
+	pusha ; macro
 	push es
 	mov ah, 0x8
 	int 0x13
 	jc drive_empty
 	pop es
-	pop di
-	pop si
-	pop bp
-	pop bx
-	pop dx
-	pop cx
-	pop ax
+	popa ; macro
 	mov byte [drive], dl
 	mov byte [msg_command], al
 	mov ah, 0x9
@@ -605,11 +534,11 @@ drive_empty:
 
 drive_invalid_fs:
 	mov al, 0x5
-	int 0x2f
+	int 0xff
 
 floppy_error:
 	mov al, 0x4
-	int 0x2f
+	int 0xff
 
 exit:
 	retf

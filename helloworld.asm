@@ -3,6 +3,7 @@ bits 16
 org 0x0
 
 %define endl 0xa
+%include "8086.inc"
 
 db "AD"
 db 2
