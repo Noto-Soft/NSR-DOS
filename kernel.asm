@@ -190,10 +190,8 @@ putc_attr:
 	call set_char
 	jmp .done
 .tab:
-	mov al, dl
-	add al, 3
-	and al, 0xFC
-	mov dl, al
+	add dl, 4
+	and dl, ~(0b00000011)
 	call set_cursor
 	jmp .done
 .done:

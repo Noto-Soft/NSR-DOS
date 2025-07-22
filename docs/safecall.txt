@@ -1,0 +1,13 @@
+
+safecall calling convention (used by all interrupts)
+
+	the arguments are passed through registers
+	all registers, except registers holding return values, are preserved
+through pushes and pops by the callee
+	parts of registers should be preserved too, eg
+if there is a return value in al, ah still must be preserved
+	return values through registers
+
+	!!!!!!! this calling convention is very bad
+dont use it
+
