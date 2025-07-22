@@ -25,6 +25,8 @@ str_a: db "a:", 0
 	db 0x9, " - Set drive to drive A: (drive #0)", endl, 0
 str_b: db "b:", 0
 	db 0x9, " - Set drive to drive B: (drive #1)", endl, 0
+str_cat: db "cat", 0
+	db 0x9, " - Alias for type (doesn't actually conCATenate)", endl, 0
 str_cls: db "cls", 0
 	db 0x9, " - Clear console output", endl, 0
 str_del: db "del", 0
@@ -33,6 +35,8 @@ str_dir: db "dir", 0
 	db 0x9, " - List files on the disk directory", endl, 0
 str_help: db "help", 0
 	db 0x9, " - List available commands and their functions", endl, 0
+str_ls: db "ls", 0
+	db 0x9, " - Alias for dir", endl, 0
 str_type: db "type", 0
 	db 0x9, " - Read a file out to the console", endl, 0
 db 0
@@ -218,12 +222,21 @@ line_done:
 	call strcmp
 	or al, al
 	jz dir
+	lea di, [str_ls]
+	call strcmp
+	or al, al
+	jz dir
 
 	lea di, [str_type]
 	mov bl, " "
 	call strcmp_until_delimiter
 	or al, al
 	jz type
+	lea di, [str_cat]
+	mov bl, " "
+	call strcmp_until_delimiter
+	or al, al
+	jz cat
 
 	lea di, [str_del]
 	mov bl, " "
@@ -332,6 +345,8 @@ dir:
 	popa ; macro
 	jmp line
 
+cat:
+	dec si
 type:
 	pusha ; macro
 	
@@ -495,10 +510,20 @@ del:
 	add si, 4
 	mov dl, [drive]
 	int 0x21
+	test di, di
+	jz .not_exist
 	mov ah, 0xa
 	int 0x21
 
 	popa ; macro
+	jmp line
+.not_exist:
+	xor ah, ah
+	mov bl, 0x4
+	lea si, [error_not_file]
+	int 0x21
+
+	popa
 	jmp line
 
 a:
