@@ -14,20 +14,9 @@ start:
 
 	jmp main
 
-get_rows_from_videomode:
-	cmp al, 0x12
-	je .rows30
-	mov al, 25
-	ret
-.rows30:
-	mov al, 30
-	ret
-
 scroll_if_need_be:
 	push ax
-	mov ah, 0xF
-	int 0x10
-	call get_rows_from_videomode
+	mov al, 25
 	cmp dh, al
 	jb .done
 	pusha ; macro
@@ -60,13 +49,6 @@ get_mem_pos:
 	ret
 
 set_char:
-	push ax
-	mov ah, 0xF
-	int 0x10
-	cmp al, 0x3
-	jne .graphicsMode
-	pop ax
-
 	push es
 
 	push dx
@@ -86,19 +68,6 @@ set_char:
 	pop dx
 
 	pop es
-	ret
-.graphicsMode:
-	pop ax
-	push ax
-	push bx
-	push cx
-	mov ah, 0x9
-	xor bh, bh
-	mov cx, 1
-	int 0x10
-	pop cx
-	pop bx
-	pop ax
 	ret
 
 set_cursor:
@@ -141,7 +110,6 @@ putc_attr:
 	je .tab
 
 	call scroll_if_need_be
-	call set_cursor
 
 	call set_char
 
