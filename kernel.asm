@@ -75,7 +75,7 @@ set_cursor:
 	push bx
 	push es
 
-	xor ax, ax
+	mov ax, cs
 	mov es, ax
 	mov [es:cursor], dx
 	mov ah, 0x2
@@ -91,7 +91,7 @@ read_cursor:
 	push ax
 	push es
 
-	xor ax, ax
+	mov ax, cs
 	mov es, ax
 	mov dx, [es:cursor]
 
