@@ -1,5 +1,5 @@
 bits 16
-
+cpu 8086
 org 0x0
 
 %define endl 0xa
@@ -256,7 +256,10 @@ print_hex_byte:
 	push cx
 
 	mov al, cl
-	shr al, 4
+	push cx
+	mov cl, 4
+	shr al, cl
+	pop cx
 	
 	call print_hex_digit
 
@@ -379,7 +382,10 @@ lba_to_chs:
 	mov dh, dl
 	; ch = cylinder (lower 8 bits)
 	mov ch, al
-	shl ah, 6
+	push cx
+	mov cl, 6
+	shl ah, cl
+	pop cx
 	; put upper 2 bits of cylinder in CL
 	or cl, ah
 
@@ -528,8 +534,8 @@ disk_reset:
 file_get:
 	push ax
 	push es
-	push word 0
-	pop es
+	xor ax, ax
+	mov es, ax
 	lea di, [0x800]
 	call case_up
 .locate_kernel_loop:
@@ -568,8 +574,8 @@ file_get:
 file_safe_get:
 	push ax
 	push es
-	push word 0
-	pop es
+	xor ax, ax
+	mov es, ax
 	lea di, [0x800]
 	call case_up
 .locate_kernel_loop:
@@ -969,8 +975,9 @@ main:
 	push es
 	mov dl, [drive]
 	mov ax, [es:0x4]
+	lea bx, [.after]
 	push cs
-	push word .after
+	push bx
 	push es
 	push ax
 	retf

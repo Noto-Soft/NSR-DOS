@@ -1,5 +1,5 @@
 bits 16
-
+cpu 8086
 org 0x0
 
 %define endl 0xa
@@ -462,9 +462,10 @@ exec:
 	push ds
 	push es
 	mov dl, [drive]
-	push word cs
-	push word .after
-	push word es
+	lea bx, [.after]
+	push cs
+	push bx
+	push es
 	push ax
 	retf
 .after:

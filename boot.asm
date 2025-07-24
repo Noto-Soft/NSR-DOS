@@ -1,5 +1,5 @@
 bits 16
-
+cpu 8086
 org 0x7c00
 
 %define endl 0xd, 0xa
@@ -120,7 +120,10 @@ lba_to_chs:
 	mov dh, dl
 	; ch = cylinder (lower 8 bits)
 	mov ch, al
-	shl ah, 6
+	push cx
+	mov cl, 6
+	shl ah, cl
+	pop cx
 	; put upper 2 bits of cylinder in CL
 	or cl, ah
 
@@ -218,17 +221,17 @@ main:
 	mov ax, 1
 	mov cl, 1
 	mov dl, [drive]
+	xor bx, bx
+	mov es, bx
 	lea bx, [0x600]
-	push 0
-	pop es
 	call disk_read
 
 	mov ax, 2
 	mov cl, [0x600+13]
 	mov dl, [drive]
+	xor bx, bx
+	mov es, bx
 	lea bx, [0x800]
-	push 0
-	pop es
 	call disk_read
 
 	lea si, [kernel_sys]
@@ -262,9 +265,9 @@ main:
 	mov ax, [di]
 	mov cl, [di+2]
 	mov dl, [drive]
-	lea bx, [0x7e00]
-	push 0
-	pop es
+	lea bx, [0x7e0]
+	mov es, bx
+	xor bx, bx
 	call disk_read
 
 	mov dl, [drive]

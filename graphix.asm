@@ -1,5 +1,5 @@
 bits 16
-
+cpu 8086
 org 0x0
 
 %define endl 0xa
