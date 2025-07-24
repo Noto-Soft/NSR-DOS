@@ -7,10 +7,8 @@ org 0x0
 
 db "AD"
 db 2
-db 1
+db 0
 dw start
-dw symbol_table
-dw SYMBOL_TABLE_LENGTH
 
 drive: db 0
 
@@ -283,18 +281,3 @@ main:
 	int 0x21
 
 	retf
-
-symbol_table:
-db "start", 0
-dw start
-db "draw_pixel", 0
-dw draw_pixel
-db "draw_fullscreen_bmp", 0
-dw draw_fullscreen_bmp
-db "set_pallete", 0
-dw set_pallete
-db "get_pallete", 0
-dw get_pallete
-db "main", 0
-dw main
-SYMBOL_TABLE_LENGTH equ 6

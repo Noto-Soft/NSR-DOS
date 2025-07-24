@@ -7,10 +7,8 @@ org 0x0
 
 db "AD"
 db 2
-db 1
+db 0
 dw start
-dw symbol_table
-dw SYMBOL_TABLE_LENGTH
 
 drive: db 0
 
@@ -603,8 +601,3 @@ floppy_error:
 
 exit:
 	retf
-
-symbol_table:
-db "start", 0
-dw start
-SYMBOL_TABLE_LENGTH equ 1
