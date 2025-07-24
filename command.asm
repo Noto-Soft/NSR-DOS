@@ -39,6 +39,8 @@ str_type: db "type", 0
 	db 0x9, " - Read a file out to the console", endl, 0
 db 0
 
+str_start: db "start", 0
+
 error_not_command_or_file: db "Not a command nor an executable file", endl, 0
 error_not_file: db "File does not exist", endl, 0
 error_drive_missing: db "Disk is not inserted into the drive", endl, 0
@@ -126,6 +128,28 @@ strcmp_until_delimiter:
 .done:
 	pop di
 	pop si
+	ret
+
+strcmp_dont_preserve_si:
+	push di
+.loop:
+	mov al, [si]
+	mov ah, [es:di]
+	inc si
+	inc di
+	cmp al, ah
+	jne .notequal
+	test al, al
+	jz .endofstring
+	jmp .loop
+.endofstring:
+	xor ax, ax
+	jmp .done
+.notequal:
+	mov ax, 1
+	jmp .done
+.done:
+	pop di
 	ret
 
 case_up:
@@ -427,20 +451,17 @@ exec:
 	xor bx, bx
 	int 0x21
 
-	mov ax, es
-	mov ds, ax
-
 	mov ax, [es:0x0]
 	cmp ax, "AD"
 	jne .unknown_format
 	mov al, [es:0x2]
 	cmp al, 0x2
 	jne .unknown_format
+	mov ax, [es:0x4]
 	pusha ; macro
 	push ds
 	push es
 	mov dl, [drive]
-	mov ax, [es:0x4]
 	push word cs
 	push word .after
 	push word es

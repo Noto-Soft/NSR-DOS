@@ -1,10 +1,16 @@
 The Noto-Soft Executable Format (NSXF)
 
-Version 1.0 header:
-idk i forgot
+header stuff::
+version 1.0 should never ever be used
 
 Version 2.0 header:
-"AD" followed by 0x02, then 0x00 to denote the major and minor versions, then a word pointing to the starting point of the program
+"AD" followed by 0x02, then 0x00 to denote the major and minor versions,
+then a word pointing to the starting point of the program
 
-Version 2.1 header:
-same as 2.0 but followed by a word that points to the symbol table for debugging or something and a word describing the length of it
+version 2.1 is officially deprecated
+
+protocall stuff (2.0+)::
+always, the drive number is passed to the program through dl before jumping
+to the program. this is always expected. even if you're program
+doesn't use floppy, you need to keep track of it if you call any other
+programs

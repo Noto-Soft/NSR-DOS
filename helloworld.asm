@@ -7,10 +7,8 @@ org 0x0
 
 db "AD"
 db 2
-db 1
+db 0
 dw start
-dw symbol_table
-dw SYMBOL_TABLE_LENGTH
 
 msg: db "Hello world!", endl, 0
 
@@ -25,8 +23,3 @@ start:
 	int 0x21
 
 	retf
-
-symbol_table:
-db "start", 0
-dw start
-SYMBOL_TABLE_LENGTH equ 2
