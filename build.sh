@@ -14,7 +14,7 @@ python3 tools/thinfs.py add nsr-dos.img nsrdos.bmp
 python3 tools/thinfs.py add nsr-dos.img wisconsin.bmp
 python3 tools/thinfs.py add nsr-dos.img meme.bmp
 truncate -s 1440k nsr-dos.img
-nasm basic -f bin -o basic.exe
+nasm basic.asm -f bin -o basic.exe
 python3 tools/thinfs.py create disk-2.img BDRIVE
 python3 tools/thinfs.py add disk-2.img bdrive.txt
 python3 tools/thinfs.py add disk-2.img basic.exe
