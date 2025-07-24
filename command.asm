@@ -16,9 +16,7 @@ drive: db 0
 
 msg_directory_of: db "Directory of drive ", 0
 msg_command: db "A>", 0
-msg_sectors_used: db endl, "Sectors used: ", 0
-msg_sectors_free: db endl, "Sectors free: ", 0
-msg_sectors_total: db endl, "Total sectors: ", 0
+msg_sectors_used: db endl, "Kilobytes used: ", 0
 
 str_commands: db "List of commands:", endl, 0
 str_a: db "a:", 0
@@ -306,16 +304,26 @@ dir:
 	mov al, [di]
 	cmp al, 0
 	je .skip
+
 	mov si, di
 	int 0x21
 	mov ah, 0x1
 	mov al, " "
 	int 0x21
-	mov ah, 0x5
+
+	mov ah, 0xd
 	mov cl, [di-2]
+	add cl, 1
+	shr cl, 1
 	int 0x21
 	add dx, cx
+
 	mov ah, 0x1
+	mov al, "k"
+	int 0x21
+	mov al, "b"
+	int 0x21
+
 	mov al, 0xa
 	int 0x21
 .skip:
@@ -333,8 +341,14 @@ dir:
 	lea si, [msg_sectors_used]
 	int 0x21
 
-	mov ah, 0x6
+	mov ah, 0xd
 	mov cx, dx
+	int 0x21
+
+	mov ah, 0x1
+	mov al, "k"
+	int 0x21
+	mov al, "b"
 	int 0x21
 
 	mov ah, 0x1

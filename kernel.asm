@@ -275,6 +275,46 @@ print_hex_word:
 	call print_hex_byte
 	ret
 
+print_decimal_cx:
+    push ax
+    push bx
+    push dx
+    push si
+
+    xor si, si
+
+    cmp cx, 0
+    jne .convert
+
+    mov al, '0'
+    call putc_attr
+    jmp .done
+.convert:
+    mov ax, cx
+.next_digit:
+    xor dx, dx
+	push bx
+    mov bx, 10
+    div bx
+	pop bx
+    push dx
+    inc si
+    cmp ax, 0
+    jne .next_digit
+.print_digits:
+    pop dx
+    add dl, '0'
+    mov al, dl
+    call putc_attr
+    dec si
+    jnz .print_digits
+.done:
+    pop si
+    pop dx
+    pop bx
+    pop ax
+    ret
+
 case_up:
 	push ax
 	push si
@@ -770,6 +810,7 @@ int21:
 	cmpje 0xa
 	cmpje 0xb
 	cmpje 0xc
+	cmpje 0xd
 	jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
@@ -784,6 +825,7 @@ route 0x9, drive_switch
 route 0xa, file_soft_delete_entry
 route 0xb, set_cursor
 route 0xc, read_cursor
+route 0xd, print_decimal_cx
 .done:
 	iret
 .legacy_enabled: db 1
