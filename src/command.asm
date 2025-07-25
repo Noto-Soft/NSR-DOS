@@ -3,47 +3,47 @@ cpu 8086
 org 0x0
 
 %define endl 0xa
-%include "8086.inc"
+%include "src/inc/8086.inc"
 
 db "AD"
 db 2
 db 0
 dw start
 
-drive: db 0
+drive db 0
 
-msg_directory_of: db "Directory of drive ", 0
-msg_command: db "A>", 0
-msg_sectors_used: db endl, "Kilobytes used: ", 0
+msg_directory_of db "Directory of drive ", 0
+msg_command db "A>", 0
+msg_sectors_used db endl, "Kilobytes used: ", 0
 
-str_commands: db "List of commands:", endl, 0
-str_a: db "a:", 0
+str_commands db "List of commands:", endl, 0
+str_a db "a:", 0
 	db 0x9, " - Set drive to drive A: (drive #0)", endl, 0
-str_b: db "b:", 0
+str_b db "b:", 0
 	db 0x9, " - Set drive to drive B: (drive #1)", endl, 0
-str_cat: db "cat", 0
+str_cat db "cat", 0
 	db 0x9, " - Alias for type (doesn't actually conCATenate)", endl, 0
-str_cls: db "cls", 0
+str_cls db "cls", 0
 	db 0x9, " - Clear console output", endl, 0
-str_del: db "del", 0
+str_del db "del", 0
 	db 0x9, " - Deletes a file from the disk directory", endl, 0
-str_dir: db "dir", 0
+str_dir db "dir", 0
 	db 0x9, " - List files on the disk directory", endl, 0
-str_help: db "help", 0
+str_help db "help", 0
 	db 0x9, " - List available commands and their functions", endl, 0
-str_ls: db "ls", 0
+str_ls db "ls", 0
 	db 0x9, " - Alias for dir", endl, 0
-str_type: db "type", 0
+str_type db "type", 0
 	db 0x9, " - Read a file out to the console", endl, 0
 db 0
 
-str_start: db "start", 0
+str_start db "start", 0
 
-error_not_command_or_file: db "Not a command nor an executable file", endl, 0
-error_not_file: db "File does not exist", endl, 0
-error_drive_missing: db "Disk is not inserted into the drive", endl, 0
+error_not_command_or_file db "Not a command nor an executable file", endl, 0
+error_not_file db "File does not exist", endl, 0
+error_drive_missing db "Disk is not inserted into the drive", endl, 0
 
-buffer: times 112 db 0
+buffer times 112 db 0
 BUFFER_END equ $
 	; allow some extra space for .exe autofill
 times 4 db 0

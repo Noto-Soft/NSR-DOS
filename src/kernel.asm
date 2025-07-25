@@ -3,7 +3,7 @@ cpu 8086
 org 0x0
 
 %define endl 0xa
-%include "8086.inc"
+%include "src/inc/8086.inc"
 
 start:
 	mov ax, cs
@@ -526,47 +526,7 @@ disk_reset:
 	call puts_attr
 	popa ; macro
 	ret
-.disk_retry: db "Retry read", endl, 0
-
-; si - filename
-; returns:
-;   - di: file entry
-file_get:
-	push ax
-	push es
-	xor ax, ax
-	mov es, ax
-	lea di, [0x800]
-	call case_up
-.locate_kernel_loop:
-	mov al, [es:di]
-	test al, al
-	; end of entries
-	jz .not_found
-	add di, 4
-	mov al, [es:di]
-	test al, al
-	jz .skip
-	call strcmp
-	test ax, ax
-	jz .located_kernel
-.skip:
-	dec di
-	mov al, [es:di]
-	xor ah, ah
-	add di, ax
-	inc di
-	jmp .locate_kernel_loop
-.not_found:
-	pop ax
-	add si, 2
-	mov bl, 0x3
-	jmp fatal_exception
-.located_kernel:
-	sub di, 4
-	pop es
-	pop ax
-	ret
+.disk_retry db "Retry read", endl, 0
 
 ; ds:si - filename
 ; returns:
@@ -605,69 +565,6 @@ file_safe_get:
 .located_kernel:
 	sub di, 4
 	pop es
-	pop ax
-	ret
-
-; ds:si - filename
-; returns:
-;   - ax: 0 if exists
-file_confirm_exists:
-	push bx
-	push ax
-	push es
-	xor ax, ax
-	mov es, ax
-	lea di, [0x800]
-	call case_up
-.locate_kernel_loop:
-	mov al, [es:di]
-	or al, al
-	jz .not_found
-	add di, 4
-	call strcmp
-	test ax, ax
-	jz .located_kernel
-	dec di
-	mov al, [es:di]
-	xor ah, ah
-	add di, ax
-	inc di
-	jmp .locate_kernel_loop
-.not_found:
-	mov bx, 1
-	jmp .done
-.located_kernel:
-	xor bx, bx
-	jmp .done
-.done:
-	pop es
-	pop ax
-	mov ax, bx
-	pop bx
-	ret
-
-; in:
-;   - ds:si: filename
-;   - dl: drive
-;   - es:bx: buffer
-file_read:
-	push ax
-	push cx
-	push di
-
-	push es
-	xor ax, ax
-	mov es, ax
-	lea di, [0x800]
-	call file_get
-
-	mov ax, [es:di]
-	mov cl, [es:di+2]
-	pop es
-	call disk_read
-
-	pop di
-	pop cx
 	pop ax
 	ret
 
@@ -776,53 +673,16 @@ disk_write_interrupt_wrapper:
 	call disk_write
 	iret
 
-%macro cmpje 1
-	cmp ah, %1
-	je .ah%1
-%endmacro
-
 %macro route 2
-.ah%1:
+	cmp ah, %1
+	jne %%next
 	call %2
-	jmp .done
-%endmacro
-
-%macro routel 2
-.ah%1:
-	push ax
-	push ds
-	mov ax, cs
-	mov ds, ax
-	cmp byte [.legacy_enabled], 1
-	pop ds
-	pop ax
-	jne %%not_legacy
-	call %2
-%%not_legacy:
-	jmp .done
+%%next:
 %endmacro
 
 int21:
-	cmpje 0x0
-	cmpje 0x1
-	cmpje 0x2
-	cmpje 0x3
-	cmpje 0x4
-	cmpje 0x5
-	cmpje 0x6
-	cmpje 0x7
-	cmpje 0x8
-	cmpje 0x9
-	cmpje 0xa
-	cmpje 0xb
-	cmpje 0xc
-	cmpje 0xd
-	jmp .done
 route 0x0, puts_attr
 route 0x1, putc_attr
-routel 0x2, file_get
-routel 0x3, file_read
-routel 0x4, file_confirm_exists
 route 0x5, print_hex_byte
 route 0x6, print_hex_word
 route 0x7, file_safe_get
@@ -834,7 +694,6 @@ route 0xc, read_cursor
 route 0xd, print_decimal_cx
 .done:
 	iret
-.legacy_enabled: db 1
 
 int0:
 	xor bl, bl
@@ -991,13 +850,13 @@ main:
 	mov al, 0x2
 	int 0xff
 
-nsr_dos: db "NSR-DOS", 0
-fatal_exception_msg: db endl, endl, "A fatal exception ", 0
-fatal_exception_part_2: db " has occured", endl, 0
+nsr_dos db "NSR-DOS", 0
+fatal_exception_msg db endl, endl, "A fatal exception ", 0
+fatal_exception_part_2 db " has occured", endl, 0
 
-boot_txt: db "BOOT.TXT", 0
-command_exe: db "COMMAND.EXE", 0
+boot_txt db "BOOT.TXT", 0
+command_exe db "COMMAND.EXE", 0
 
-cursor: dw 0
+cursor dw 0
 
-drive: db 0
+drive db 0

@@ -3,14 +3,14 @@ cpu 8086
 org 0x0
 
 %define endl 0xa
-%include "8086.inc"
+%include "src/inc/8086.inc"
 
 db "AD"
 db 2
 db 0
 dw start
 
-msg: db "Hello world!", endl, 0
+msg db "Hello world!", endl, 0
 
 start:
 	mov ax, cs

@@ -3,20 +3,20 @@ cpu 8086
 org 0x0
 
 %define endl 0xa
-%include "8086.inc"
+%include "src/inc/8086.inc"
 
 db "AD"
 db 2
 db 0
 dw start
 
-drive: db 0
+drive db 0
 
-msg_choose_image: db "Enter image filename (Or leave blank for default)", endl, "When finished viewing the beauty you desire, press q", endl, 0
-msg_image_doesnt_exist: db "Image file requested does not exist", endl, 0
+msg_choose_image db "Enter image filename (Or leave blank for default)", endl, "When finished viewing the beauty you desire, press q", endl, 0
+msg_image_doesnt_exist db "Image file requested does not exist", endl, 0
 
-default_image: db "NSRDOS.BMP", 0
-image_file_name: times 64 db 0
+default_image db "NSRDOS.BMP", 0
+image_file_name times 64 db 0
 FILENAME_BUFFER_LENGTH equ $-image_file_name
 db 0
 

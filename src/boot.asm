@@ -3,7 +3,7 @@ cpu 8086
 org 0x7c00
 
 %define endl 0xd, 0xa
-%include "8086.inc"
+%include "src/inc/8086.inc"
 
 jmp start
 
@@ -211,7 +211,7 @@ disk_reset:
 	call puts
 	popa ; macro
 	ret
-.disk_retry: db "Retry read", endl, 0
+.disk_retry db "Retry read", endl, 0
 
 floppy_error:
 	mov al, 0x4
@@ -275,13 +275,13 @@ main:
 
 	jmp $
 
-msg_boot: db "Small Diversified Bootloader 1.0", endl, 0
+msg_boot db "Small Diversified Bootloader 1.0", endl, 0
 
-error_kernel_not_found: db " missing", endl, 0
+error_kernel_not_found db " missing", endl, 0
 
-kernel_sys: db "KERNEL.SYS", 0
+kernel_sys db "KERNEL.SYS", 0
 
-drive: db 0
+drive db 0
 
 times 510-($-$$) db 0
 dw 0xaa55
