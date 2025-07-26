@@ -257,8 +257,7 @@ main:
 	int 0x10
 	
 	mov ah, 0xb
-	mov dh, 24
-	xor dl, dl
+	xor dx, dx
 	int 0x21
 
 	retf
@@ -268,8 +267,7 @@ main:
 	int 0x10
 
 	mov ah, 0xb
-	mov dh, 24
-	xor dl, dl
+	xor dx, dx
 	int 0x21
 
 	mov ax, cs

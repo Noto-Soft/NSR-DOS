@@ -717,8 +717,7 @@ fatal_exception:
 	xor cx, cx
 	mov dx, 0x184f
 	int 0x10
-	mov dh, 24
-	xor dl, dl
+	xor dx, dx
 	call set_cursor
 	; ip
 	pop dx
@@ -765,9 +764,12 @@ main:
 	mov dx, 0x184f
 	int 0x10
 
-	mov dh, 24
-	xor dl, dl
+	xor dx, dx
 	call set_cursor
+
+	mov ah, 0x1
+	mov ch, 0x3f
+	int 0x10
 
 	lea si, [boot_txt]
 	call file_safe_get
@@ -810,6 +812,10 @@ main:
 	mov word [es:0xff*4], intff
 	mov [es:0xff*4+2], ax
 	pop es
+
+	mov ah, 0x1
+	mov cx, 0x7
+	int 0x10
 
 	lea si, [command_exe]
 	call file_safe_get
