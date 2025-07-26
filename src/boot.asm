@@ -14,8 +14,10 @@ start:
 	xor ax, ax
 	mov ds, ax
 	mov es, ax
+
+	mov ax, 0x7000
 	mov ss, ax
-	mov sp, 0x7c00
+	mov sp, 0x0
 
 	lea si, [msg_boot]
 	call puts
@@ -265,13 +267,13 @@ main:
 	mov ax, [di]
 	mov cl, [di+2]
 	mov dl, [drive]
-	lea bx, [0x7e0]
+	lea bx, [0x600]
 	mov es, bx
 	xor bx, bx
 	call disk_read
 
 	mov dl, [drive]
-	jmp 0x7e0:0x0
+	jmp 0x600:0x0
 
 	jmp $
 

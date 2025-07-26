@@ -193,8 +193,6 @@ main:
 	mov ds, ax
 	mov es, ax
 
-	jmp dir
-
 line:
 	lea di, [buffer]
 	call clear_buffer

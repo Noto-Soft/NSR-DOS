@@ -10,6 +10,8 @@ db 2
 db 0
 dw start
 
+pre_stack dw 0
+
 drive db 0
 
 msg_choose_image db "Enter image filename (Or leave blank for default)", endl, "When finished viewing the beauty you desire, press q", endl, 0
@@ -26,6 +28,7 @@ start:
 	mov es, ax
 
 	mov [drive], dl
+	mov [pre_stack], sp
 
 	jmp main
 
@@ -278,4 +281,5 @@ main:
 	lea si, [msg_image_doesnt_exist]
 	int 0x21
 
+	mov sp, [pre_stack]
 	retf
