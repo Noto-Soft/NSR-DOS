@@ -19,6 +19,11 @@ start:
 	mov ss, ax
 	mov sp, 0x0
 
+	; just in case the pc speaker is still enabled from a reboot or something
+	in al, 0x61
+	and al, ~(3)
+	out 0x61, al
+
 	lea si, [msg_boot]
 	call puts
 
