@@ -35,6 +35,7 @@ add_to_disk disk-2.img \
 	build/basic.exe \
 	build/heaptest.exe \
 	assets/text/gg.txt \
+	assets/text/bolotomy.txt \
 	$(find docs/ -maxdepth 1 -type f -print)
 truncate -s 1440k disk-2.img
 

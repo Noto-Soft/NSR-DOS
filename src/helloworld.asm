@@ -10,7 +10,7 @@ db 2
 db 0
 dw start
 
-msg db "Hello world!", endl, 0
+msg db "Hello, world!", endl, 0
 
 start:
 	mov ax, cs

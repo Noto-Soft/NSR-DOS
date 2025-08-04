@@ -1,0 +1,4 @@
+int 0x21 - general purpose, but mostly tty and filesystem related interrupts
+int 0x22 - disk read interrupt
+int 0x23 - disk write interrupt
+int 0xff - throw fatal exception interrupt
