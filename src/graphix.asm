@@ -191,11 +191,6 @@ main:
 
 	mov al, 0x1
 	call clear_screen
-	
-	mov al, 3
-	call get_pallete
-	xor al, al
-	call set_pallete
 
 	lea si, [image_file_name]
 	cmp byte [si], 0

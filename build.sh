@@ -22,9 +22,7 @@ add_to_disk nsr-dos.img \
   	build/helloworld.exe \
   	assets/text/aldi.txt \
   	build/graphix.exe \
-  	assets/images/nsrdos.bmp \
-  	assets/images/wisconsin.bmp \
-  	assets/images/meme.bmp
+  	$(find assets/images/ -maxdepth 1 -type f -print)
 truncate -s 1440k nsr-dos.img
 
 nasm src/basic.asm -f bin -o build/basic.exe
