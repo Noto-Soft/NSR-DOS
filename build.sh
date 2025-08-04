@@ -25,6 +25,7 @@ python3 tools/thinfs.py create disk-2.img BDRIVE
 python3 tools/thinfs.py add disk-2.img assets/text/bdrive.txt
 python3 tools/thinfs.py add disk-2.img build/basic.exe
 python3 tools/thinfs.py add disk-2.img build/heaptest.exe
+python3 tools/thinfs.py add disk-2.img assets/text/gg.txt
 for FILE in docs/*; do
 	if [ -f "$FILE" ]; then
 		python3 tools/thinfs.py add disk-2.img $FILE
