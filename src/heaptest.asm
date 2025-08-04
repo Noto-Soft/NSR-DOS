@@ -30,6 +30,12 @@ malloc:
 .loop:
     cmp si, HEAP_TOP
     jae .fate
+    push si
+    add si, HEAP_BLOCK_HEADER_SIZE
+    add si, cx
+    cmp si, HEAP_TOP
+    jae .fate2
+    pop si
     mov al, [si]
     test al, al
     jnz .nextloop
@@ -47,10 +53,26 @@ malloc:
     pop bx
     pop ax
     ret
+.fate2:
+    pop si
 .fate:
     xor si, si
     pop bx
     pop ax
+    ret
+
+; zero out the allocated memory
+; same as malloc  just zeros out so no garbage
+zalloc:
+    call malloc
+    push cx
+    push si
+.loop:
+    mov byte [si], 0
+    inc si
+    loop .loop
+    pop si
+    pop cx
     ret
 
 ; si - pointer to data to free
@@ -71,24 +93,101 @@ free:
     pop si
     ret
 
+; ds:si - source
+; es:di - destination
+; cx - amount
+memcpy:
+    push ax
+    push cx
+    push si
+    push di
+.loop:
+    mov al, [ds:si]
+    mov [es:di], al
+    inc si
+    inc di
+    loop .loop
+    pop di
+    pop si
+    pop cx
+    pop ax
+    ret
+
+; si - pointer to original memory
+; cx - new size
+; returns: si - new memory
+realloc:
+    push ax
+    push bx
+    push cx
+    push di
+    mov bx, [si-HEAP_BLOCK_HEADER_SIZE+1]
+    mov ax, cx
+    cmp cx, bx
+    jnb .larger
+    mov ax, bx
+.larger:
+    mov di, si
+    call zalloc
+    xchg si, di
+    mov cx, ax
+    call memcpy
+    mov si, di
+    pop di
+    pop cx
+    pop bx
+    pop ax
+    ret
+
 main:
     mov cx, 600
-    call tests
+    call testmalloc
     mov cx, 500
-    call tests
+    call testmalloc
     mov cx, 700
-    call tests
+    call testmalloc
+    mov cx, 1000
+    mov bx, 1200
+    call testrealloc
 
 end:
     retf
 
-tests:
+testmalloc:
+    call malloc
+    call addr    
+    call free
+
+    ret
+
+testrealloc:
+    call malloc
+    mov byte [si], "e"
+    call addr
+    mov cx, bx
+    call realloc
+    call addr
+    mov ah, 0x1
+    mov al, [si]
+    mov bl, 0xf
+    int 0x21
+    mov al, 0xa
+    int 0x21
+    call free
+
+    ret
+
+addr:
+    pusha
+
+    push si
+
     xor ah, ah
     mov bl, 0x7
     lea si, [msg]
     int 0x21
 
-    call malloc
+    pop si
 
     mov ah, 0x6
     mov bl, 0x7
@@ -101,14 +200,14 @@ tests:
     mov cx, si
     int 0x21
 
-    call free
-
     mov ah, 0x1
     mov al, endl
-    mov bh, 0x7
+    mov bl, 0x7
     int 0x21
 
+    popa
     ret
+
 
 msg db "Address of allocated memory: ", 0
 
