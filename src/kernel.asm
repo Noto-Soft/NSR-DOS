@@ -174,28 +174,8 @@ putc_attr:
 	pop ax
 	ret
 
-puts:
-	push ax
-	push bx
-	push si
-	mov ah, 0xe
-	xor bh, bh
-	cld
-.loop:
-	lodsb
-	or al, al
-	jz .done
-	int 0x10
-	jmp .loop
-.done:
-	pop si
-	pop bx
-	pop ax
-	ret
-
 puts_attr:
 	push ax
-	push dx
 	push si
 	cld
 .loop:
@@ -206,7 +186,21 @@ puts_attr:
 	jmp .loop
 .done:
 	pop si
-	pop dx
+	pop ax
+	ret
+
+putsle_attr:
+	push ax
+	push cx
+	push si
+	mov cx, [si]
+	add si, 2
+.loop:
+	lodsb
+	call putc_attr
+	loop .loop
+	pop si
+	pop cx
 	pop ax
 	ret
 
@@ -677,12 +671,14 @@ disk_write_interrupt_wrapper:
 	cmp ah, %1
 	jne %%next
 	call %2
+	jmp .done
 %%next:
 %endmacro
 
 int21:
 route 0x0, puts_attr
 route 0x1, putc_attr
+route 0x2, putsle_attr
 route 0x5, print_hex_byte
 route 0x6, print_hex_word
 route 0x7, file_safe_get

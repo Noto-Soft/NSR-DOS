@@ -10,14 +10,17 @@ db 2
 db 0
 dw start
 
-msg db "Hello, world!", endl, 0
+msg:
+	dw .end-$-2
+	db "Hello, world!", endl
+.end:
 
 start:
 	mov ax, cs
 	mov ds, ax
 	mov es, ax
 
-	xor ah, ah
+	mov ah, 0x2
 	mov bl, 0x7
 	lea si, [msg]
 	int 0x21
