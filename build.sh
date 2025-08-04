@@ -16,12 +16,15 @@ python3 tools/thinfs.py add nsr-dos.img build/graphix.exe
 python3 tools/thinfs.py add nsr-dos.img assets/images/nsrdos.bmp
 python3 tools/thinfs.py add nsr-dos.img assets/images/wisconsin.bmp
 python3 tools/thinfs.py add nsr-dos.img assets/images/meme.bmp
+python3 tools/thinfs.py add nsr-dos.img build/heaptest.exe
 truncate -s 1440k nsr-dos.img
 
 nasm src/basic.asm -f bin -o build/basic.exe
+nasm src/heaptest.asm -f bin -o build/heaptest.exe -w-zeroing
 python3 tools/thinfs.py create disk-2.img BDRIVE
 python3 tools/thinfs.py add disk-2.img assets/text/bdrive.txt
 python3 tools/thinfs.py add disk-2.img build/basic.exe
+python3 tools/thinfs.py add disk-2.img build/heaptest.exe
 for FILE in docs/*; do
 	if [ -f "$FILE" ]; then
 		python3 tools/thinfs.py add disk-2.img $FILE
