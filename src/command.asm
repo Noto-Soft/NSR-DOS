@@ -43,7 +43,7 @@ error_not_command_or_file db "Not a command nor an executable file", endl, 0
 error_not_file db "File does not exist", endl, 0
 error_drive_missing db "Disk is not inserted into the drive", endl, 0
 
-buffer times 112 db 0
+buffer times 148 db 0
 BUFFER_END equ $
 	; allow some extra space for .exe autofill
 times 4 db 0
