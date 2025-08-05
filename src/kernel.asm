@@ -111,8 +111,6 @@ putc_attr:
 	je .newline
 	cmp al, 0x8
 	je .backspace
-	cmp al, 0x9
-	je .tab
 
 	call scroll_if_need_be
 
@@ -161,11 +159,6 @@ putc_attr:
 	call set_cursor
 	mov al, " "
 	call set_char
-	jmp .done
-.tab:
-	add dl, 4
-	and dl, ~(0b00000011)
-	call set_cursor
 	jmp .done
 .done:
 	pop dx

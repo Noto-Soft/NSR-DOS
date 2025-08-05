@@ -18,23 +18,24 @@ msg_sectors_used db endl, "Kilobytes used: ", 0
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
 msg_insert_diskette2 db ", then press any key", endl, 0
 
-str_commands db "List of commands:", endl, 0
+str_commands db endl, "List of commands:", endl, 0
 str_a db "a:", 0
-	db 0x9, " - Set drive to drive A: (drive #0)", endl, 0
+	db " - Set drive to drive A: (drive #0)", endl, 0
 str_b db "b:", 0
-	db 0x9, " - Set drive to drive B: (drive #1)", endl, 0
+	db " - Set drive to drive B: (drive #1)", endl, 0
 str_cls db "cls", 0
-	db 0x9, " - Clear console output", endl, 0
+	db " - Clear console output", endl, 0
 str_del db "del", 0
-	db 0x9, " - Deletes a file from the disk directory", endl, 0
+	db " - Deletes a file from the disk directory", endl, 0
 str_dir db "dir", 0
-	db 0x9, " - List files on the disk directory", endl, 0
+	db " - List files on the disk directory", endl, 0
 str_help db "help", 0
 	db ", "
 str_cmds db "cmds", 0
-	db 0x9, " - List available commands and their functions", endl, 0
+	db " - List available commands and their functions", endl, 0
 str_type db "type", 0
-	db 0x9, " - Read a file out to the console", endl, 0
+	db " - Read a file out to the console", endl, 0
+db endl, 0
 db 0
 
 str_start db "start", 0
