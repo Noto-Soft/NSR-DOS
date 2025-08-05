@@ -1,5 +1,5 @@
 0x0000-0x05ff: bootloader, ivt, filesystem (always at 0x800)
 0x0600-0x0fff: kernel (overwrites bootloader)
-0x1000-0x1fff: primary programs (programs that run other programs, or don't get ran by other programs)
-0x2000-0x6fff: free segments
+0x1000-0x27ff: primary programs (programs that run other programs, or don't get ran by other programs)
+0x2800-0x6fff: free segments
 0x7000-0x7fff: the stack
