@@ -14,3 +14,8 @@ always, the drive number is passed to the program through dl before jumping
 to the program. this is always expected. even if you're program
 doesn't use floppy, you need to keep track of it if you call any other
 programs
+
+Version 3.x base header:
+"ES" followed by a word pointing to
+the starting point of the program, then 20 bytes reserved
+for expansions

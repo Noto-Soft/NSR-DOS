@@ -5,9 +5,7 @@ org 0x0
 %define endl 0xa
 %include "src/inc/8086.inc"
 
-db "AD"
-db 2
-db 0
+db "ES"
 dw start
 
 drive db 0

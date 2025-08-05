@@ -277,10 +277,14 @@ main:
 	xor bx, bx
 	call disk_read
 
+	mov ax, [es:0x0]
+	cmp ax, "ES"
+	jne $
+	mov ax, [es:0x2]
 	mov dl, [drive]
-	jmp 0x600:0x0
-
-	jmp $
+	push es
+	push ax
+	retf
 
 msg_boot db "Small Diversified Bootloader 1.0", endl, 0
 

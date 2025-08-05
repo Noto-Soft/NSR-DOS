@@ -5,6 +5,21 @@ org 0x0
 %define endl 0xa
 %include "src/inc/8086.inc"
 
+db "ES"
+dw start
+times 20 db 0
+
+nsr_dos db "NSR-DOS", 0
+fatal_exception_msg db endl, endl, "A fatal exception ", 0
+fatal_exception_part_2 db " has occured", endl, 0
+
+boot_txt db "BOOT.TXT", 0
+command_exe db "COMMAND.EXE", 0
+
+cursor dw 0
+
+drive db 0
+
 start:
 	mov ax, cs
 	mov ds, ax
@@ -820,15 +835,11 @@ main:
 	call file_read_entry
 
 	mov ax, [es:0x0]
-	cmp ax, "AD"
-	jne .unknown_format
-	mov al, [es:0x2]
-	cmp al, 0x2
-	jne .unknown_format
+	cmp ax, "ES"
+	mov ax, [es:0x2]
 	push ds
 	push es
 	mov dl, [drive]
-	mov ax, [es:0x4]
 	lea bx, [.after]
 	push cs
 	push bx
@@ -844,14 +855,3 @@ main:
 .unknown_format:
 	mov al, 0x2
 	int 0xff
-
-nsr_dos db "NSR-DOS", 0
-fatal_exception_msg db endl, endl, "A fatal exception ", 0
-fatal_exception_part_2 db " has occured", endl, 0
-
-boot_txt db "BOOT.TXT", 0
-command_exe db "COMMAND.EXE", 0
-
-cursor dw 0
-
-drive db 0

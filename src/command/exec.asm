@@ -22,13 +22,7 @@ exec:
 	xor bx, bx
 	int 0x21
 
-	mov ax, [es:0x0]
-	cmp ax, "AD"
-	jne .unknown_format
-	mov al, [es:0x2]
-	cmp al, 0x2
-	jne .unknown_format
-	mov ax, [es:0x4]
+	call .get_starting_point
 	pusha ; macro
 	push ds
 	push es
@@ -78,3 +72,17 @@ exec:
 	jz .not_exist
 
 	jmp .after_autofill_check
+.get_starting_point:
+	mov ax, [es:0x0]
+	cmp ax, "AD"
+	jne .check_es
+	mov al, [es:0x2]
+	cmp al, 0x2
+	jne .unknown_format
+	mov ax, [es:0x4]
+	ret
+.check_es:
+	cmp ax, "ES"
+	jne .unknown_format
+	mov ax, [es:0x2]
+	ret

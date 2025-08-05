@@ -30,13 +30,12 @@ nasm src/heaptest.asm -f bin -o build/heaptest.exe -w-zeroing
 python3 tools/thinfs.py create disk-2.img BDRIVE
 add_to_disk disk-2.img \
 	assets/text/bdrive.txt \
+	build/heaptest.exe \
 	build/basic.exe \
 	assets/text/gg.txt \
 	assets/text/bolotomy.txt \
 	$(find docs/ -maxdepth 1 -type f -print)
 truncate -s 1440k disk-2.img
-
-add_to_disk nsr-dos.img build/heaptest.exe
 
 rm -rf build/
 
