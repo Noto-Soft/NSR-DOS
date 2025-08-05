@@ -8,7 +8,7 @@ org 0x7c00
 jmp start
 
 ; THIN header
-db "R-DOS0.3 "
+db "R-DOS0.9 "
 
 start:
 	xor ax, ax

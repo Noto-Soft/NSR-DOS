@@ -676,18 +676,18 @@ disk_write_interrupt_wrapper:
 %endmacro
 
 int21:
-route 0x0, puts_attr
-route 0x1, putc_attr
-route 0x2, putsle_attr
-route 0x5, print_hex_byte
-route 0x6, print_hex_word
-route 0x7, file_safe_get
-route 0x8, file_read_entry
-route 0x9, drive_switch
-route 0xa, file_soft_delete_entry
-route 0xb, set_cursor
-route 0xc, read_cursor
-route 0xd, print_decimal_cx
+	route 0x0, puts_attr
+	route 0x1, putc_attr
+	route 0x2, putsle_attr
+	route 0x5, print_hex_byte
+	route 0x6, print_hex_word
+	route 0x7, file_safe_get
+	route 0x8, file_read_entry
+	route 0x9, drive_switch
+	route 0xa, file_soft_delete_entry
+	route 0xb, set_cursor
+	route 0xc, read_cursor
+	route 0xd, print_decimal_cx
 .done:
 	iret
 

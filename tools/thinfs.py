@@ -26,9 +26,9 @@ def create_image(img_name, bootloader_path, fs_name):
 			raise ValueError("Bootloader too large")
 		bootloader = pad(bootloader, SECTOR_SIZE)
 	else:
-		# Default blank boot sector with R-DOS0.1 signature
+		# Default blank boot sector with R-DOS0.9 signature
 		bootloader = bytearray(SECTOR_SIZE)
-		bootloader[0x2:0x2+len(b"R-DOS0.1")] = b"R-DOS0.1"
+		bootloader[0x2:0x2+len(b"R-DOS0.9 ")] = b"R-DOS0.9 "
 
 	# Prepare image file
 	with open(img_name, "wb") as f:
