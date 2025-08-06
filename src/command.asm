@@ -51,6 +51,10 @@ db 0
 BUFFER_SPACE_END equ $
 
 start:
+	mov ax, cs
+	mov ds, ax
+	mov es, ax
+
 	mov [drive], dl
 	jmp main
 
@@ -189,9 +193,6 @@ clear_buffer:
 	ret
 
 main:
-	mov ax, cs
-	mov ds, ax
-	mov es, ax
 
 line:
 	lea di, [buffer]
