@@ -35,9 +35,9 @@ str_help db "help", 0
 	db ", "
 str_cmds db "cmds", 0
 	db " - List available commands and their functions", endl, 0
-str_ttyc db "ttyc", 0
+str_ttyc db "tty/c", 0
 	db " - Set the tty mode to cga", endl, 0
-str_ttys db "ttys", 0
+str_ttys db "tty/s", 0
 	db " - Set the tty mode to serial", endl, 0
 str_type db "type", 0
 	db " - Read a file out to the console", endl, 0
