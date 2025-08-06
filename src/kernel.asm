@@ -211,6 +211,20 @@ putsle_attr:
 	pop ax
 	ret
 
+putsls_attr:
+	push ax
+	push cx
+	push si
+	; cx specified pre-call
+.loop:
+	lodsb
+	call putc_attr
+	loop .loop
+	pop si
+	pop cx
+	pop ax
+	ret
+
 ; si
 ; di
 strcmp:
@@ -686,6 +700,7 @@ int21:
 	route 0x0, puts_attr
 	route 0x1, putc_attr
 	route 0x2, putsle_attr
+	route 0x3, putsls_attr
 	route 0x5, print_hex_byte
 	route 0x6, print_hex_word
 	route 0x7, file_safe_get

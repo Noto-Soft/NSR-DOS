@@ -10,18 +10,18 @@ db 2
 db 0
 dw start
 
-dw msg.end-msg
 msg:
 	db "Hello, world!", endl
-.end:
+msg_len equ $-msg
 
 start:
 	mov ax, cs
 	mov ds, ax
 	mov es, ax
 
-	mov ah, 0x2
+	mov ah, 0x3
 	mov bl, 0x7
+	mov cx, msg_len
 	lea si, [msg]
 	int 0x21
 
