@@ -102,6 +102,37 @@ set_cursor:
 	pop ax
 	ret
 
+set_cursor_mem:
+	push ax
+	push es
+
+	mov ax, cs
+	mov es, ax
+	mov [es:cursor], dx
+
+	pop es
+	pop ax
+	ret
+
+update_cursor:
+	push ax
+	push bx
+	push dx
+	push es
+
+	mov ax, cs
+	mov es, ax
+	mov dx, [es:cursor]
+	mov ah, 0x2
+	xor bh, bh
+	int 0x10
+
+	pop es
+	pop dx
+	pop bx
+	pop ax
+	ret
+
 read_cursor:
 	push ax
 	push es
@@ -114,7 +145,7 @@ read_cursor:
 	pop ax
 	ret
 
-putc_attr:
+putc_attr_help:
 	push ax
 	push bx
 	push cx
@@ -139,8 +170,6 @@ putc_attr:
 	inc dh 
 	call scroll_if_need_be
 .cursor_good:
-	call set_cursor
-
 	push es
 
 	push di
@@ -167,19 +196,23 @@ putc_attr:
 	inc dh
 	xor dl, dl
 	call scroll_if_need_be
-	call set_cursor
 	jmp .done
 .backspace:
 	dec dl
-	call set_cursor
 	mov al, " "
 	call set_char
 	jmp .done
 .done:
+	call set_cursor_mem
 	pop dx
 	pop cx
 	pop bx
 	pop ax
+	ret
+
+putc_attr:
+	call putc_attr_help
+	call update_cursor
 	ret
 
 puts_attr:
@@ -190,11 +223,12 @@ puts_attr:
 	lodsb
 	or al, al
 	jz .done
-	call putc_attr
+	call putc_attr_help
 	jmp .loop
 .done:
 	pop si
 	pop ax
+	call update_cursor
 	ret
 
 putsle_attr:
