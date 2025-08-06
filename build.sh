@@ -17,11 +17,10 @@ nasm src/graphix.asm -f bin -o build/graphix.exe
 python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 add_to_disk nsr-dos.img \
   	build/kernel.sys \
-  	assets/text/boot.txt \
-  	build/command.exe \
+	build/command.exe \
   	build/helloworld.exe \
-  	assets/text/aldi.txt \
   	build/graphix.exe \
+  	assets/text/boot.txt \
   	$(find assets/images/ -maxdepth 1 -type f -print)
 truncate -s 1440k nsr-dos.img
 
@@ -29,11 +28,8 @@ nasm src/basic.asm -f bin -o build/basic.exe
 nasm src/heaptest.asm -f bin -o build/heaptest.exe -w-zeroing
 python3 tools/thinfs.py create disk-2.img BDRIVE
 add_to_disk disk-2.img \
-	assets/text/bdrive.txt \
 	build/heaptest.exe \
 	build/basic.exe \
-	assets/text/gg.txt \
-	assets/text/bolotomy.txt \
 	$(find docs/ -maxdepth 1 -type f -print)
 truncate -s 1440k disk-2.img
 
