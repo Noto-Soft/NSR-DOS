@@ -201,8 +201,7 @@ putsle_attr:
 	push ax
 	push cx
 	push si
-	mov cx, [si]
-	add si, 2
+	mov cx, [si-2]
 .loop:
 	lodsb
 	call putc_attr

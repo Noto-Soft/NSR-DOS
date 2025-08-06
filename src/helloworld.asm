@@ -10,8 +10,8 @@ db 2
 db 0
 dw start
 
+dw msg.end-msg
 msg:
-	dw .end-$-2
 	db "Hello, world!", endl
 .end:
 
