@@ -33,25 +33,28 @@ start:
 	jmp main
 
 clear_screen:
-	push ax
-	push cx
-	push di
-	push es
-	push ax
-	mov ax, 0xa000
-	mov es, ax
-	pop ax
-	xor di, di
-	mov cx, 320*200
-.loop:
-	mov [es:di], al
-	inc di
-	loop .loop
-	pop es
-	pop di
-	pop cx
-	pop ax
-	ret
+    push ax
+    push cx
+    push di
+    push es
+
+    ; Set ES to video memory segment A000h
+    mov ax, 0xa000
+    mov es, ax
+
+    ; Set AL to the value to clear the screen with (e.g., 0 for black)
+    xor al, al        ; Clear AL (set to 0)
+
+    ; Clear screen buffer
+    xor di, di        ; Start at offset 0
+    mov cx, 320*200   ; Number of pixels (bytes in mode 13h)
+    rep stosb         ; Store AL to ES:DI, CX times
+
+    pop es
+    pop di
+    pop cx
+    pop ax
+    ret
 
 draw_pixel:
 	push ax
