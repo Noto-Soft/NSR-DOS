@@ -4,6 +4,7 @@ org 0x0
 
 %define endl 0xa
 %include "src/inc/8086.inc"
+%include "src/inc/write_mode.inc"
 
 db "ES"
 dw start
@@ -19,6 +20,8 @@ command_exe db "COMMAND.EXE", 0
 cursor dw 0
 
 drive db 0
+
+mda db 0
 
 start:
 	mov ax, cs
@@ -145,7 +148,7 @@ read_cursor:
 	pop ax
 	ret
 
-putc_attr_help:
+write_character_memory:
 	push ax
 	push bx
 	push cx
@@ -210,8 +213,66 @@ putc_attr_help:
 	pop ax
 	ret
 
+write_character_serial_help:
+	push dx
+	push ax
+.wait:
+    mov dx, 0x3FD
+    in al, dx
+    test al, 0x20
+    jz .wait
+
+    mov dx, 0x3F8
+    pop ax
+    out dx, al
+	pop dx
+    ret
+
+write_character_serial:
+	cmp al, 0x8
+	je .backspace
+	call write_character_serial_help
+	ret
+.backspace:
+	call write_character_serial_help
+	mov al, " "
+	call write_character_serial_help
+	mov al, 0x8
+	call write_character_serial_help
+	ret
+
+write_character:
+	push dx
+	push ax
+	push es
+	mov ax, cs
+	mov es, ax
+	mov dl, [es:.write_mode]
+	pop es
+	pop ax
+	cmp dl, MODE_SERIAL
+	jne .cga
+	call write_character_serial
+	jmp .done
+.cga:
+	call write_character_memory
+.done:
+	pop dx
+	ret
+.write_mode db 0
+
+set_mode:
+	push es
+	push ax
+	mov ax, cs
+	mov es, ax
+	pop ax
+	mov [es:write_character.write_mode], al
+	pop es
+	ret
+
 putc_attr:
-	call putc_attr_help
+	call write_character
 	call update_cursor
 	ret
 
@@ -223,7 +284,7 @@ puts_attr:
 	lodsb
 	or al, al
 	jz .done
-	call putc_attr_help
+	call write_character
 	jmp .loop
 .done:
 	pop si
@@ -744,6 +805,7 @@ int21:
 	route 0xb, set_cursor
 	route 0xc, read_cursor
 	route 0xd, print_decimal_cx
+	route 0xe, set_mode
 .done:
 	iret
 
@@ -809,9 +871,34 @@ fatal_exception:
 
 	jmp $
 
+init_serial:
+    mov dx, 0x3FB
+    mov al, 0x80
+    out dx, al
+
+    mov dx, 0x3F8
+    mov al, 0x03
+    out dx, al
+    mov dx, 0x3F9
+    mov al, 0x00
+    out dx, al
+
+    mov dx, 0x3FB
+    mov al, 0x03
+    out dx, al
+
+    mov dx, 0x3FA
+    mov al, 0xC7
+    out dx, al
+
+    mov dx, 0x3FC
+    mov al, 0x0B
+    out dx, al
+
+    ret
+
 main:
-	xor ah, ah
-	mov al, 0x3
+	mov ax, 0x3
 	int 0x10
 
 	mov ah, 0x6
@@ -823,6 +910,8 @@ main:
 
 	xor dx, dx
 	call set_cursor
+
+	call init_serial
 
 	mov ah, 0x1
 	mov ch, 0x3f

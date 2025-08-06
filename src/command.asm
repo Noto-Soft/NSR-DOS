@@ -4,6 +4,7 @@ org 0x0
 
 %define endl 0xa
 %include "src/inc/8086.inc"
+%include "src/inc/write_mode.inc"
 
 db "ES"
 dw start
@@ -34,6 +35,10 @@ str_help db "help", 0
 	db ", "
 str_cmds db "cmds", 0
 	db " - List available commands and their functions", endl, 0
+str_ttyc db "ttyc", 0
+	db " - Set the tty mode to cga", endl, 0
+str_ttys db "ttys", 0
+	db " - Set the tty mode to serial", endl, 0
 str_type db "type", 0
 	db " - Read a file out to the console", endl, 0
 db endl, 0
@@ -285,6 +290,16 @@ line_done:
 	or al, al
 	jz fate
 
+	lea di, [str_ttyc]
+	call strcmp
+	or al, al
+	jz ttyc
+
+	lea di, [str_ttys]
+	call strcmp
+	or al, al
+	jz ttys
+
 	pop di
 
 	cmp di, buffer
@@ -299,6 +314,20 @@ line_done:
 %include "src/command/exec.asm"
 %include "src/command/help.asm"
 %include "src/command/type.asm"
+
+ttyc:
+	mov ah, 0xe
+	mov al, MODE_CGA
+	int 0x21
+
+	jmp line
+
+ttys:
+	mov ah, 0xe
+	mov al, MODE_SERIAL
+	int 0x21
+
+	jmp line
 
 fate:
 	mov al, 255

@@ -35,7 +35,7 @@ truncate -s 1440k disk-2.img
 
 rm -rf build/
 
-qemu-system-i386 -monitor stdio \
+qemu-system-i386 -serial stdio \
 	-drive file=nsr-dos.img,if=floppy,format=raw \
 	-drive file=disk-2.img,if=floppy,format=raw \
 	-machine pcspk-audiodev=spk \
