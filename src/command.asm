@@ -7,6 +7,7 @@ org 0x0
 
 db "ES"
 dw start
+times 20 db 0
 
 drive db 0
 
