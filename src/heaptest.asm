@@ -93,26 +93,6 @@ free:
     pop si
     ret
 
-; ds:si - source
-; es:di - destination
-; cx - amount
-memcpy:
-    push ax
-    push cx
-    push si
-    push di
-.loop:
-    mov al, [ds:si]
-    mov [es:di], al
-    inc si
-    inc di
-    loop .loop
-    pop di
-    pop si
-    pop cx
-    pop ax
-    ret
-
 ; si - pointer to original memory
 ; cx - new size
 ; returns: si - new memory
@@ -131,7 +111,9 @@ realloc:
     call zalloc
     xchg si, di
     mov cx, ax
-    call memcpy
+    push di
+    rep movsb
+    pop di
     mov si, di
     pop di
     pop cx
