@@ -54,7 +54,7 @@ exec:
 	popa ; macro
 	jmp line
 .unknown_format:
-	mov al, 0x2
+	mov al, 2
 	int 0xff
 .check_autofill:
 	push si

@@ -42,9 +42,9 @@ drive_empty:
 	jmp line
 
 drive_invalid_fs:
-	mov al, 0x5
+	mov al, 5
 	int 0xff
 
 floppy_error:
-	mov al, 0x4
+	mov al, 4
 	int 0xff

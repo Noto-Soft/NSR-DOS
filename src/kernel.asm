@@ -660,11 +660,11 @@ drive_switch:
 	ret
 
 floppy_error:
-	mov al, 0x4
+	mov al, 4
 	int 0xff
 
 drive_invalid_fs:
-	mov al, 0x5
+	mov al, 5
 	int 0xff
 
 disk_read_interrupt_wrapper:
@@ -712,6 +712,10 @@ intff:
 	jmp fatal_exception
 
 fatal_exception:
+	cmp bl, 0x6
+	jna .continue
+	mov bl, 0xff
+.continue:
 	xor ah, ah
 	mov al, 0x3
 	int 0x10
@@ -738,7 +742,8 @@ fatal_exception:
 	mov bl, 0x17
 	lea si, [fatal_exception_msg]
 	call puts_attr
-	call print_hex_byte
+	xor ch, ch
+	call print_decimal_cx
 	lea si, [fatal_exception_part_2]
 	call puts_attr
 
@@ -825,7 +830,7 @@ main:
 	call file_safe_get
 	test di, di
 	jnz .command_exe_not_null
-	mov al, 0x3
+	mov al, 3
 	int 0xff
 .command_exe_not_null:
 	mov dl, [drive]
@@ -853,5 +858,5 @@ main:
 	jmp $
 
 .unknown_format:
-	mov al, 0x2
+	mov al, 2
 	int 0xff

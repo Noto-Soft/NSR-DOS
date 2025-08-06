@@ -221,7 +221,7 @@ disk_reset:
 .disk_retry db "Retry read", endl, 0
 
 floppy_error:
-	mov al, 0x4
+	mov al, 4
 	int 0xff
 
 main:

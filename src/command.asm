@@ -28,6 +28,8 @@ str_del db "del", 0
 	db " - Deletes a file from the disk directory", endl, 0
 str_dir db "dir", 0
 	db " - List files on the disk directory", endl, 0
+str_fate db "fate", 0
+	db " - Throw a fatal exception (why would you want this)", endl, 0
 str_help db "help", 0
 	db ", "
 str_cmds db "cmds", 0
@@ -278,6 +280,11 @@ line_done:
 	or al, al
 	jz b
 
+	lea di, [str_fate]
+	call strcmp
+	or al, al
+	jz fate
+
 	pop di
 
 	cmp di, buffer
@@ -292,6 +299,10 @@ line_done:
 %include "src/command/exec.asm"
 %include "src/command/help.asm"
 %include "src/command/type.asm"
+
+fate:
+	mov al, 255
+	int 0xff
 
 exit:
 	retf

@@ -1,7 +1,9 @@
-00: divide by zero
-01: invalid program overwrite (overwriting a program while in said program)
-02: invalid executable
-03: file doesn't exist
-04: some sort of error with the floppy
-05: incorrectly formatted disk
-06: invalid opcode
+0: divide by zero
+1: invalid program overwrite (overwriting a program while in said program)
+2: invalid executable
+3: file doesn't exist
+4: some sort of error with the floppy
+5: incorrectly formatted disk
+6: invalid opcode
+
+255: unknown exception
