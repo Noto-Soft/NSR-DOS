@@ -21,8 +21,6 @@ cursor dw 0
 
 drive db 0
 
-mda db 0
-
 start:
 	mov ax, cs
 	mov ds, ax
