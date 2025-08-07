@@ -1,3 +1,7 @@
+;==============================================================================
+; NASM directives
+;==============================================================================
+
 bits 16
 cpu 8086
 org 0x0
@@ -6,9 +10,17 @@ org 0x0
 %include "src/inc/8086.inc"
 %include "src/inc/write_mode.inc"
 
+;==============================================================================
+; Executable header
+;==============================================================================
+
 db "ES"
 dw start
 times 20 db 0
+
+;==============================================================================
+; Constants and variables
+;==============================================================================
 
 drive db 0
 
@@ -58,13 +70,126 @@ times 4 db 0
 db 0
 BUFFER_SPACE_END equ $
 
+;==============================================================================
+; Main program
+;==============================================================================
+
 start:
 	mov ax, cs
 	mov ds, ax
 	mov es, ax
 
 	mov [drive], dl
-	jmp main
+
+line:
+	lea di, [buffer]
+	call clear_buffer
+	xor ah, ah
+	mov bl, 0xf
+	lea si, [msg_command]
+	int 0x21
+.loop:
+	xor ah, ah
+	int 0x16
+	cmp al, 0xd
+	je line_done
+	cmp al, 0x8
+	je .backspace
+	cmp di, BUFFER_END
+	jnb .loop
+	mov ah, 0x1
+	mov bl, 0xf
+	int 0x21
+	mov [di], al
+	inc di
+	mov byte [di], 0
+	jmp .loop
+.backspace:
+	cmp di, buffer
+	jna .loop
+	mov ah, 0x1
+	mov bl, 0xf
+	int 0x21
+	dec di
+	mov byte [di], 0
+	jmp .loop
+
+line_done:
+	mov ah, 0x1
+	mov bl, 0xf
+	mov al, endl
+	int 0x21
+
+	push di
+
+	lea si, [buffer]
+
+	lea di, [str_dir]
+	call strcmp
+	or al, al
+	jz dir
+
+	lea di, [str_type]
+	mov bl, " "
+	call strcmp_until_delimiter
+	or al, al
+	jz type
+
+	lea di, [str_del]
+	mov bl, " "
+	call strcmp_until_delimiter
+	or al, al
+	jz del
+
+	lea di, [str_help]
+	call strcmp
+	or al, al
+	jz help
+	lea di, [str_cmds]
+	call strcmp
+	or al, al
+	jz help
+
+	lea di, [str_cls]
+	call strcmp
+	or al, al
+	jz cls
+
+	lea di, [str_a]
+	call strcmp
+	or al, al
+	jz a
+
+	lea di, [str_b]
+	call strcmp
+	or al, al
+	jz b
+
+	lea di, [str_fate]
+	call strcmp
+	or al, al
+	jz fate
+
+	lea di, [str_ttyc]
+	call strcmp
+	or al, al
+	jz ttyc
+
+	lea di, [str_ttys]
+	call strcmp
+	or al, al
+	jz ttys
+
+	pop di
+
+	cmp di, buffer
+	je line
+
+	jmp exec
+
+;==============================================================================
+; String routines
+;==============================================================================
 
 strcmp:
 	push si
@@ -200,113 +325,9 @@ clear_buffer:
 	pop ax
 	ret
 
-main:
-
-line:
-	lea di, [buffer]
-	call clear_buffer
-	xor ah, ah
-	mov bl, 0xf
-	lea si, [msg_command]
-	int 0x21
-.loop:
-	xor ah, ah
-	int 0x16
-	cmp al, 0xd
-	je line_done
-	cmp al, 0x8
-	je .backspace
-	cmp di, BUFFER_END
-	jnb .loop
-	mov ah, 0x1
-	mov bl, 0xf
-	int 0x21
-	mov [di], al
-	inc di
-	mov byte [di], 0
-	jmp .loop
-.backspace:
-	cmp di, buffer
-	jna .loop
-	mov ah, 0x1
-	mov bl, 0xf
-	int 0x21
-	dec di
-	mov byte [di], 0
-	jmp .loop
-
-line_done:
-	mov ah, 0x1
-	mov bl, 0xf
-	mov al, endl
-	int 0x21
-
-	push di
-
-	lea si, [buffer]
-
-	lea di, [str_dir]
-	call strcmp
-	or al, al
-	jz dir
-
-	lea di, [str_type]
-	mov bl, " "
-	call strcmp_until_delimiter
-	or al, al
-	jz type
-
-	lea di, [str_del]
-	mov bl, " "
-	call strcmp_until_delimiter
-	or al, al
-	jz del
-
-	lea di, [str_help]
-	call strcmp
-	or al, al
-	jz help
-	lea di, [str_cmds]
-	call strcmp
-	or al, al
-	jz help
-
-	lea di, [str_cls]
-	call strcmp
-	or al, al
-	jz cls
-
-	lea di, [str_a]
-	call strcmp
-	or al, al
-	jz a
-
-	lea di, [str_b]
-	call strcmp
-	or al, al
-	jz b
-
-	lea di, [str_fate]
-	call strcmp
-	or al, al
-	jz fate
-
-	lea di, [str_ttyc]
-	call strcmp
-	or al, al
-	jz ttyc
-
-	lea di, [str_ttys]
-	call strcmp
-	or al, al
-	jz ttys
-
-	pop di
-
-	cmp di, buffer
-	je line
-
-	jmp exec
+;==============================================================================
+; Command routines
+;==============================================================================
 
 cls:
 	mov ah, 0x6
@@ -434,8 +455,6 @@ dir:
 
 	popa ; macro
 	jmp line
-
-; this one is odd but this is drive stuff
 
 a:
 	mov al, "A"
@@ -658,6 +677,3 @@ ttys:
 fate:
 	mov al, 255
 	int 0xff
-
-exit:
-	retf

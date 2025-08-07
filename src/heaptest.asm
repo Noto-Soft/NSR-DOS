@@ -1,3 +1,7 @@
+;==============================================================================
+; NASM directives
+;==============================================================================
+
 bits 16
 cpu 8086
 org 0x0
@@ -5,15 +9,46 @@ org 0x0
 %define endl 0xa
 %include "src/inc/8086.inc"
 
+;==============================================================================
+; Executable header
+;==============================================================================
+
 db "ES"
 dw start
 times 20 db 0
+
+;==============================================================================
+; Constants and variables
+;==============================================================================
+
+msg db "Address of allocated memory: ", 0
+
+;==============================================================================
+; Main program
+;==============================================================================
 
 start:
     mov ax, cs
     mov ds, ax
     mov es, ax
-    jmp main
+
+main:
+    mov cx, 600
+    call testmalloc
+    mov cx, 500
+    call testmalloc
+    mov cx, 700
+    call testmalloc
+    mov cx, 1000
+    mov bx, 1200
+    call testrealloc
+
+end:
+    retf
+
+;==============================================================================
+; Memory routines
+;==============================================================================
 
 ; cx - size in bytes
 ; returns: si - pointeer
@@ -120,20 +155,6 @@ realloc:
     pop ax
     ret
 
-main:
-    mov cx, 600
-    call testmalloc
-    mov cx, 500
-    call testmalloc
-    mov cx, 700
-    call testmalloc
-    mov cx, 1000
-    mov bx, 1200
-    call testrealloc
-
-end:
-    retf
-
 testmalloc:
     call malloc
     call addr    
@@ -189,8 +210,9 @@ addr:
     popa
     ret
 
-
-msg db "Address of allocated memory: ", 0
+;==============================================================================
+; Heap
+;==============================================================================
 
 heap resb 0x8000
 HEAP_TOP equ $

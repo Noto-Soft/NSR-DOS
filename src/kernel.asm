@@ -1,3 +1,7 @@
+;==============================================================================
+; NASM directives
+;==============================================================================
+
 bits 16
 cpu 8086
 org 0x0
@@ -6,9 +10,17 @@ org 0x0
 %include "src/inc/8086.inc"
 %include "src/inc/write_mode.inc"
 
+;==============================================================================
+; Executable header
+;==============================================================================
+
 db "ES"
 dw start
 times 20 db 0
+
+;==============================================================================
+; Constants and variables
+;==============================================================================
 
 nsr_dos db "NSR-DOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
@@ -21,6 +33,10 @@ cursor dw 0
 
 drive db 0
 
+;==============================================================================
+; Main program
+;==============================================================================
+
 start:
 	mov ax, cs
 	mov ds, ax
@@ -28,7 +44,108 @@ start:
 
 	mov [drive], dl
 
-	jmp main
+main:
+	mov ax, 0x3
+	int 0x10
+
+	mov ah, 0x6
+	xor al, al
+	mov bh, 0xf
+	xor cx, cx
+	mov dx, 0x184f
+	int 0x10
+
+	xor dx, dx
+	call set_cursor
+
+	call init_serial
+
+	push es
+	xor ax, ax
+	mov es, ax
+	mov ax, cs
+	mov word [es:0x0*4], int0
+	mov [es:0x0*4+2], ax
+	mov word [es:0x6*4], int6
+	mov [es:0x6*4+2], ax
+	mov word [es:0x21*4], int21
+	mov [es:0x21*4+2], ax
+	mov word [es:0x22*4], disk_read_interrupt_wrapper
+	mov [es:0x22*4+2], ax
+	mov word [es:0x23*4], disk_write_interrupt_wrapper
+	mov [es:0x23*4+2], ax
+	mov word [es:0x24*4], int24
+	mov [es:0x24*4+2], ax
+	mov word [es:0xff*4], intff
+	mov [es:0xff*4+2], ax
+	pop es
+
+	lea si, [bootmsg_sys]
+	call file_safe_get
+	test di, di
+	jnz .bootmsg_sys_not_null
+	mov al, 3
+	int 0xff
+.bootmsg_sys_not_null:
+	mov dl, [drive]
+	mov bx, 0x1000
+	mov es, bx
+	xor bx, bx
+	call file_read_entry
+
+	mov ax, [es:0x0]
+	cmp ax, "ES"
+	mov ax, [es:0x2]
+	push ds
+	push es
+	mov dl, [drive]
+	lea bx, [.bootmsg_sys_return]
+	push cs
+	push bx
+	push es
+	push ax
+	retf
+.bootmsg_sys_return:
+	pop es
+	pop ds
+
+	lea si, [command_exe]
+	call file_safe_get
+	test di, di
+	jnz .command_exe_not_null
+	mov al, 3
+	int 0xff
+.command_exe_not_null:
+	mov dl, [drive]
+	mov bx, 0x1000
+	mov es, bx
+	xor bx, bx
+	call file_read_entry
+
+	mov ax, [es:0x0]
+	cmp ax, "ES"
+	mov ax, [es:0x2]
+	push ds
+	push es
+	mov dl, [drive]
+	lea bx, [.command_exe_return]
+	push cs
+	push bx
+	push es
+	push ax
+	retf
+.command_exe_return:
+	pop es
+	pop ds
+
+	jmp $
+.unknown_format:
+	mov al, 2
+	int 0xff
+
+;==============================================================================
+; Video routines
+;==============================================================================
 
 scroll_if_need_be:
 	push ax
@@ -211,6 +328,36 @@ write_character_memory:
 	pop ax
 	ret
 
+;==============================================================================
+; Serial routines
+;==============================================================================
+
+init_serial:
+    mov dx, 0x3FB
+    mov al, 0x80
+    out dx, al
+
+    mov dx, 0x3F8
+    mov al, 0x03
+    out dx, al
+    mov dx, 0x3F9
+    mov al, 0x00
+    out dx, al
+
+    mov dx, 0x3FB
+    mov al, 0x03
+    out dx, al
+
+    mov dx, 0x3FA
+    mov al, 0xC7
+    out dx, al
+
+    mov dx, 0x3FC
+    mov al, 0x0B
+    out dx, al
+
+    ret
+
 write_character_serial_help:
 	push dx
 	push ax
@@ -239,6 +386,20 @@ write_character_serial:
 	call write_character_serial_help
 	ret
 
+;==============================================================================
+; Unified Output API
+;==============================================================================
+
+set_mode:
+	push es
+	push ax
+	mov ax, cs
+	mov es, ax
+	pop ax
+	mov [es:write_character.write_mode], al
+	pop es
+	ret
+
 write_character:
 	push dx
 	push ax
@@ -258,16 +419,6 @@ write_character:
 	pop dx
 	ret
 .write_mode db 0
-
-set_mode:
-	push es
-	push ax
-	mov ax, cs
-	mov es, ax
-	pop ax
-	mov [es:write_character.write_mode], al
-	pop es
-	ret
 
 putc_attr:
 	call write_character
@@ -316,32 +467,6 @@ putsls_attr:
 	pop si
 	pop cx
 	pop ax
-	ret
-
-; si
-; di
-strcmp:
-	push si
-	push di
-.loop:
-	mov al, [si]
-	mov ah, [es:di]
-	inc si
-	inc di
-	cmp al, ah
-	jne .notequal
-	cmp al, 0
-	je .endofstring
-	jmp .loop
-.endofstring:
-	xor ax, ax
-	jmp .done
-.notequal:
-	mov ax, 1
-	jmp .done
-.done:
-	pop di
-	pop si
 	ret
 
 print_hex_digit:
@@ -426,6 +551,36 @@ print_decimal_cx:
     pop ax
     ret
 
+;==============================================================================
+; String routines
+;==============================================================================
+
+; si
+; di
+strcmp:
+	push si
+	push di
+.loop:
+	mov al, [si]
+	mov ah, [es:di]
+	inc si
+	inc di
+	cmp al, ah
+	jne .notequal
+	cmp al, 0
+	je .endofstring
+	jmp .loop
+.endofstring:
+	xor ax, ax
+	jmp .done
+.notequal:
+	mov ax, 1
+	jmp .done
+.done:
+	pop di
+	pop si
+	ret
+
 case_up:
 	push ax
 	push si
@@ -449,10 +604,10 @@ case_up:
 	pop ax
 	ret
 
-;
+;==============================================================================
 ; Disk routines
 ;   - stolen from nanobytes
-;
+;==============================================================================
 
 ;
 ; Converts an LBA address to a CHS address
@@ -636,6 +791,10 @@ disk_reset:
 	ret
 .disk_retry db "Retry read", endl, 0
 
+;==============================================================================
+; ThinFS Routines
+;==============================================================================
+
 ; ds:si - filename
 ; returns:
 ;   - di: file entry, null if not found
@@ -765,21 +924,9 @@ drive_switch:
 	popa ; macro
 	ret
 
-floppy_error:
-	mov al, 4
-	int 0xff
-
-drive_invalid_fs:
-	mov al, 5
-	int 0xff
-
-disk_read_interrupt_wrapper:
-	call disk_read
-	iret
-
-disk_write_interrupt_wrapper:
-	call disk_write
-	iret
+;==============================================================================
+; Memory routines
+;==============================================================================
 
 clear_free:
 	push ax
@@ -805,6 +952,18 @@ clear_free:
 	pop bx
 	pop ax
 	ret
+
+;==============================================================================
+; Interrupt handlers/wrappers
+;==============================================================================
+
+disk_read_interrupt_wrapper:
+	call disk_read
+	iret
+
+disk_write_interrupt_wrapper:
+	call disk_write
+	iret
 
 %macro route 2
 	cmp ah, %1
@@ -899,128 +1058,14 @@ fatal_exception:
 
 	jmp $
 
-init_serial:
-    mov dx, 0x3FB
-    mov al, 0x80
-    out dx, al
+;==============================================================================
+; Errors
+;==============================================================================
 
-    mov dx, 0x3F8
-    mov al, 0x03
-    out dx, al
-    mov dx, 0x3F9
-    mov al, 0x00
-    out dx, al
-
-    mov dx, 0x3FB
-    mov al, 0x03
-    out dx, al
-
-    mov dx, 0x3FA
-    mov al, 0xC7
-    out dx, al
-
-    mov dx, 0x3FC
-    mov al, 0x0B
-    out dx, al
-
-    ret
-
-main:
-	mov ax, 0x3
-	int 0x10
-
-	mov ah, 0x6
-	xor al, al
-	mov bh, 0xf
-	xor cx, cx
-	mov dx, 0x184f
-	int 0x10
-
-	xor dx, dx
-	call set_cursor
-
-	call init_serial
-
-	push es
-	xor ax, ax
-	mov es, ax
-	mov ax, cs
-	mov word [es:0x0*4], int0
-	mov [es:0x0*4+2], ax
-	mov word [es:0x6*4], int6
-	mov [es:0x6*4+2], ax
-	mov word [es:0x21*4], int21
-	mov [es:0x21*4+2], ax
-	mov word [es:0x22*4], disk_read_interrupt_wrapper
-	mov [es:0x22*4+2], ax
-	mov word [es:0x23*4], disk_write_interrupt_wrapper
-	mov [es:0x23*4+2], ax
-	mov word [es:0x24*4], int24
-	mov [es:0x24*4+2], ax
-	mov word [es:0xff*4], intff
-	mov [es:0xff*4+2], ax
-	pop es
-
-	lea si, [bootmsg_sys]
-	call file_safe_get
-	test di, di
-	jnz .bootmsg_sys_not_null
-	mov al, 3
+floppy_error:
+	mov al, 4
 	int 0xff
-.bootmsg_sys_not_null:
-	mov dl, [drive]
-	mov bx, 0x1000
-	mov es, bx
-	xor bx, bx
-	call file_read_entry
 
-	mov ax, [es:0x0]
-	cmp ax, "ES"
-	mov ax, [es:0x2]
-	push ds
-	push es
-	mov dl, [drive]
-	lea bx, [.bootmsg_sys_return]
-	push cs
-	push bx
-	push es
-	push ax
-	retf
-.bootmsg_sys_return:
-	pop es
-	pop ds
-
-	lea si, [command_exe]
-	call file_safe_get
-	test di, di
-	jnz .command_exe_not_null
-	mov al, 3
-	int 0xff
-.command_exe_not_null:
-	mov dl, [drive]
-	mov bx, 0x1000
-	mov es, bx
-	xor bx, bx
-	call file_read_entry
-
-	mov ax, [es:0x0]
-	cmp ax, "ES"
-	mov ax, [es:0x2]
-	push ds
-	push es
-	mov dl, [drive]
-	lea bx, [.command_exe_return]
-	push cs
-	push bx
-	push es
-	push ax
-	retf
-.command_exe_return:
-	pop es
-	pop ds
-
-	jmp $
-
-.unknown_format:
-	mov al, 2
+drive_invalid_fs:
+	mov al, 5
 	int 0xff
