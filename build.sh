@@ -26,14 +26,18 @@ convert_images() {
     done
 }
 
+catza() {
+	cat "$@"
+	printf '\0'
+}
+
 mkdir -p build
 mkdir -p build/bitmaps
 
 nasm src/boot.asm -f bin -o build/boot.bin
 nasm src/kernel.asm -f bin -o build/kernel.sys
-nasm src/bootmsg.asm -f bin -o build/bootmsg.sys
-cat assets/text/boot.txt >> build/bootmsg.sys
-printf '\0' >> build/bootmsg.sys
+catza assets/text/boot/logo.txt >> build/kernel.sys
+catza assets/text/boot/text.txt >> build/kernel.sys
 nasm src/command.asm -f bin -o build/command.exe
 nasm src/helloworld.asm -f bin -o build/helloworld.exe
 nasm src/graphix.asm -f bin -o build/graphix.exe
@@ -57,8 +61,8 @@ convert_images
 python3 tools/thinfs.py create disk-2.img BDRIVE
 add_to_disk disk-2.img \
 	build/graphix.exe \
-	$(find docs/ -maxdepth 1 -type f -print) \
-	$(find build/bitmaps/ -maxdepth 1 -type f -print)
+	$(find build/bitmaps/ -type f) \
+	$(find docs/ -type f)
 truncate -s 1440k disk-2.img
 
 if [ "$SAVE_TEMPS" = false ]; then

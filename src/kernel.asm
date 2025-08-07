@@ -26,12 +26,13 @@ nsr_dos db "NSR-DOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
-bootmsg_sys db "BOOTMSG.SYS", 0
 command_exe db "COMMAND.EXE", 0
 
 cursor dw 0
 
 drive db 0
+
+next_appendation dw end
 
 ;==============================================================================
 ; Main program
@@ -80,34 +81,11 @@ main:
 	mov [es:0xff*4+2], ax
 	pop es
 
-	lea si, [bootmsg_sys]
-	call file_safe_get
-	test di, di
-	jnz .bootmsg_sys_not_null
-	mov al, 3
-	int 0xff
-.bootmsg_sys_not_null:
-	mov dl, [drive]
-	mov bx, 0x1000
-	mov es, bx
-	xor bx, bx
-	call file_read_entry
-
-	mov ax, [es:0x0]
-	cmp ax, "ES"
-	mov ax, [es:0x2]
-	push ds
-	push es
-	mov dl, [drive]
-	lea bx, [.bootmsg_sys_return]
-	push cs
-	push bx
-	push es
-	push ax
-	retf
-.bootmsg_sys_return:
-	pop es
-	pop ds
+	mov bl, 0xf
+	mov si, [next_appendation]
+	call putsfz_attr
+	call putsfz_attr
+	mov [next_appendation], si
 
 	lea si, [command_exe]
 	call file_safe_get
@@ -441,10 +419,25 @@ puts_attr:
 	call update_cursor
 	ret
 
+putsfz_attr:
+	push ax
+	cld
+.loop:
+	lodsb
+	or al, al
+	jz .done
+	call write_character
+	jmp .loop
+.done:
+	pop ax
+	call update_cursor
+	ret
+
 putsle_attr:
 	push ax
 	push cx
 	push si
+	cld
 	mov cx, [si-2]
 .loop:
 	lodsb
@@ -459,6 +452,7 @@ putsls_attr:
 	push ax
 	push cx
 	push si
+	cld
 	; cx specified pre-call
 .loop:
 	lodsb
@@ -601,6 +595,15 @@ case_up:
 	jmp .loop
 .print:
 	pop si
+	pop ax
+	ret
+
+find_zero:
+	push ax
+.loop:
+	lodsb
+	test al, al
+	jnz .loop
 	pop ax
 	ret
 
@@ -978,6 +981,7 @@ int21:
 	route 0x1, putc_attr
 	route 0x2, putsle_attr
 	route 0x3, putsls_attr
+	route 0x4, putsfz_attr
 	route 0x5, print_hex_byte
 	route 0x6, print_hex_word
 	route 0x7, file_safe_get
@@ -1069,3 +1073,5 @@ floppy_error:
 drive_invalid_fs:
 	mov al, 5
 	int 0xff
+
+end:

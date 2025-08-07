@@ -516,20 +516,15 @@ floppy_error:
 	int 0xff
 
 help:
-	xor ah, ah
+	mov ah, 0x4
 	mov bl, 0xf
 	lea si, [str_commands]
+.loop:
 	int 0x21
-.find_next_string:
-	mov al, [si]
-	inc si
-	test al, al
-	jnz .find_next_string
 	mov al, [si]
 	test al, al
 	jz line
-	int 0x21
-	jmp .find_next_string
+	jmp .loop
 
 echo:
 	add si, 5
