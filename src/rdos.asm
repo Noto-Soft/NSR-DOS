@@ -9,6 +9,12 @@ db "ES"
 dw start
 
 start:
+    or dh, dh
+    je boot_msg
+    
+    retf
+
+boot_msg:
 	mov ax, cs
 	mov ds, ax
 
