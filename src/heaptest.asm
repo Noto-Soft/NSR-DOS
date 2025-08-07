@@ -192,6 +192,6 @@ addr:
 
 msg db "Address of allocated memory: ", 0
 
-heap resb 0x6000
+heap resb 0x8000
 HEAP_TOP equ $
 HEAP_BLOCK_HEADER_SIZE equ 3

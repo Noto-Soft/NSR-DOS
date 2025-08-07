@@ -49,6 +49,7 @@ str_start db "start", 0
 error_not_command_or_file db "Not a command nor an executable file", endl, 0
 error_not_file db "File does not exist", endl, 0
 error_drive_missing db "Disk is not inserted into the drive", endl, 0
+error_invalid_executable db "Invalid executable file.", endl, 0
 
 buffer times 148 db 0
 BUFFER_END equ $
@@ -332,13 +333,336 @@ line_done:
 
 	jmp exec
 
-%include "src/command/cls.asm"
-%include "src/command/del.asm"
-%include "src/command/dir.asm"
-%include "src/command/drive_stuff.asm"
-%include "src/command/exec.asm"
-%include "src/command/help.asm"
-%include "src/command/type.asm"
+cls:
+	mov ah, 0x6
+	xor al, al
+	mov bh, 0xf
+	xor cx, cx
+	mov dx, 0x184f
+	int 0x10
+
+	mov ah, 0xb
+	xor dx, dx
+	int 0x21
+
+	jmp line
+
+del:
+	pusha ; macro
+
+	mov ah, 0x7
+	add si, 4
+	mov dl, [drive]
+	int 0x21
+	test di, di
+	jz .not_exist
+	mov ah, 0xa
+	int 0x21
+
+	popa ; macro
+	jmp line
+.not_exist:
+	xor ah, ah
+	mov bl, 0x4
+	lea si, [error_not_file]
+	int 0x21
+
+	popa
+	jmp line
+
+dir:
+	pusha ; macro
+	push ds
+
+	xor ah, ah
+	inc ah
+	mov al, endl
+	mov bl, 0xf
+	int 0x21
+	dec ah
+	lea si, [msg_directory_of]
+	int 0x21
+	inc ah
+	; holds drive letter conveniently
+	mov al, [msg_command]
+	int 0x21
+	mov al, endl
+	int 0x21
+	int 0x21
+
+	xor ax, ax
+	mov ds, ax
+	lea di, [0x800]
+	xor ah, ah
+	mov bl, 0xf
+	xor cx, cx
+	xor dx, dx
+.loop:
+	mov al, [di]
+	cmp al, 0
+	je .done
+	add di, 4
+	mov al, [di]
+	cmp al, 0
+	je .skip
+
+	mov si, di
+	int 0x21
+	mov ah, 0x1
+	mov al, " "
+	int 0x21
+
+	mov ah, 0xd
+	mov cl, [di-2]
+	add cl, 1
+	shr cl, 1
+	int 0x21
+	add dx, cx
+
+	mov ah, 0x1
+	mov al, "k"
+	int 0x21
+	mov al, "b"
+	int 0x21
+
+	mov al, endl
+	int 0x21
+.skip:
+	dec di
+	mov al, [di]
+	xor ah, ah
+	add di, ax
+	inc di
+	jmp .loop
+.done:
+	pop ds
+
+	xor ah, ah
+	mov bl, 0xf
+	lea si, [msg_sectors_used]
+	int 0x21
+
+	mov ah, 0xd
+	mov cx, dx
+	int 0x21
+
+	mov ah, 0x1
+	mov al, "k"
+	int 0x21
+	mov al, "b"
+	int 0x21
+
+	mov ah, 0x1
+	mov al, endl
+	int 0x21
+	int 0x21
+
+	popa ; macro
+	jmp line
+
+; this one is odd but this is drive stuff
+
+a:
+	mov al, "A"
+	xor dl, dl
+	jmp set_drive
+
+b:
+	mov al, "B"
+	mov dl, 1
+
+set_drive:
+	xor ah, ah
+	mov bl, 0xf
+	lea si, [msg_insert_diskette]
+	int 0x21
+	inc ah
+	int 0x21
+	dec ah
+	lea si, [msg_insert_diskette2]
+	int 0x21
+	push ax
+	xor ah, ah
+	int 0x16
+	pop ax
+	pusha ; macro
+	push es
+	mov ah, 0x8
+	int 0x13
+	jc drive_empty
+	pop es
+	popa ; macro
+	mov byte [drive], dl
+	mov byte [msg_command], al
+	mov ah, 0x9
+	int 0x21
+	jmp dir
+
+drive_empty:
+	xor ah, ah
+	mov bl, 0x4
+	lea si, [error_drive_missing]
+	int 0x21
+	jmp line
+
+drive_invalid_fs:
+	mov al, 5
+	int 0xff
+
+floppy_error:
+	mov al, 4
+	int 0xff
+
+help:
+	xor ah, ah
+	mov bl, 0xf
+	lea si, [str_commands]
+	int 0x21
+.find_next_string:
+	mov al, [si]
+	inc si
+	test al, al
+	jnz .find_next_string
+	mov al, [si]
+	test al, al
+	jz line
+	int 0x21
+	jmp .find_next_string
+
+exec:
+	mov ah, 0x7
+	int 0x21
+	test di, di
+	jz .check_autofill
+.after_autofill_check:
+	mov dl, [drive]
+	lea bx, [0x3000]
+	mov ax, cs
+	cmp bx, ax
+	jne .after_error
+	mov al, 1
+	int 0xff
+.after_error:
+	call clear_free
+	mov ah, 0x8
+	mov es, bx
+	xor bx, bx
+	int 0x21
+
+	call .get_starting_point
+	pusha ; macro
+	push ds
+	push es
+	mov dl, [drive]
+	lea bx, [.after]
+	push cs
+	push bx
+	push es
+	push ax
+	retf
+.after:
+	pop es
+	pop ds
+
+	popa
+	jmp .done
+.not_exist:
+	mov ax, cs
+	mov ds, ax
+	
+	xor ah, ah
+	mov bl, 0x4
+	lea si, [error_not_command_or_file]
+	int 0x21
+.done:
+	mov ax, cs
+	mov ds, ax
+	mov es, ax
+
+	jmp line
+.unknown_format:
+	mov ax, cs
+	mov ds, ax
+
+	xor ah, ah
+	mov bl, 0x4
+	lea si, [error_invalid_executable]
+	int 0x21
+
+	jmp .done
+.check_autofill:
+	push si
+.find_terminator_loop:
+	inc si
+	cmp byte [si-1], 0
+	jne .find_terminator_loop
+	mov word [si-1], ".E"
+	mov word [si+1], "XE"
+	pop si
+
+	mov ah, 0x7
+	int 0x21
+	test di, di
+	jz .not_exist
+
+	jmp .after_autofill_check
+.get_starting_point:
+	mov ax, [es:0x0]
+	cmp ax, "AD"
+	jne .check_es
+	mov al, [es:0x2]
+	cmp al, 0x2
+	jne .unknown_format
+	mov ax, [es:0x4]
+	ret
+.check_es:
+	cmp ax, "ES"
+	jne .unknown_format
+	mov ax, [es:0x2]
+	ret
+
+type:
+	pusha ; macro
+	
+	push ds
+	push es
+
+	add si, 5
+	mov ah, 0x7
+	int 0x21
+	test di, di
+	jz .not_exist
+	call clear_free
+	mov ah, 0x8
+	mov dl, [drive]
+	lea bx, [0x3000]
+	mov es, bx
+	xor bx, bx
+	int 0x21
+
+	mov ax, es
+	mov ds, ax
+
+	xor ah, ah
+	mov bl, 0xf
+	lea si, [0x0]
+	int 0x21
+
+	jmp .done
+.not_exist:
+	mov ax, cs
+	mov ds, ax
+	
+	xor ah, ah
+	mov bl, 0x4
+	lea si, [error_not_file]
+	int 0x21
+.done:
+	pop es
+	pop ds
+
+	popa ; macro
+	jmp line
 
 ttyc:
 	mov ah, 0xe

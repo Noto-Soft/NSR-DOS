@@ -12,7 +12,7 @@ type:
 	call clear_free
 	mov ah, 0x8
 	mov dl, [drive]
-	lea bx, [0x2800]
+	lea bx, [0x3000]
 	mov es, bx
 	xor bx, bx
 	int 0x21

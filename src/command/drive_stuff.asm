@@ -1,3 +1,5 @@
+; this one is odd but this is drive stuff
+
 a:
 	mov al, "A"
 	xor dl, dl
