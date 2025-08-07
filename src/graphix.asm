@@ -225,7 +225,7 @@ main:
 	jz .not_exist
 	mov ah, 0x8
 	mov dl, [drive]
-	mov bx, 0x3000
+	mov bx, 0x4000
 	mov es, bx
 	xor bx, bx
 	int 0x21
@@ -297,7 +297,6 @@ main:
 	mov bl, 0x4
 	lea si, [msg_image_doesnt_exist]
 	int 0x21
-
 .cancel:
 	mov sp, [pre_stack]
 	retf

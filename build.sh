@@ -19,9 +19,7 @@ add_to_disk nsr-dos.img \
   	build/kernel.sys \
 	build/command.exe \
   	build/helloworld.exe \
-  	build/graphix.exe \
-  	assets/text/boot.txt \
-  	$(find assets/images/ -maxdepth 1 -type f -print)
+  	assets/text/boot.txt 
 truncate -s 1440k nsr-dos.img
 
 nasm src/basic.asm -f bin -o build/basic.exe
@@ -30,7 +28,9 @@ python3 tools/thinfs.py create disk-2.img BDRIVE
 add_to_disk disk-2.img \
 	build/heaptest.exe \
 	build/basic.exe \
-	$(find docs/ -maxdepth 1 -type f -print)
+	build/graphix.exe \
+	$(find docs/ -maxdepth 1 -type f -print) \
+  	$(find assets/images/ -maxdepth 1 -type f -print)
 truncate -s 1440k disk-2.img
 
 rm -rf build/
