@@ -1,9 +1,18 @@
+#!/bin/bash
+
+SAVE_TEMPS=false
+for arg in "$@"; do
+	if [ "$arg" = "-save-temps" ]; then
+		SAVE_TEMPS=true
+	fi
+done
+
 add_to_disk() {
-  	disk_image="$1"
-  	shift
-  	for file in "$@"; do
-    	python3 tools/thinfs.py add "$disk_image" "$file"
-  	done
+	disk_image="$1"
+	shift
+	for file in "$@"; do
+		python3 tools/thinfs.py add "$disk_image" "$file"
+	done
 }
 
 mkdir -p build
@@ -19,10 +28,10 @@ nasm src/graphix.asm -f bin -o build/graphix.exe
 
 python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 add_to_disk nsr-dos.img \
-  	build/kernel.sys \
+	build/kernel.sys \
 	build/bootmsg.sys \
 	build/command.exe \
-  	build/helloworld.exe
+	build/helloworld.exe
 truncate -s 1440k nsr-dos.img
 
 nasm src/basic.asm -f bin -o build/basic.exe
@@ -33,10 +42,12 @@ add_to_disk disk-2.img \
 	build/basic.exe \
 	build/graphix.exe \
 	$(find docs/ -maxdepth 1 -type f -print) \
-  	$(find assets/images/ -maxdepth 1 -type f -print)
+	$(find assets/images/ -maxdepth 1 -type f -print)
 truncate -s 1440k disk-2.img
 
-rm -rf build/
+if [ "$SAVE_TEMPS" = false ]; then
+	rm -rf build/
+fi
 
 qemu-system-i386 -serial stdio \
 	-drive file=nsr-dos.img,if=floppy,format=raw \
