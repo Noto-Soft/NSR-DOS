@@ -41,6 +41,8 @@ str_del db "del", 0
 	db " - Deletes a file from the disk directory", endl, 0
 str_dir db "dir", 0
 	db " - List files on the disk directory", endl, 0
+str_echo db "echo", 0
+	db " - Repeats what the user wants (useless because there's no piping)", endl, 0
 str_fate db "fate", 0
 	db " - Throw a fatal exception (why would you want this)", endl, 0
 str_help db "help", 0
@@ -140,6 +142,12 @@ line_done:
 	call strcmp_until_delimiter
 	or al, al
 	jz del
+
+	lea di, [str_echo]
+	mov bl, " "
+	call strcmp_until_delimiter
+	or al, al
+	jz echo
 
 	lea di, [str_help]
 	call strcmp
@@ -522,6 +530,16 @@ help:
 	jz line
 	int 0x21
 	jmp .find_next_string
+
+echo:
+	add si, 5
+	xor ah, ah
+	mov bl, 0x7
+	int 0x21
+	inc ah
+	mov al, endl
+	int 0x21
+	jmp line
 
 exec:
 	mov ah, 0x7
