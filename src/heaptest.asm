@@ -214,6 +214,6 @@ addr:
 ; Heap
 ;==============================================================================
 
-heap resb 0x8000
-HEAP_TOP equ $
+heap:
+HEAP_TOP equ 0xffff
 HEAP_BLOCK_HEADER_SIZE equ 3

@@ -15,7 +15,19 @@ add_to_disk() {
 	done
 }
 
+convert_images() {
+    input_dir="assets/images/convert"
+    output_dir="build/bitmaps"
+    mkdir -p "$output_dir"
+
+    for file in "$input_dir"/*.bmp; do
+        filename=$(basename "$file")
+        python3 tools/bmp_to_nsbmp.py "$file" "$output_dir/$filename" -c
+    done
+}
+
 mkdir -p build
+mkdir -p build/bitmaps
 
 nasm src/boot.asm -f bin -o build/boot.bin
 nasm src/kernel.asm -f bin -o build/kernel.sys
@@ -31,18 +43,22 @@ add_to_disk nsr-dos.img \
 	build/kernel.sys \
 	build/bootmsg.sys \
 	build/command.exe \
-	build/helloworld.exe
+	build/helloworld.exe \
+	build/heaptest.exe \
+	build/basic.exe
 truncate -s 1440k nsr-dos.img
 
 nasm src/basic.asm -f bin -o build/basic.exe
 nasm src/heaptest.asm -f bin -o build/heaptest.exe -w-zeroing
+
+cp assets/images/preconverted/* build/bitmaps
+convert_images
+
 python3 tools/thinfs.py create disk-2.img BDRIVE
 add_to_disk disk-2.img \
-	build/heaptest.exe \
-	build/basic.exe \
 	build/graphix.exe \
 	$(find docs/ -maxdepth 1 -type f -print) \
-	$(find assets/images/ -maxdepth 1 -type f -print)
+	$(find build/bitmaps/ -maxdepth 1 -type f -print)
 truncate -s 1440k disk-2.img
 
 if [ "$SAVE_TEMPS" = false ]; then

@@ -1,5 +1,2 @@
-*.bin
-*.sys
-*.com
-*.exe
+build/
 *.img
