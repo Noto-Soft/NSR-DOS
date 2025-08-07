@@ -5,8 +5,8 @@
 0x4000-0x4fff: free segment B (usually for file loading)
 0x5000-0x5fff: free segment C (use for whatever)
 0x6000-0x6fff: free segment D (use for whatever)
-0x7000-0x7fff: free segment E (usually for persistent memory)
-0x8000-0x8fff: rdos.sys (DON'T OVERWRITE THIS!!!)
+0x7000-0x7fff: free segment E (use for whatever)
+0x8000-0x8fff: free segment F (usually for persistent memory)
 0x9000-0x9fff: stack segment
 ---------- RESERVED ----------
 0xa000-0xbfff: video memory

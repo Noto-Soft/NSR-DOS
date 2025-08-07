@@ -10,9 +10,9 @@ mkdir -p build
 
 nasm src/boot.asm -f bin -o build/boot.bin
 nasm src/kernel.asm -f bin -o build/kernel.sys
-nasm src/rdos.asm -f bin -o build/rdos.sys
-cat assets/text/boot.txt >> build/rdos.sys
-printf '\0' >> build/rdos.sys
+nasm src/bootmsg.asm -f bin -o build/bootmsg.sys
+cat assets/text/boot.txt >> build/bootmsg.sys
+printf '\0' >> build/bootmsg.sys
 nasm src/command.asm -f bin -o build/command.exe
 nasm src/helloworld.asm -f bin -o build/helloworld.exe
 nasm src/graphix.asm -f bin -o build/graphix.exe
@@ -20,7 +20,7 @@ nasm src/graphix.asm -f bin -o build/graphix.exe
 python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 add_to_disk nsr-dos.img \
   	build/kernel.sys \
-	build/rdos.sys \
+	build/bootmsg.sys \
 	build/command.exe \
   	build/helloworld.exe
 truncate -s 1440k nsr-dos.img

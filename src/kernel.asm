@@ -14,7 +14,7 @@ nsr_dos db "NSR-DOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
-rdos_sys db "RDOS.SYS", 0
+bootmsg_sys db "BOOTMSG.SYS", 0
 command_exe db "COMMAND.EXE", 0
 
 cursor dw 0
@@ -929,15 +929,15 @@ main:
 	mov [es:0xff*4+2], ax
 	pop es
 
-	lea si, [rdos_sys]
+	lea si, [bootmsg_sys]
 	call file_safe_get
 	test di, di
-	jnz .rdos_sys_not_null
+	jnz .bootmsg_sys_not_null
 	mov al, 3
 	int 0xff
-.rdos_sys_not_null:
+.bootmsg_sys_not_null:
 	mov dl, [drive]
-	mov bx, 0x8000
+	mov bx, 0x1000
 	mov es, bx
 	xor bx, bx
 	call file_read_entry
@@ -947,15 +947,14 @@ main:
 	mov ax, [es:0x2]
 	push ds
 	push es
-	xor dh, dh
 	mov dl, [drive]
-	lea bx, [.rdos_sys_return]
+	lea bx, [.bootmsg_sys_return]
 	push cs
 	push bx
 	push es
 	push ax
 	retf
-.rdos_sys_return:
+.bootmsg_sys_return:
 	pop es
 	pop ds
 
