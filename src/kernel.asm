@@ -781,6 +781,31 @@ disk_write_interrupt_wrapper:
 	call disk_write
 	iret
 
+clear_free:
+	push ax
+	push bx
+	push cx
+	push di
+	push es
+	mov bx, 0x3000
+.loop:
+	mov es, bx
+	xor di, di
+	xor ax, ax
+	mov cx, 8
+	rep stosw
+
+	inc bx
+	cmp bx, 0x8000
+	jne .loop
+.done:
+	pop es
+	pop di
+	pop cx
+	pop bx
+	pop ax
+	ret
+
 %macro route 2
 	cmp ah, %1
 	jne %%next
@@ -804,6 +829,11 @@ int21:
 	route 0xc, read_cursor
 	route 0xd, print_decimal_cx
 	route 0xe, set_mode
+.done:
+	iret
+
+int24:
+	route 0x0, clear_free
 .done:
 	iret
 
@@ -925,6 +955,8 @@ main:
 	mov [es:0x22*4+2], ax
 	mov word [es:0x23*4], disk_write_interrupt_wrapper
 	mov [es:0x23*4+2], ax
+	mov word [es:0x24*4], int24
+	mov [es:0x24*4+2], ax
 	mov word [es:0xff*4], intff
 	mov [es:0xff*4+2], ax
 	pop es

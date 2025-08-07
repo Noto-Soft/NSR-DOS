@@ -200,31 +200,6 @@ clear_buffer:
 	pop ax
 	ret
 
-clear_free:
-	push ax
-	push bx
-	push cx
-	push di
-	push es
-	mov bx, 0x2800
-.loop:
-	mov es, bx
-	xor di, di
-	xor ax, ax
-	mov cx, 8
-	rep stosw
-
-	inc bx
-	cmp bx, 0x7000
-	jne .loop
-.done:
-	pop es
-	pop di
-	pop cx
-	pop bx
-	pop ax
-	ret
-
 main:
 
 line:
@@ -543,7 +518,8 @@ exec:
 	mov al, 1
 	int 0xff
 .after_error:
-	call clear_free
+	xor ah, ah
+	int 0x24
 	mov ah, 0x8
 	mov es, bx
 	xor bx, bx
@@ -632,7 +608,8 @@ type:
 	int 0x21
 	test di, di
 	jz .not_exist
-	call clear_free
+	xor ah, ah
+	int 0x24
 	mov ah, 0x8
 	mov dl, [drive]
 	lea bx, [0x3000]
