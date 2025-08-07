@@ -14,7 +14,7 @@ nsr_dos db "NSR-DOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
-boot_txt db "BOOT.TXT", 0
+bootmsg_sys db "BOOTMSG.SYS", 0
 command_exe db "COMMAND.EXE", 0
 
 cursor dw 0
@@ -911,34 +911,6 @@ main:
 
 	call init_serial
 
-	mov ah, 0x1
-	mov ch, 0x3f
-	int 0x10
-
-	lea si, [boot_txt]
-	call file_safe_get
-	test di, di
-	jnz .boot_txt_not_null
-	mov bl, 0x3
-	sub sp, 2
-	push cs
-	call fatal_exception
-.boot_txt_not_null:
-	mov dl, [drive]
-	mov bx, 0x4000
-	mov es, bx
-	xor bx, bx
-	call file_read_entry
-
-	mov ax, es
-	mov ds, ax
-	xor si, si
-	mov bl, 0xf
-	call puts_attr
-
-	mov ax, cs
-	mov ds, ax
-
 	push es
 	xor ax, ax
 	mov es, ax
@@ -957,9 +929,34 @@ main:
 	mov [es:0xff*4+2], ax
 	pop es
 
-	mov ah, 0x1
-	mov cx, 0x7
-	int 0x10
+	lea si, [bootmsg_sys]
+	call file_safe_get
+	test di, di
+	jnz .bootmsg_sys_not_null
+	mov al, 3
+	int 0xff
+.bootmsg_sys_not_null:
+	mov dl, [drive]
+	mov bx, 0x1000
+	mov es, bx
+	xor bx, bx
+	call file_read_entry
+
+	mov ax, [es:0x0]
+	cmp ax, "ES"
+	mov ax, [es:0x2]
+	push ds
+	push es
+	mov dl, [drive]
+	lea bx, [.bootmsg_sys_return]
+	push cs
+	push bx
+	push es
+	push ax
+	retf
+.bootmsg_sys_return:
+	pop es
+	pop ds
 
 	lea si, [command_exe]
 	call file_safe_get
@@ -980,13 +977,13 @@ main:
 	push ds
 	push es
 	mov dl, [drive]
-	lea bx, [.after]
+	lea bx, [.command_exe_return]
 	push cs
 	push bx
 	push es
 	push ax
 	retf
-.after:
+.command_exe_return:
 	pop es
 	pop ds
 
