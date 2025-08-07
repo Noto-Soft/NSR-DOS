@@ -4,7 +4,7 @@ dir:
 
 	xor ah, ah
 	inc ah
-	mov al, 0xa
+	mov al, endl
 	mov bl, 0xf
 	int 0x21
 	dec ah
@@ -14,7 +14,7 @@ dir:
 	; holds drive letter conveniently
 	mov al, [msg_command]
 	int 0x21
-	mov al, 0xa
+	mov al, endl
 	int 0x21
 	int 0x21
 
@@ -53,7 +53,7 @@ dir:
 	mov al, "b"
 	int 0x21
 
-	mov al, 0xa
+	mov al, endl
 	int 0x21
 .skip:
 	dec di
@@ -81,7 +81,7 @@ dir:
 	int 0x21
 
 	mov ah, 0x1
-	mov al, 0xa
+	mov al, endl
 	int 0x21
 	int 0x21
 

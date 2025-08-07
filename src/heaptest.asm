@@ -152,7 +152,7 @@ testrealloc:
     mov al, [si]
     mov bl, 0xf
     int 0x21
-    mov al, 0xa
+    mov al, endl
     int 0x21
     call free
 

@@ -14,6 +14,8 @@ pre_stack dw 0
 
 drive db 0
 
+start_msg db "This program requires a VGA card. It will not function properly without one.", endl, "Continue ONLY if you have a VGA card installed.", endl, "Continue? [Y/n]", 0
+
 msg_choose_image db "Enter image filename (Or leave blank for default)", endl, "When finished viewing the beauty you desire, press q", endl, 0
 msg_image_doesnt_exist db "Image file requested does not exist", endl, 0
 
@@ -151,6 +153,22 @@ set_pallete:
 main:
 	xor ah, ah
 	mov bl, 0x3
+	lea si, [start_msg]
+	int 0x21
+	int 0x16
+	push ax
+	mov ah, 0x1
+	mov al, endl
+	mov bl, 0xf
+	int 0x21
+	pop ax
+	cmp al, "n"
+	je .cancel
+	cmp al, "N"
+	je .cancel
+
+	xor ah, ah
+	mov bl, 0x3
 	lea si, [msg_choose_image]
 	int 0x21
 
@@ -256,11 +274,12 @@ main:
 	xor ah, ah
 	mov al, 0x3
 	int 0x10
-	
+
 	mov ah, 0xb
 	xor dx, dx
 	int 0x21
 
+	mov sp, [pre_stack]
 	retf
 .not_exist:
 	xor ah, ah
@@ -279,5 +298,6 @@ main:
 	lea si, [msg_image_doesnt_exist]
 	int 0x21
 
+.cancel:
 	mov sp, [pre_stack]
 	retf

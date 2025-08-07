@@ -154,7 +154,7 @@ write_character_memory:
 
 	call read_cursor
 
-	cmp al, 0xa
+	cmp al, endl
 	je .newline
 	cmp al, 0x8
 	je .backspace

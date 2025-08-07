@@ -9,9 +9,10 @@ type:
 	int 0x21
 	test di, di
 	jz .not_exist
+	call clear_free
 	mov ah, 0x8
 	mov dl, [drive]
-	lea bx, [0x4000]
+	lea bx, [0x2800]
 	mov es, bx
 	xor bx, bx
 	int 0x21

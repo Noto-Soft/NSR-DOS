@@ -199,6 +199,31 @@ clear_buffer:
 	pop ax
 	ret
 
+clear_free:
+	push ax
+	push bx
+	push cx
+	push di
+	push es
+	mov bx, 0x2800
+.loop:
+	mov es, bx
+	xor di, di
+	xor ax, ax
+	mov cx, 8
+	rep stosw
+
+	inc bx
+	cmp bx, 0x7000
+	jne .loop
+.done:
+	pop es
+	pop di
+	pop cx
+	pop bx
+	pop ax
+	ret
+
 main:
 
 line:
@@ -237,7 +262,7 @@ line:
 line_done:
 	mov ah, 0x1
 	mov bl, 0xf
-	mov al, 0xa
+	mov al, endl
 	int 0x21
 
 	push di

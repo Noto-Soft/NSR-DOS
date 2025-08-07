@@ -13,6 +13,7 @@ nasm src/kernel.asm -f bin -o build/kernel.sys
 nasm src/command.asm -f bin -o build/command.exe
 nasm src/helloworld.asm -f bin -o build/helloworld.exe
 nasm src/graphix.asm -f bin -o build/graphix.exe
+nasm src/graphix2.asm -f bin -o build/graphix2.exe
 
 python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 add_to_disk nsr-dos.img \
@@ -20,6 +21,7 @@ add_to_disk nsr-dos.img \
 	build/command.exe \
   	build/helloworld.exe \
   	build/graphix.exe \
+	build/graphix2.exe \
   	assets/text/boot.txt \
   	$(find assets/images/ -maxdepth 1 -type f -print)
 truncate -s 1440k nsr-dos.img
@@ -39,4 +41,5 @@ qemu-system-i386 -serial stdio \
 	-drive file=nsr-dos.img,if=floppy,format=raw \
 	-drive file=disk-2.img,if=floppy,format=raw \
 	-machine pcspk-audiodev=spk \
-	-audiodev alsa,id=spk
+	-audiodev alsa,id=spk \
+	-vga std

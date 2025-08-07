@@ -61,6 +61,11 @@ def add_file(img_name, input_file, output_name=None):
 	# Read the file to add
 	with open(input_file, "rb") as f:
 		file_data = f.read()
+
+	# Check if it's a text file by extension
+	if input_file.lower().endswith('.txt'):
+		file_data += b'\x00'  # Append null byte before padding
+
 	file_sectors = (len(file_data) + SECTOR_SIZE - 1) // SECTOR_SIZE
 
 	# Open image

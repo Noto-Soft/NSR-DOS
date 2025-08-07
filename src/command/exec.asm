@@ -17,6 +17,7 @@ exec:
 	mov al, 1
 	int 0xff
 .after_error:
+	call clear_free
 	mov ah, 0x8
 	mov es, bx
 	xor bx, bx
