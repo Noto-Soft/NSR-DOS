@@ -29,10 +29,12 @@ vga_check db "Do you have a VGA card installed? [Y/n]", endl, 0
 
 command_exe db "COMMAND.SYS", 0
 
-cursor dw 0
-drive db 0
-vga_installed db 0
 next_appendation dw l_end
+
+cursor dw ?
+drive db ?
+vga_installed db ?
+write_mode db ?
 
 ;==============================================================================
 ; Main program
@@ -49,6 +51,12 @@ main:
 	mov ax, 0x3
 	int 0x10
 
+	xor dx, dx
+	call set_cursor
+
+	mov byte [write_mode], MODE_CGA
+
+	mov byte [vga_installed], 0
 	mov bl, 0xf
 	lea si, [vga_check]
 	call puts_attr
@@ -70,7 +78,11 @@ main:
 	xor dx, dx
 	call set_cursor
 
-	call init_serial
+	mov bl, 0xf
+	mov si, [next_appendation]
+	call putsfz_attr
+	call putsfz_attr
+	mov [next_appendation], si
 
 	push es
 	xor ax, ax
@@ -92,11 +104,7 @@ main:
 	mov [es:0xff*4+2], ax
 	pop es
 
-	mov bl, 0xf
-	mov si, [next_appendation]
-	call putsfz_attr
-	call putsfz_attr
-	mov [next_appendation], si
+	call init_serial
 
 	lea si, [command_exe]
 	call file_safe_get
@@ -317,6 +325,27 @@ write_character_memory:
 	pop ax
 	ret
 
+clear_scrn_help:
+	push ax
+	push bx
+	push cx
+	push dx
+	mov ah, 0x6
+	xor al, al
+	mov bh, 0xf
+	xor cx, cx
+	mov dx, 0x184f
+	int 0x10
+
+	xor dx, dx
+	call set_cursor
+	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+
 ;==============================================================================
 ; Serial routines
 ;==============================================================================
@@ -385,7 +414,7 @@ set_mode:
 	mov ax, cs
 	mov es, ax
 	pop ax
-	mov [es:write_character.write_mode], al
+	mov [es:write_mode], al
 	pop es
 	ret
 
@@ -395,7 +424,7 @@ write_character:
 	push es
 	mov ax, cs
 	mov es, ax
-	mov dl, [es:.write_mode]
+	mov dl, [es:write_mode]
 	pop es
 	pop ax
 	cmp dl, MODE_SERIAL
@@ -407,7 +436,20 @@ write_character:
 .done:
 	pop dx
 	ret
-.write_mode db 0
+
+clear_scrn:
+	push ax
+	push es
+	mov ax, cs
+	mov es, ax
+	mov al, [es:write_mode]
+	cmp al, MODE_CGA
+	jne .done
+	call clear_scrn_help
+.done:
+	pop es
+	pop ax
+	ret
 
 putc_attr:
 	call write_character
@@ -1014,6 +1056,7 @@ int21:
 	route 0xd, print_decimal_cx
 	route 0xe, set_mode
 	route 0xf, check_vga
+	route 0x10, clear_scrn
 .done:
 	iret
 
