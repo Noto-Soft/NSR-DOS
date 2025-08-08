@@ -21,7 +21,7 @@ times 20 db 0
 ; Constants and variables
 ;==============================================================================
 
-drive db 0
+drive db ?
 
 msg_directory_of db "Directory of drive ", 0
 msg_command db "A>", 0

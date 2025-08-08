@@ -34,7 +34,7 @@ def convert_bmp_to_raw(input_path, output_path, use_default_vga=False):
         # Write raw indexed pixel data
         f.write(bytearray(pixel_data))
 
-    print(f"Done: wrote {output_path}")
+    print(f"[OK] Converted {input_path} to {output_path}")
 
 # --- CLI handling ---
 if __name__ == "__main__":

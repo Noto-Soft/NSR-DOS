@@ -291,7 +291,7 @@ error_kernel_not_found db " missing", endl, 0
 
 kernel_sys db "KERNEL.SYS", 0
 
-drive db 0
+drive db ?
 
 times 510-($-$$) db 0
 dw 0xaa55

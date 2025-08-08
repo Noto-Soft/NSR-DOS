@@ -22,7 +22,7 @@ times 20 db 0
 
 pre_stack dw 0
 
-drive db 0
+drive db ?
 
 err_vga_not_installed db "You must have a VGA card installed.", endl, 0
 
