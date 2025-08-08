@@ -65,18 +65,21 @@ main:
     xor bx, bx
     mov cx, 2
     mov byte [si], 0
-    mov ah, 1
 .loop:
-    dec ah
+    xor ah, ah
     int 0x16
     cmp al, 0xd
     je .done
+    cmp al, 0x8
+    je .backspace
     mov ah, 1
     push bx
     mov bl, 0x7
     int 0x21
     pop bx
     call realloc
+    test si, si
+    jz exit
     mov [si+bx], al
     inc bx
     mov byte [si+bx], 0
@@ -96,7 +99,33 @@ main:
     mov al, 0xa
     int 0x21
 
+    call print_allocated_blocks
+
     jmp exit
+.backspace:
+    mov ah, 0xc
+    int 0x21
+    cmp dl, 0
+    jna .loop
+    mov ah, 1
+    mov al, 0x8
+    push bx
+    mov bl, 0x7
+    int 0x21
+    mov al, " "
+    int 0x21
+    mov al, 0x8
+    int 0x21
+    pop bx
+    dec cx
+    call realloc
+    dec bx
+    mov byte [si+bx], 0
+    mov ah, 1
+    jmp .loop
+
+exit:
+    retf
 
 testmalloc:
     call malloc
@@ -153,7 +182,25 @@ addr:
     popa
     ret
 
-exit:
-    retf
+print_allocated_blocks:
+    pusha
+    mov si, HEAP_BOTTOM
+.loop:
+    cmp si, HEAP_TOP
+    jae .done_scan
+
+    mov al, [si]
+    test al, al
+    jz .skip_block
+
+    call addr
+.skip_block:
+    mov bx, [si+1]
+    add si, bx
+    add si, HEAP_BLOCK_HEADER_SIZE
+    jmp .loop
+.done_scan:
+    popa
+    ret
 
 include "src/inc/heap.inc"
