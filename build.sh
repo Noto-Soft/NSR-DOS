@@ -61,8 +61,7 @@ convert_images
 python3 tools/thinfs.py create disk-2.img BDRIVE
 add_to_disk disk-2.img \
 	build/graphix.exe \
-	$(find build/bitmaps/ -type f) \
-	$(find docs/ -type f)
+	$(find build/bitmaps/ -type f)
 truncate -s 1440k disk-2.img
 
 if [ "$SAVE_TEMPS" = false ]; then
