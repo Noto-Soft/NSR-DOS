@@ -24,13 +24,13 @@ pre_stack dw 0
 
 drive db 0
 
-start_msg db "This program requires a VGA card. It will not function properly without one.", endl, "Continue ONLY if you have a VGA card installed.", endl, "Continue? [Y/n]", 0
+err_vga_not_installed db "You must have a VGA card installed.", endl, 0
 
 msg_choose_image db "Enter image filename (Or leave blank for default)", endl, "When finished viewing the beauty you desire, press q", endl, 0
 msg_image_doesnt_exist db "Image file requested does not exist", endl, 0
 
 default_image db "NSRDOS.BMP", 0
-image_file_name rb 128
+image_file_name db 128 dup(0)
 FILENAME_BUFFER_LENGTH = $-image_file_name
 db 0
 
@@ -47,22 +47,16 @@ start:
 	mov [pre_stack], sp
 
 main:
+	mov ah, 0xf
+	int 0x21
+	test al, al
+	jnz .prompt_filename
 	xor ah, ah
-	mov bl, 0x3
-	lea si, [start_msg]
+	mov bl, 0x4
+	lea si, [err_vga_not_installed]
 	int 0x21
-	int 0x16
-	push ax
-	mov ah, 0x1
-	mov al, endl
-	mov bl, 0xf
-	int 0x21
-	pop ax
-	cmp al, "n"
-	je .cancel
-	cmp al, "N"
-	je .cancel
-
+	jmp .cancel
+.prompt_filename:
 	xor ah, ah
 	mov bl, 0x3
 	lea si, [msg_choose_image]

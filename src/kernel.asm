@@ -25,10 +25,13 @@ nsr_dos db "NSR-DOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
+vga_check db "Do you have a VGA card installed? [Y/n]", endl, 0
+
 command_exe db "COMMAND.SYS", 0
 
 cursor dw 0
 drive db 0
+vga_installed db 0
 next_appendation dw l_end
 
 ;==============================================================================
@@ -46,6 +49,17 @@ main:
 	mov ax, 0x3
 	int 0x10
 
+	mov bl, 0xf
+	lea si, [vga_check]
+	call puts_attr
+	xor ah, ah
+	int 0x16
+	cmp al, "n"
+	je .vga_off
+	cmp al, "N"
+	je .vga_off
+	mov byte [vga_installed], 1
+.vga_off:
 	mov ah, 0x6
 	xor al, al
 	mov bh, 0xf
@@ -953,6 +967,16 @@ clear_free:
 	pop ax
 	ret
 
+check_vga:
+	push bx
+	push es
+	mov bx, cs
+	mov es, bx
+	mov al, [es:vga_installed]
+	pop es
+	pop bx
+	ret
+
 ;==============================================================================
 ; Interrupt handlers/wrappers
 ;==============================================================================
@@ -989,6 +1013,7 @@ int21:
 	route 0xc, read_cursor
 	route 0xd, print_decimal_cx
 	route 0xe, set_mode
+	route 0xf, check_vga
 .done:
 	iret
 

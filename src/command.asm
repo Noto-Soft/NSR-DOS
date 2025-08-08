@@ -64,7 +64,7 @@ error_not_file db "File does not exist", endl, 0
 error_drive_missing db "Disk is not inserted into the drive", endl, 0
 error_invalid_executable db "Invalid executable file.", endl, 0
 
-buffer rb 148
+buffer db 148 dup(0)
 BUFFER_END = $
 	; allow some extra space for .exe autofill
 times 4 db 0

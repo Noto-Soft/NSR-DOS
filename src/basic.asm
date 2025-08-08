@@ -2152,13 +2152,13 @@ MODE			db 00h						;0==direct, 1==run
 VARIABLES:	
 	times 26 dw 0000h			;Variables A,B,C...Z 
 
-AESTACK_BASE rb MAX_STACK	;Arithmetic Expression stack
+AESTACK_BASE db MAX_STACK dup(0)	;Arithmetic Expression stack
 AESTACK_POINTER db 00h
 
-SBRSTACK_BASE rb MAX_STACK		;Subroutines stack
+SBRSTACK_BASE db MAX_STACK dup(0)		;Subroutines stack
 SBRSTACK_POINTER db 00h
 
-LBUF rb COLS			;the reading buffer
+LBUF db COLS dup(0)			;the reading buffer
 CURSOR			dw	0000h					;Cursor (byte pointer)
 PGP				dw	0000h					;PGP (line pointer)
 PGM				dw	0000h
