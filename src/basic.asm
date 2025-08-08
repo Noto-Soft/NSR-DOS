@@ -1,26 +1,26 @@
 ;==============================================================================
-; Nasm directives
+; fasm directives
 ;==============================================================================
-[CPU 8086]
-[BITS 16]
-[ORG 0000h]
+
+use16
+org 0x0000
 
 ;==============================================================================
 ; Const section
 ;==============================================================================
-STACK_SEG       EQU 0000h
-STACK_OFF       EQU 0FFFFh
+STACK_SEG       = 0000h
+STACK_OFF       = 0FFFFh
 
-ROWS            EQU 25
-COLS            EQU 80
+ROWS            = 25
+COLS            = 80
 
-FG_COLOR        EQU 0Fh
-BG_COLOR        EQU 10h
+FG_COLOR        = 0Fh
+BG_COLOR        = 10h
 
-DIRECT			EQU 0
-RUN				EQU 1
+DIRECT			= 0
+RUN				= 1
 
-MAX_STACK		EQU 128					
+MAX_STACK		= 128					
 
 ;==============================================================================
 ; MAIN PROGRAM
@@ -299,7 +299,7 @@ S13:
 		je 		S14
 
         cmp		byte [MODE],DIRECT
-        je      END
+        je      L_END
 
 		call	ILM_DONE				;no need to test DONE result
         jmp		CO						;always jump to collection routine
@@ -580,7 +580,7 @@ R6:
 		call	ILM_ERR
 		jmp		CO
 
-END:	
+L_END:	
 		mov sp, [pre_stack] ; the stack may be improperly managed, idk i didn't write this code
         retf
 
@@ -770,7 +770,7 @@ ILM_ADD:
 ILM_CLEAR:
         mov     ah,06h                  ;clear screen service
         mov     al,00h                  ;lines to scroll (if 0 all)
-        mov     bh,BG_COLOR|FG_COLOR    ;background/foreground colors
+        mov     bh,BG_COLOR or FG_COLOR  ;background/foreground colors
         mov     ch,00h                  ;Row number of upper left corner
         mov     cl,00h                  ;Column number of upper left corner
         mov     dh,ROWS-1               ;Row number of lower right corner
@@ -799,7 +799,7 @@ ILM_CMPR:
 		xor		ax,ax					;clear AX
         xor     si,si                   ;clear SI
 
-        add     si,[AESTACK_POINTER]    ;get stack pointer
+        add     si, word [AESTACK_POINTER]    ;get stack pointer
 
 		cmp     si,03h					;not enough elements
         jb     	.stack_err
@@ -2149,15 +2149,16 @@ ERROR_MODE					db ":Unavailable for current mode",00h
 ;ILM variables
 MODE			db 00h						;0==direct, 1==run
 
-VARIABLES		times 26 dw 0000h			;Variables A,B,C...Z 
+VARIABLES:	
+	times 26 dw 0000h			;Variables A,B,C...Z 
 
-AESTACK_BASE	times MAX_STACK dw 0000h	;Arithmetic Expression stack
+AESTACK_BASE rb MAX_STACK	;Arithmetic Expression stack
 AESTACK_POINTER db 00h
 
-SBRSTACK_BASE	times MAX_STACK db 00h		;Subroutines stack
+SBRSTACK_BASE rb MAX_STACK		;Subroutines stack
 SBRSTACK_POINTER db 00h
 
-LBUF 			times COLS db 00h			;the reading buffer
+LBUF rb COLS			;the reading buffer
 CURSOR			dw	0000h					;Cursor (byte pointer)
 PGP				dw	0000h					;PGP (line pointer)
 PGM				dw	0000h

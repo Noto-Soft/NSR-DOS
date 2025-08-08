@@ -1,13 +1,12 @@
 ;==============================================================================
-; NASM directives
+; fasm directives
 ;==============================================================================
 
-bits 16
-cpu 8086
+use16
 org 0x0
 
-%define endl 0xa
-%include "src/inc/8086.inc"
+endl equ 0xa
+include "src/inc/8086.inc"
 
 ;==============================================================================
 ; Executable header
@@ -43,7 +42,7 @@ main:
     mov bx, 1200
     call testrealloc
 
-end:
+exit:
     retf
 
 ;==============================================================================
@@ -55,7 +54,7 @@ end:
 malloc:
     push ax
     push bx
-    lea si, [heap]
+    lea si, [HEAP_BOTTOM]
     jmp .loop
 .nextloop:
     mov bx, [si+1]
@@ -113,7 +112,7 @@ zalloc:
 ; if invalid pointer then it just silently fails and sets al to 1
 free:
     push si
-    cmp si, heap + HEAP_BLOCK_HEADER_SIZE
+    cmp si, HEAP_BOTTOM + HEAP_BLOCK_HEADER_SIZE
     jb .fail
     cmp si, HEAP_TOP
     ja .fail
@@ -214,6 +213,6 @@ addr:
 ; Heap
 ;==============================================================================
 
-heap:
-HEAP_TOP equ 0xffff
-HEAP_BLOCK_HEADER_SIZE equ 3
+HEAP_BOTTOM = $
+HEAP_TOP = 0xffff
+HEAP_BLOCK_HEADER_SIZE = 3

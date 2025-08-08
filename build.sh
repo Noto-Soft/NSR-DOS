@@ -34,13 +34,13 @@ catza() {
 mkdir -p build
 mkdir -p build/bitmaps
 
-nasm src/boot.asm -f bin -o build/boot.bin
-nasm src/kernel.asm -f bin -o build/kernel.sys
+fasm src/boot.asm build/boot.bin
+fasm src/kernel.asm build/kernel.sys
 catza assets/text/boot/logo.txt >> build/kernel.sys
 catza assets/text/boot/text.txt >> build/kernel.sys
-nasm src/command.asm -f bin -o build/command.exe
-nasm src/helloworld.asm -f bin -o build/helloworld.exe
-nasm src/graphix.asm -f bin -o build/graphix.exe
+fasm src/command.asm build/command.exe
+fasm src/helloworld.asm build/helloworld.exe
+fasm src/graphix.asm build/graphix.exe
 
 python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 add_to_disk nsr-dos.img \
@@ -52,8 +52,8 @@ add_to_disk nsr-dos.img \
 	build/basic.exe
 truncate -s 1440k nsr-dos.img
 
-nasm src/basic.asm -f bin -o build/basic.exe
-nasm src/heaptest.asm -f bin -o build/heaptest.exe -w-zeroing
+fasm src/basic.asm build/basic.exe
+fasm src/heaptest.asm build/heaptest.exe
 
 cp assets/images/preconverted/* build/bitmaps
 convert_images

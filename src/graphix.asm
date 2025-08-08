@@ -1,13 +1,12 @@
 ;==============================================================================
-; NASM directives
+; fasm directives
 ;==============================================================================
 
-bits 16
-cpu 8086
+use16
 org 0x0
 
-%define endl 0xa
-%include "src/inc/8086.inc"
+endl equ 0xa
+include "src/inc/8086.inc"
 
 ;==============================================================================
 ; Executable header
@@ -31,8 +30,8 @@ msg_choose_image db "Enter image filename (Or leave blank for default)", endl, "
 msg_image_doesnt_exist db "Image file requested does not exist", endl, 0
 
 default_image db "NSRDOS.BMP", 0
-image_file_name times 128 db 0
-FILENAME_BUFFER_LENGTH equ $-image_file_name
+image_file_name rb 128
+FILENAME_BUFFER_LENGTH = $-image_file_name
 db 0
 
 ;==============================================================================

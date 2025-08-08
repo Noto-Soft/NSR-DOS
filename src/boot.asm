@@ -1,9 +1,8 @@
-bits 16
-cpu 8086
+use16
 org 0x7c00
 
-%define endl 0xd, 0xa
-%include "src/inc/8086.inc"
+endl equ 0xd, 0xa
+include "src/inc/8086.inc"
 
 jmp start
 
@@ -21,7 +20,7 @@ start:
 
 	; just in case the pc speaker is still enabled from a reboot or something
 	in al, 0x61
-	and al, ~(3)
+	and al, not 3
 	out 0x61, al
 
 	lea si, [msg_boot]

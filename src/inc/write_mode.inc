@@ -1,2 +1,2 @@
-MODE_CGA equ 0x00 ; default
-MODE_SERIAL equ 0x01
+MODE_CGA = 0x00 ; default
+MODE_SERIAL = 0x01

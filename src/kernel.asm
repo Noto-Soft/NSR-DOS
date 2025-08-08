@@ -1,14 +1,13 @@
 ;==============================================================================
-; NASM directives
+; fasm directives
 ;==============================================================================
 
-bits 16
-cpu 8086
+use16
 org 0x0
 
-%define endl 0xa
-%include "src/inc/8086.inc"
-%include "src/inc/write_mode.inc"
+endl equ 0xa
+include "src/inc/8086.inc"
+include "src/inc/write_mode.inc"
 
 ;==============================================================================
 ; Executable header
@@ -32,7 +31,7 @@ cursor dw 0
 
 drive db 0
 
-next_appendation dw end
+next_appendation dw l_end
 
 ;==============================================================================
 ; Main program
@@ -968,13 +967,13 @@ disk_write_interrupt_wrapper:
 	call disk_write
 	iret
 
-%macro route 2
-	cmp ah, %1
-	jne %%next
-	call %2
-	jmp .done
-%%next:
-%endmacro
+macro route index, handler {
+    cmp ah, index
+    jne @f
+    call handler
+    jmp .done
+@@:
+}
 
 int21:
 	route 0x0, puts_attr
@@ -1074,4 +1073,4 @@ drive_invalid_fs:
 	mov al, 5
 	int 0xff
 
-end:
+l_end:

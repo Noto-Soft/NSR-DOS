@@ -1,14 +1,13 @@
 ;==============================================================================
-; NASM directives
+; fasm directives
 ;==============================================================================
 
-bits 16
-cpu 8086
+use16
 org 0x0
 
-%define endl 0xa
-%include "src/inc/8086.inc"
-%include "src/inc/write_mode.inc"
+endl equ 0xa
+include "src/inc/8086.inc"
+include "src/inc/write_mode.inc"
 
 ;==============================================================================
 ; Executable header
@@ -65,12 +64,12 @@ error_not_file db "File does not exist", endl, 0
 error_drive_missing db "Disk is not inserted into the drive", endl, 0
 error_invalid_executable db "Invalid executable file.", endl, 0
 
-buffer times 148 db 0
-BUFFER_END equ $
+buffer rb 148
+BUFFER_END = $
 	; allow some extra space for .exe autofill
 times 4 db 0
 db 0
-BUFFER_SPACE_END equ $
+BUFFER_SPACE_END = $
 
 ;==============================================================================
 ; Main program
