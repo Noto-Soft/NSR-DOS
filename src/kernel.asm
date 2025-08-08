@@ -26,8 +26,8 @@ fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
 msg_patch db "Patching Interrupt 0x", 0
-msg_ellipses db "... ", 0
-msg_ivt db "IVT... ", 0
+msg_ellipses db "...", 0
+msg_ivt db "IVT...", 0
 msg_ok db "OK!", endl, 0
 
 vga_check db "Do you have a VGA card installed? [Y/n]", endl, 0
