@@ -25,12 +25,10 @@ nsr_dos db "NSR-DOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
-command_exe db "COMMAND.EXE", 0
+command_exe db "COMMAND.SYS", 0
 
 cursor dw 0
-
 drive db 0
-
 next_appendation dw l_end
 
 ;==============================================================================

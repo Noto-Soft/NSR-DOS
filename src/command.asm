@@ -317,6 +317,10 @@ case_up:
 	pop ax
 	ret
 
+;==============================================================================
+; Misc routines
+;==============================================================================
+
 clear_buffer:
 	push ax
 	push di
@@ -329,6 +333,15 @@ clear_buffer:
 	jmp .loop
 .done:
 	pop di
+	pop ax
+	ret
+
+find_zero:
+	push ax
+.loop:
+	lodsb
+	test al, al
+	jnz .loop
 	pop ax
 	ret
 
@@ -543,6 +556,18 @@ exec:
 	int 0x21
 	test di, di
 	jz .check_autofill
+	push ax
+	push si
+	call find_zero
+	sub si, 5
+	mov ax, [si]
+	cmp ax, ".E"
+	jne .unknown_format_a
+	mov ax, [si+2]
+	cmp ax, "XE"
+	jne .unknown_format_a
+	pop si
+	pop ax
 .after_autofill_check:
 	mov dl, [drive]
 	lea bx, [0x2000]
@@ -590,6 +615,9 @@ exec:
 	mov es, ax
 
 	jmp line
+.unknown_format_a:
+	pop si
+	pop ax
 .unknown_format:
 	mov ax, cs
 	mov ds, ax

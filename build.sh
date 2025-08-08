@@ -38,7 +38,7 @@ fasm src/boot.asm build/boot.bin
 fasm src/kernel.asm build/kernel.sys
 catza assets/text/boot/logo.txt >> build/kernel.sys
 catza assets/text/boot/text.txt >> build/kernel.sys
-fasm src/command.asm build/command.exe
+fasm src/command.asm build/command.sys
 fasm src/helloworld.asm build/helloworld.exe
 fasm src/graphix.asm build/graphix.exe
 fasm src/basic.asm build/basic.exe
@@ -47,7 +47,7 @@ fasm src/heaptest.asm build/heaptest.exe
 python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 add_to_disk nsr-dos.img \
 	build/kernel.sys \
-	build/command.exe \
+	build/command.sys \
 	build/helloworld.exe \
 	build/heaptest.exe \
 	build/basic.exe \
