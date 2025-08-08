@@ -22,7 +22,7 @@ convert_images() {
 
     for file in "$input_dir"/*.bmp; do
         filename=$(basename "$file")
-        python3 tools/bmp_to_nsbmp.py "$file" "$output_dir/$filename" -c
+        python3 tools/bmp_to_nsbmp.py "$file" "$output_dir/$filename"
     done
 }
 
@@ -50,7 +50,8 @@ add_to_disk nsr-dos.img \
 	build/command.exe \
 	build/helloworld.exe \
 	build/heaptest.exe \
-	build/basic.exe
+	build/basic.exe \
+	$(find docs/ -type f)
 truncate -s 1440k nsr-dos.img
 
 cp assets/images/preconverted/* build/bitmaps

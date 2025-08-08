@@ -417,9 +417,11 @@ dir:
 
 	mov ah, 0xd
 	mov cl, [di-2]
+	push cx
 	add cl, 1
 	shr cl, 1
 	int 0x21
+	pop cx
 	add dx, cx
 
 	mov ah, 0x1
@@ -447,6 +449,7 @@ dir:
 
 	mov ah, 0xd
 	mov cx, dx
+	shr cx, 1
 	int 0x21
 
 	mov ah, 0x1
