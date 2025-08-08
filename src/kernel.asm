@@ -25,6 +25,11 @@ nsr_dos db "NSR-DOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
+msg_patch db "Patching Interrupt 0x", 0
+msg_ellipses db "... ", 0
+msg_ivt db "IVT... ", 0
+msg_ok db "OK!", endl, 0
+
 vga_check db "Do you have a VGA card installed? [Y/n]", endl, 0
 
 command_exe db "COMMAND.SYS", 0
@@ -48,14 +53,14 @@ start:
 	mov [drive], dl
 
 main:
-	mov ax, 0x3
-	int 0x10
+	call clear_scrn_help
 
 	xor dx, dx
 	call set_cursor
 
 	mov byte [write_mode], MODE_CGA
 
+if ~defined NO_VGA_CHECK
 	mov byte [vga_installed], 0
 	mov bl, 0xf
 	lea si, [vga_check]
@@ -66,14 +71,10 @@ main:
 	je .vga_off
 	cmp al, "N"
 	je .vga_off
+end if
 	mov byte [vga_installed], 1
 .vga_off:
-	mov ah, 0x6
-	xor al, al
-	mov bh, 0xf
-	xor cx, cx
-	mov dx, 0x184f
-	int 0x10
+	call clear_scrn_help
 
 	xor dx, dx
 	call set_cursor
@@ -84,25 +85,42 @@ main:
 	call putsfz_attr
 	mov [next_appendation], si
 
+macro patch num, handler, rcs, msg {
+	mov bl, 0xf
+	lea si, [msg_patch]
+	call puts_attr
+	mov cl, num
+	call print_hex_byte
+	lea si, [msg_ellipses]
+	call puts_attr
+	mov word [es:num*4], handler
+	mov word [es:num*4+2], rcs
+	mov bl, 0xa
+	lea si, [msg_ok]
+	call puts_attr
+}
+
 	push es
 	xor ax, ax
 	mov es, ax
 	mov ax, cs
-	mov word [es:0x0*4], int0
-	mov [es:0x0*4+2], ax
-	mov word [es:0x6*4], int6
-	mov [es:0x6*4+2], ax
-	mov word [es:0x21*4], int21
-	mov [es:0x21*4+2], ax
-	mov word [es:0x22*4], disk_read_interrupt_wrapper
-	mov [es:0x22*4+2], ax
-	mov word [es:0x23*4], disk_write_interrupt_wrapper
-	mov [es:0x23*4+2], ax
-	mov word [es:0x24*4], int24
-	mov [es:0x24*4+2], ax
-	mov word [es:0xff*4], intff
-	mov [es:0xff*4+2], ax
+	patch 0x0, int0, ax
+	patch 0x6, int6, ax
+	patch 0x21, int21, ax
+	patch 0x22, disk_read_interrupt_wrapper, ax
+	patch 0x23, disk_write_interrupt_wrapper, ax
+	patch 0x24, int24, ax
+	patch 0xff, intff, ax
 	pop es
+
+	mov bl, 0xf
+	lea si, [msg_ivt]
+	call puts_attr
+	mov bl, 0xa
+	lea si, [msg_ok]
+	call puts_attr
+	mov al, bl
+	call putc_attr
 
 	call init_serial
 
