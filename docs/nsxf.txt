@@ -19,3 +19,6 @@ Version 3.x base header:
 "ES" followed by a word pointing to
 the starting point of the program, then 20 bytes reserved
 for expansions
+
+Version 3.x layout:
+header, data section, text section
