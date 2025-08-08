@@ -1,7 +1,7 @@
 disk layout ------------
 [Boot sector] | 1
 [Info sector (includes info about the filesystem)] | 1
-[Entry sectors] | 3 or more usually
+[Entry sectors] | 12 of them at max
 [File sectors] | entire disk - boot sector, info sector, entry sectors
 info sector layout -----
 2 free bytes, can fit a short jump in here to possibly extend the boot sector
