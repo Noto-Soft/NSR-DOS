@@ -6,6 +6,7 @@ import struct
 SECTOR_SIZE = 512
 INFO_SECTOR_OFFSET = 1
 ENTRY_SECTOR_OFFSET = 2
+ENTRY_SECTORS = 12
 MAX_ENTRIES = 255
 
 def pad(data, size):
@@ -42,10 +43,10 @@ def create_image(img_name, bootloader_path, fs_name):
 		f.write(b"\x00" * (SECTOR_SIZE - 2 - 11 - 1))  # pad rest of sector
 
 		# Empty entry sectors (sectors 2–4)
-		f.write(b"\x00" * SECTOR_SIZE * 3)
+		f.write(b"\x00" * SECTOR_SIZE * ENTRY_SECTORS)
 
 		# Pad with empty sectors to make it at least a few KB
-		f.write(b"\x00" * SECTOR_SIZE * 10)  # start of file area
+		# f.write(b"\x00" * SECTOR_SIZE * 10)  # start of file area
 
 	print(f"[OK] Created {img_name} with FS name '{fs_name.decode().strip()}'")
 

@@ -937,7 +937,7 @@ clear_free:
 	push cx
 	push di
 	push es
-	mov bx, 0x3000
+	mov bx, 0x2000
 .loop:
 	mov es, bx
 	xor di, di
@@ -946,7 +946,7 @@ clear_free:
 	rep stosw
 
 	inc bx
-	cmp bx, 0x8000
+	cmp bx, 0x6000
 	jne .loop
 .done:
 	pop es

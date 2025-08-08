@@ -543,7 +543,7 @@ exec:
 	jz .check_autofill
 .after_autofill_check:
 	mov dl, [drive]
-	lea bx, [0x3000]
+	lea bx, [0x2000]
 	mov ax, cs
 	cmp bx, ax
 	jne .after_error

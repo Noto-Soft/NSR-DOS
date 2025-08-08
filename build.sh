@@ -69,7 +69,7 @@ if [ "$SAVE_TEMPS" = false ]; then
 	rm -rf build/
 fi
 
-qemu-system-i386 -serial stdio \
+qemu-system-i386 -monitor stdio \
 	-drive file=nsr-dos.img,if=floppy,format=raw \
 	-drive file=disk-2.img,if=floppy,format=raw \
 	-machine pcspk-audiodev=spk \
