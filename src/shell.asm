@@ -56,6 +56,8 @@ drive db ?
 lazy dw ?
 before_drive db ?
 largest_text db ?
+largest_size db ?
+last_dot dw ?
 
 title_color db 0x0f
 instruction_color db 0x07
@@ -351,12 +353,22 @@ filename_from_number:
 ; Misc routines
 ;==============================================================================
 
-find_dot:
+find_last_dot:
 	push ax
+	push es
+	mov ax, cs
+	mov es, ax
 .loop:
 	lodsb
-	cmp al, bl
+	test al, al
+	jz .done
+	cmp al, "."
 	jne .loop
+	mov [es:last_dot], si
+	jmp .loop
+.done:
+	mov si, [es:last_dot]
+	pop es
 	pop ax
 	ret
 
@@ -474,10 +486,9 @@ render_directories:
 	jmp .after_not_larger
 .not_larger:
 	mov dl, [largest_text]
-.after_not_larger:
 	mov ah, 0xb
 	int 0x21
-
+.after_not_larger:
 	mov ah, 0xd
 	mov cl, [es:di-2]
 	push cx
@@ -495,6 +506,17 @@ render_directories:
 	mov al, " "
 	int 0x21
 
+	mov ah, 0xc
+	int 0x21
+	cmp dl, [largest_size]
+	jna .not_larger_size
+	mov [largest_size], dl
+	jmp .after_not_larger_size
+.not_larger_size:
+	mov dl, [largest_size]
+	mov ah, 0xb
+	int 0x21
+.after_not_larger_size:	
 	mov si, [lazy]
 	push ds
 	push ax
@@ -503,7 +525,7 @@ render_directories:
 	pop ax
 	push bx
 	mov bl, "."
-	call find_dot
+	call find_last_dot
 	pop bx
 	xor ah, ah
 	int 0x21
