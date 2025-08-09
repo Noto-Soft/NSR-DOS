@@ -59,8 +59,8 @@ if [ "$JUST_TEST" = false ]; then
 		build/command.sys \
 		build/helloworld.exe \
 		build/heaptest.exe \
-		build/basic.exe \
 		build/shell.exe \
+		build/chkhdr.exe \
 		$(find docs/ -type f)
 	truncate -s 1440k nsr-dos.img
 
@@ -71,7 +71,7 @@ if [ "$JUST_TEST" = false ]; then
 	add_to_disk disk-2.img \
 		build/graphix.exe \
 		build/instmsdb.exe \
-		build/chkhdr.exe \
+		build/basic.exe \
 		$(find build/bitmaps/ -type f)
 	truncate -s 1440k disk-2.img
 
