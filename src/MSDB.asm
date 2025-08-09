@@ -210,8 +210,9 @@ disk_reset:
 	stc
 	int 0x13
 	jc floppy_error
-	lea si, [.disk_retry]
-	call puts
+	mov ah, 0xe
+	mov al, "r"
+	int 0x10
 	popa ; macro
 	ret
 .disk_retry db "Retry read", endl, 0
@@ -255,11 +256,9 @@ main:
 	inc di
 	jmp .locate_kernel_loop
 .not_found:
-	lea ax, [puts]
-	lea si, [kernel_sys]
-	call ax
-	lea si, [error_kernel_not_found]
-	call ax
+	mov ah, 0xe
+	mov al, "N"
+	int 0x10
 
 	jmp $
 .located_kernel:
