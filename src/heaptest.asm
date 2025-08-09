@@ -99,8 +99,6 @@ main:
     mov al, 0xa
     int 0x21
 
-    call print_allocated_blocks
-
     jmp exit
 .backspace:
     mov ah, 0xc
@@ -179,27 +177,6 @@ addr:
     mov bl, 0x7
     int 0x21
 
-    popa
-    ret
-
-print_allocated_blocks:
-    pusha
-    mov si, HEAP_BOTTOM
-.loop:
-    cmp si, HEAP_TOP
-    jae .done_scan
-
-    mov al, [si]
-    test al, al
-    jz .skip_block
-
-    call addr
-.skip_block:
-    mov bx, [si+1]
-    add si, bx
-    add si, HEAP_BLOCK_HEADER_SIZE
-    jmp .loop
-.done_scan:
     popa
     ret
 
