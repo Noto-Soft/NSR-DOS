@@ -7,7 +7,7 @@ include "src/inc/8086.inc"
 jmp start
 
 ; THIN header
-db "R-DOS0.9 "
+db "MSDB1.0  "
 
 start:
 	xor ax, ax
@@ -22,9 +22,6 @@ start:
 	in al, 0x61
 	and al, not 3
 	out 0x61, al
-
-	lea si, [msg_boot]
-	call puts
 
 	mov [drive], dl
 
@@ -285,13 +282,11 @@ main:
 	push ax
 	retf
 
-msg_boot db "Small Diversified Bootloader 1.0", endl, 0
-
 error_kernel_not_found db " missing", endl, 0
 
 kernel_sys db "KERNEL.SYS", 0
 
 drive db ?
 
-times 510-($-$$) db 0xff
+times 510-($-$$) db 0
 dw 0xaa55

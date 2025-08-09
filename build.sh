@@ -47,6 +47,10 @@ if [ "$JUST_TEST" = false ]; then
 	fasm src/graphix.asm build/graphix.exe
 	fasm src/basic.asm build/basic.exe
 	fasm src/heaptest.asm build/heaptest.exe
+	fasm src/instmsdb.asm build/instmsdb.exe
+	fasm src/MSDB.asm build/MSDB.bin
+	cat build/MSDB.bin >> build/instmsdb.exe
+	fasm src/chkhdr.asm build/chkhdr.exe
 
 	python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 	add_to_disk nsr-dos.img \
@@ -64,6 +68,8 @@ if [ "$JUST_TEST" = false ]; then
 	python3 tools/thinfs.py create disk-2.img BDRIVE
 	add_to_disk disk-2.img \
 		build/graphix.exe \
+		build/instmsdb.exe \
+		build/chkhdr.exe \
 		$(find build/bitmaps/ -type f)
 	truncate -s 1440k disk-2.img
 

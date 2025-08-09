@@ -122,6 +122,9 @@ line_done:
 	mov al, endl
 	int 0x21
 
+	cmp di, buffer
+	je line
+
 	push di
 
 	lea si, [buffer]
@@ -189,9 +192,6 @@ line_done:
 	jz ttys
 
 	pop di
-
-	cmp di, buffer
-	je line
 
 	jmp exec
 
@@ -492,11 +492,17 @@ dir:
 
 a:
 	mov al, "A"
+	mov bl, [msg_command]
+	cmp bl, al
+	je line
 	xor dl, dl
 	jmp set_drive
 
 b:
 	mov al, "B"
+	mov bl, [msg_command]
+	cmp bl, al
+	je line
 	mov dl, 1
 
 set_drive:
