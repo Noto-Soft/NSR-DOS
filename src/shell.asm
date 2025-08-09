@@ -38,14 +38,15 @@ macro center_text str {
     end repeat
 }
 
-title:
-    center_text "NSR-DOS Shell v0.0"
+title: center_text "NSR-DOS Shell v0.1"
+instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
-instructon:
-	center_text "Up and down arrows to select; Enter to run executable; Q/q to quit"
+msg_insert_diskette db endl, "Insert a diskette into drive ", 0
+msg_insert_diskette2 db ", then press any key", endl, 0
 
 error_unknown_format db "The file was not a valid executable.", endl, 0
 error_reading db "Error reading from floppy", endl, 0
+error_drive_missing db "Disk is not inserted into the drive", endl, 0
 
 sp_save dw ?
 selected dw ?
@@ -83,6 +84,10 @@ main:
 	je .quit
 	cmp al, "Q"
 	je .quit
+	cmp al, "a"
+	je .a
+	cmp al, "b"
+	je .b
 	cmp ah, 0x48
 	je .up
 	cmp ah, 0x50
@@ -108,6 +113,18 @@ main:
 	inc ax
 	mov [selected], ax
 	jmp .loop
+.a:
+	xor dl, dl
+	cmp [drive], dl
+	je .loop
+	mov al, "A"
+	jmp set_drive
+.b:
+	mov dl, 1
+	cmp [drive], dl
+	je .loop
+	mov al, "B"
+	jmp set_drive
 .quit:
 	mov ah, 0x10
 	mov bl, 0xf
@@ -117,6 +134,62 @@ main:
 	mov cx, 0x0607
 	int 0x10
 
+	retf
+
+set_drive:
+	mov ah, 0x10
+	mov bl, 0xf
+	int 0x21
+
+	mov ah, 0x1
+	mov cx, 0x0607
+	int 0x10
+
+	xor ah, ah
+	mov bl, 0xf
+	lea si, [msg_insert_diskette]
+	int 0x21
+	inc ah
+	int 0x21
+	dec ah
+	lea si, [msg_insert_diskette2]
+	int 0x21
+	push ax
+	xor ah, ah
+	int 0x16
+	pop ax
+	pusha ; macro
+	push es
+	mov ah, 0x8
+	int 0x13
+	jc crash_drive_empty
+	pop es
+	popa ; macro
+	mov [drive], dl
+	mov ah, 0x9
+	int 0x21
+
+	jmp main
+
+crash_drive_empty:
+	mov ax, cs
+	mov ds, ax
+
+	mov sp, [sp_save]
+
+	mov ah, 0x10
+	mov bl, 0xf
+	int 0x21
+
+	mov ah, 0x1
+	mov cx, 0x0607
+	int 0x10
+
+	xor ah, ah
+	mov bl, 0x4
+	lea si, [error_drive_missing]
+	int 0x21
+	
 	retf
 
 crash_unknown_format:
