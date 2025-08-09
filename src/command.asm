@@ -15,7 +15,7 @@ include "src/inc/write_mode.inc"
 
 db "ES"
 dw start
-times 20 db 0
+db 20 dup(0)
 
 ;==============================================================================
 ; Constants and variables
@@ -352,6 +352,7 @@ find_zero:
 
 cls:
 	mov ah, 0x10
+	mov bl, 0xf
 	int 0x21
 
 	jmp line

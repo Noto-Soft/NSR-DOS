@@ -51,6 +51,7 @@ if [ "$JUST_TEST" = false ]; then
 	fasm src/MSDB.asm build/MSDB.bin
 	cat build/MSDB.bin >> build/instmsdb.exe
 	fasm src/chkhdr.asm build/chkhdr.exe
+	fasm src/shell.asm build/shell.exe
 
 	python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 	add_to_disk nsr-dos.img \
@@ -59,6 +60,7 @@ if [ "$JUST_TEST" = false ]; then
 		build/helloworld.exe \
 		build/heaptest.exe \
 		build/basic.exe \
+		build/shell.exe \
 		$(find docs/ -type f)
 	truncate -s 1440k nsr-dos.img
 

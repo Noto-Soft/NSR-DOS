@@ -14,7 +14,7 @@ include "src/inc/8086.inc"
 
 db "ES"
 dw start
-times 20 db 0
+db 20 dup(0)
 
 ;==============================================================================
 ; Constants and variables
@@ -51,6 +51,9 @@ main:
     mov ah, 0x1
     mov al, 0xa
     int 0x21
+
+	xor ah, ah
+	int 0x16
 
 	retf
 

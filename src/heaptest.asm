@@ -14,7 +14,7 @@ include "src/inc/8086.inc"
 
 db "ES"
 dw start
-times 20 db 0
+db 20 dup(0)
 
 ;==============================================================================
 ; Constants and variables

@@ -15,7 +15,7 @@ include "src/inc/write_mode.inc"
 
 db "ES"
 dw start
-times 20 db 0
+db 20 dup(0)
 
 ;==============================================================================
 ; Constants and variables
@@ -53,6 +53,7 @@ start:
 	mov [drive], dl
 
 main:
+	mov bl, 0xf
 	call clear_scrn_help
 
 	xor dx, dx
@@ -60,7 +61,6 @@ main:
 
 	mov byte [write_mode], MODE_CGA
 
-if ~defined NO_VGA_CHECK
 	mov byte [vga_installed], 0
 	mov bl, 0xf
 	lea si, [vga_check]
@@ -71,9 +71,9 @@ if ~defined NO_VGA_CHECK
 	je .vga_off
 	cmp al, "N"
 	je .vga_off
-end if
 	mov byte [vga_installed], 1
 .vga_off:
+	mov bl, 0xf
 	call clear_scrn_help
 
 	xor dx, dx
@@ -345,22 +345,28 @@ write_character_memory:
 
 clear_scrn_help:
 	push ax
-	push bx
 	push cx
 	push dx
-	mov ah, 0x6
-	xor al, al
-	mov bh, 0xf
-	xor cx, cx
-	mov dx, 0x184f
-	int 0x10
+	push es
+
+	mov ax, 0xb800
+	mov es, ax
+	
+	xor di, di
+	mov cx, 80*25
+.loop:
+	mov byte [es:di], 0
+	inc di
+	mov [es:di], bl
+	inc di
+	loop .loop
 
 	xor dx, dx
 	call set_cursor
 	
+	pop es
 	pop dx
 	pop cx
-	pop bx
 	pop ax
 	ret
 

@@ -14,7 +14,7 @@ include "src/inc/8086.inc"
 
 db "ES"
 dw start
-times 20 db 0
+db 20 dup(0)
 
 ;==============================================================================
 ; Constants and variables
@@ -115,7 +115,7 @@ main:
 	jz .not_exist
 	mov ah, 0x8
 	mov dl, [drive]
-	mov bx, 0x3000
+	mov bx, 0x4000
 	mov es, bx
 	xor bx, bx
 	int 0x21
