@@ -262,6 +262,8 @@ run_file:
 	mov cx, 0x0607
 	int 0x10
 
+	call clear_free
+
 	push es
 
 	push ds
@@ -301,9 +303,9 @@ run_file:
 	jmp main
 
 
-;
+;==============================================================================
 ; Filesystem routines
-;
+;==============================================================================
 
 filename_from_number:
 	pusha
@@ -345,9 +347,9 @@ filename_from_number:
 	mov si, [es:lazy]
 	ret
 
-;
+;==============================================================================
 ; Misc routines
-;
+;==============================================================================
 
 find_dot:
 	push ax
@@ -355,6 +357,31 @@ find_dot:
 	lodsb
 	cmp al, bl
 	jne .loop
+	pop ax
+	ret
+
+clear_free:
+	push ax
+	push bx
+	push cx
+	push di
+	push es
+	mov bx, 0x3000
+.loop:
+	mov es, bx
+	xor di, di
+	xor ax, ax
+	mov cx, 8
+	rep stosw
+
+	inc bx
+	cmp bx, 0x6000
+	jne .loop
+.done:
+	pop es
+	pop di
+	pop cx
+	pop bx
 	pop ax
 	ret
 
