@@ -54,6 +54,7 @@ counter dw ?
 amount dw ?
 drive db ?
 lazy dw ?
+before_drive db ?
 
 ;==============================================================================
 ; Main program
@@ -65,6 +66,7 @@ start:
 	mov es, ax
 
 	mov [drive], dl
+	mov [before_drive], dl
 	mov [sp_save], sp
 
 main:
@@ -126,6 +128,10 @@ main:
 	mov al, "B"
 	jmp set_drive
 .quit:
+	mov ah, 0x9
+	mov dl, [before_drive]
+	int 0x21
+
 	mov ah, 0x10
 	mov bl, 0xf
 	int 0x21
