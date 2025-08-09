@@ -186,7 +186,7 @@ run_file:
 	jz crash_floppy_error
 	mov ah, 0x8
 	mov dl, [drive]
-	lea bx, [0x3000]
+	lea bx, [0x5000]
 	mov es, bx
 	xor bx, bx
 	int 0x21
