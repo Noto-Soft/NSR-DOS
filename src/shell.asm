@@ -38,7 +38,7 @@ macro center_text str {
     end repeat
 }
 
-title: center_text "NSR-DOS Shell v0.2"
+title: center_text "NSR-DOS Shell v0.3"
 instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
@@ -160,6 +160,9 @@ set_drive:
 	mov ah, 0x1
 	mov cx, 0x0607
 	int 0x10
+
+	mov byte [largest_text], 0
+	mov byte [largest_size], 0
 
 	xor ah, ah
 	mov bl, 0xf
