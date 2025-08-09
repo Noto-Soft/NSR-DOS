@@ -38,7 +38,7 @@ macro center_text str {
     end repeat
 }
 
-title: center_text "NSR-DOS Shell v0.1"
+title: center_text "NSR-DOS Shell v0.2"
 instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
@@ -55,6 +55,13 @@ amount dw ?
 drive db ?
 lazy dw ?
 before_drive db ?
+largest_text db ?
+
+title_color db 0x0f
+instruction_color db 0x07
+entry_color db 0x0e
+selected_color db 0x1e
+bg_color db 0x00
 
 ;==============================================================================
 ; Main program
@@ -76,6 +83,7 @@ main:
 
 	mov word [selected], 1
 
+	call render_directories
 	call render_blank
 	call render_head
 .loop:
@@ -337,6 +345,19 @@ filename_from_number:
 	mov si, [es:lazy]
 	ret
 
+;
+; Misc routines
+;
+
+find_dot:
+	push ax
+.loop:
+	lodsb
+	cmp al, bl
+	jne .loop
+	pop ax
+	ret
+
 ;==============================================================================
 ; Rendering routines
 ;==============================================================================
@@ -346,7 +367,7 @@ render_blank:
 	push bx
 
 	mov ah, 0x10
-	mov bl, 0xf0
+	mov bl, [bg_color]
 	int 0x21
 
 	pop bx
@@ -357,11 +378,11 @@ render_head:
 	pusha
 
 	mov ah, 0x3
-	mov bl, 0x1f
+	mov bl, [title_color]
 	mov cx, 80
 	lea si, [title]
 	int 0x21
-	mov bl, 0x17
+	mov bl, [instruction_color]
 	lea si, [instructon]
 	int 0x21
 
@@ -395,16 +416,17 @@ render_directories:
 	cmp al, 0
 	je .skip
 
-	mov bl, 0xf0
+	mov bl, [entry_color]
 
 	push ax
 	mov ax, [counter]
 	cmp ax, [selected]
 	jne .not_selected
-	mov bl, 0xa0
+	mov bl, [selected_color]
 .not_selected:
 	pop ax
 
+	mov [lazy], di
 	push ds
 	push ax
 	mov ax, es
@@ -415,6 +437,18 @@ render_directories:
 	pop ds
 	mov ah, 0x1
 	mov al, " "
+	mov bl, [entry_color]
+	int 0x21
+	mov ah, 0xc
+	int 0x21
+	cmp dl, [largest_text]
+	jna .not_larger
+	mov [largest_text], dl
+	jmp .after_not_larger
+.not_larger:
+	mov dl, [largest_text]
+.after_not_larger:
+	mov ah, 0xb
 	int 0x21
 
 	mov ah, 0xd
@@ -431,7 +465,24 @@ render_directories:
 	int 0x21
 	mov al, "b"
 	int 0x21
+	mov al, " "
+	int 0x21
 
+	mov si, [lazy]
+	push ds
+	push ax
+	mov ax, es
+	mov ds, ax
+	pop ax
+	push bx
+	mov bl, "."
+	call find_dot
+	pop bx
+	xor ah, ah
+	int 0x21
+	pop ds
+
+	inc ah
 	mov al, endl
 	int 0x21
 .skip:
