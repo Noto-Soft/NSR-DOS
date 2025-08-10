@@ -57,7 +57,8 @@ str_type db "type", 0
 db endl, 0
 db 0
 
-str_start db "start", 0
+str_shell db "shell", 0
+db 4 dup(0)
 
 error_not_command_or_file db "Not a command nor an executable file", endl, 0
 error_not_file db "File does not exist", endl, 0
@@ -68,7 +69,7 @@ error_insufficient_permissions db "Insufficient permissions", endl, 0
 buffer db 148 dup(0)
 BUFFER_END = $
 	; allow some extra space for .exe autofill
-times 4 db 0
+db 4 dup(0)
 db 0
 BUFFER_SPACE_END = $
 
@@ -82,6 +83,9 @@ start:
 	mov es, ax
 
 	mov [drive], dl
+
+	lea si, [str_shell]
+	jmp exec
 
 line:
 	lea di, [buffer]

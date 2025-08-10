@@ -2149,7 +2149,7 @@ ERROR_MODE					db ":Unavailable for current mode",00h
 MODE			db 00h						;0==direct, 1==run
 
 VARIABLES:	
-	times 26 dw 0000h			;Variables A,B,C...Z 
+	dw 26 dup(0000h)			;Variables A,B,C...Z 
 
 AESTACK_BASE db MAX_STACK dup(0)	;Arithmetic Expression stack
 AESTACK_POINTER db 00h

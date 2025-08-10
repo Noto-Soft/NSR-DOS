@@ -293,5 +293,5 @@ kernel_sys db "KERNEL.SYS", 0
 
 drive db ?
 
-times 510-($-$$) db 0
+db 510-($-$$) dup(0)
 dw 0xaa55
