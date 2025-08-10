@@ -1,2 +1,2 @@
-MODE_CGA = 0x00 ; default
+MODE_VGA = 0x00 ; default
 MODE_SERIAL = 0x01

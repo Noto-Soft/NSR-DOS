@@ -140,7 +140,8 @@ main:
 	mov bx, [si]
 	push cx
 	mov cl, [si+2]
-	call set_pallete
+	mov ah, 0x12
+	int 0x21
 	pop cx
 	inc al
 	add si, 3
@@ -273,44 +274,5 @@ draw_fullscreen_bmp:
 	pop es
 	pop cx
 	pop bx
-	pop ax
-	ret
-
-; al - pallete to get
-; returns:
-;   bl, bh, cl: rgb
-get_pallete:
-	push ax
-	push dx
-	mov dx, 0x3C7
-	out dx, al
-
-	mov dx, 0x3C9
-	in  al, dx
-	mov bl, al
-	in  al, dx
-	mov bh, al
-	in  al, dx
-	mov cl, al
-	pop dx
-	pop ax
-	ret
-
-; al - pallete to set
-; bl, bh, cl: rgb
-set_pallete:
-	push ax
-	push dx
-	mov dx, 0x3C8
-	out dx, al
-
-	inc dx
-	mov al, bl
-	out dx, al
-	mov al, bh
-	out dx, al
-	mov al, cl
-	out dx, al
-	pop dx
 	pop ax
 	ret

@@ -51,6 +51,7 @@ if [ "$JUST_TEST" = false ]; then
 	fasm src/MSDB.asm build/MSDB.bin
 	cat build/MSDB.bin >> build/instmsdb.exe
 	fasm src/chkhdr.asm build/chkhdr.exe
+	cat build/boot.bin >> build/chkhdr.exe
 	fasm src/shell.asm build/shell.exe
 	fasm src/malware.asm build/malware.exe
 

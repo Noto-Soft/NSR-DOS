@@ -38,7 +38,7 @@ macro center_text str {
     end repeat
 }
 
-title: center_text "NSR-DOS Shell v0.3"
+title: center_text "NSR-DOS Shell v0.4"
 instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
@@ -58,8 +58,9 @@ before_drive db ?
 largest_text db ?
 largest_size db ?
 last_dot dw ?
+last_cx dw ?
 
-title_color db 0x0f
+title_color db 0x06
 instruction_color db 0x07
 entry_color db 0x0e
 selected_color db 0x1e
@@ -82,6 +83,13 @@ main:
 	mov ah, 0x1
 	mov ch, 0x3f
 	int 0x10
+
+	mov ah, 0x12
+	mov al, 0x14
+	mov bl, 63
+	mov bh, 50
+	mov cl, 0
+	int 0x21
 
 	mov word [selected], 1
 
@@ -357,8 +365,9 @@ filename_from_number:
 ;==============================================================================
 
 find_last_dot:
-	push ax
 	push es
+	push ax
+	push si
 	mov ax, cs
 	mov es, ax
 .loop:
@@ -370,9 +379,12 @@ find_last_dot:
 	mov [es:last_dot], si
 	jmp .loop
 .done:
+	pop si
+	mov cx, [es:last_dot]
+	sub cx, si
 	mov si, [es:last_dot]
-	pop es
 	pop ax
+	pop es
 	ret
 
 clear_free:
@@ -474,8 +486,17 @@ render_directories:
 	mov ax, es
 	mov ds, ax
 	pop ax
+	push ax
+	push cx
+	mov ah, 0x3
 	mov si, di
+	push si
+	call find_last_dot
+	pop si
+	dec cx
 	int 0x21
+	pop cx
+	pop ax
 	pop ds
 	mov ah, 0x1
 	mov al, " "
@@ -526,10 +547,9 @@ render_directories:
 	mov ax, es
 	mov ds, ax
 	pop ax
-	push bx
-	mov bl, "."
+	push cx
 	call find_last_dot
-	pop bx
+	pop cx
 	xor ah, ah
 	int 0x21
 	pop ds

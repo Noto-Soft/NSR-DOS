@@ -49,7 +49,7 @@ str_help db "help", 0
 str_cmds db "cmds", 0
 	db " - List available commands and their functions", endl, 0
 str_ttyc db "tty/c", 0
-	db " - Set the tty mode to cga", endl, 0
+	db " - Set the tty mode to VGA", endl, 0
 str_ttys db "tty/s", 0
 	db " - Set the tty mode to serial", endl, 0
 str_type db "type", 0
@@ -723,7 +723,7 @@ type:
 
 ttyc:
 	mov ah, 0xe
-	mov al, MODE_CGA
+	mov al, MODE_VGA
 	int 0x21
 
 	jmp line

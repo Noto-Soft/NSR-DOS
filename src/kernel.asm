@@ -59,7 +59,7 @@ main:
 	xor dx, dx
 	call set_cursor
 
-	mov byte [write_mode], MODE_CGA
+	mov byte [write_mode], MODE_VGA
 
 	mov byte [vga_installed], 0
 	mov bl, 0xf
@@ -452,10 +452,10 @@ write_character:
 	pop es
 	pop ax
 	cmp dl, MODE_SERIAL
-	jne .cga
+	jne .VGA
 	call write_character_serial
 	jmp .done
-.cga:
+.VGA:
 	call write_character_memory
 .done:
 	pop dx
@@ -467,7 +467,7 @@ clear_scrn:
 	mov ax, cs
 	mov es, ax
 	mov al, [es:write_mode]
-	cmp al, MODE_CGA
+	cmp al, MODE_VGA
 	jne .done
 	call clear_scrn_help
 .done:
@@ -621,6 +621,66 @@ print_decimal_cx:
     pop bx
     pop ax
     ret
+
+; al - pallete to get
+; returns:
+;   bl, bh, cl: rgb
+get_pallete:
+	push ax
+	push dx
+	mov dx, 0x3c7
+	out dx, al
+
+	mov dx, 0x3c9
+	in  al, dx
+	mov bl, al
+	in  al, dx
+	mov bh, al
+	in  al, dx
+	mov cl, al
+	pop dx
+	pop ax
+	ret
+
+; al - pallete to set
+; bl, bh, cl: rgb
+set_pallete:
+	push ax
+	push dx
+	mov dx, 0x3c8
+	out dx, al
+
+	inc dx
+	mov al, bl
+	out dx, al
+	mov al, bh
+	out dx, al
+	mov al, cl
+	out dx, al
+	pop dx
+	pop ax
+	ret
+
+; al - logical color
+; bl - DAC index
+map_pallete:
+	push ax
+	push dx
+
+	mov dx, 0x3da
+	push ax
+	in al, dx
+	pop ax
+	
+	mov dx, 0x3c0
+	out dx, al
+	mov al, bl
+	out dx, al
+
+	pop dx
+	pop ax
+	ret
+
 
 ;==============================================================================
 ; String routines
@@ -1081,6 +1141,9 @@ int21:
 	route 0xe, set_mode
 	route 0xf, check_vga
 	route 0x10, clear_scrn
+	route 0x11, get_pallete
+	route 0x12, set_pallete
+	route 0x13, map_pallete
 .done:
 	iret
 
