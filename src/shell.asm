@@ -84,13 +84,17 @@ main:
 	mov ch, 0x3f
 	int 0x10
 
+	mov ah, 0xf
+	int 0x21
+	jz .dont_set_pallete
+	
 	mov ah, 0x12
 	mov al, 0x14
 	mov bl, 63
 	mov bh, 50
 	mov cl, 0
 	int 0x21
-
+.dont_set_pallete:
 	mov word [selected], 1
 
 	call render_directories
