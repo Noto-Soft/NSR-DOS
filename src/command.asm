@@ -57,9 +57,6 @@ str_type db "type", 0
 db endl, 0
 db 0
 
-str_shell db "shell", 0
-db 4 dup(0)
-
 error_not_command_or_file db "Not a command nor an executable file", endl, 0
 error_not_file db "File does not exist", endl, 0
 error_drive_missing db "Disk is not inserted into the drive", endl, 0
@@ -83,9 +80,6 @@ start:
 	mov es, ax
 
 	mov [drive], dl
-
-	lea si, [str_shell]
-	jmp exec
 
 line:
 	lea di, [buffer]
