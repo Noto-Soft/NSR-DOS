@@ -85,6 +85,7 @@ fi
 
 qemu-system-i386 \
 	-monitor stdio \
+	-cpu 486 \
 	-drive file=nsr-dos.img,if=floppy,format=raw \
 	-drive file=disk-2.img,if=floppy,format=raw \
 	# -machine pcspk-audiodev=spk \

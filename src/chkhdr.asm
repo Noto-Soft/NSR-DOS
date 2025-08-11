@@ -74,8 +74,6 @@ main:
 	mov cx, msg_unknown_len
 	lea si, [msg_unknown]
 	int 0x21
-	xor ah, ah
-	int 0x16
 	cmp al, "n"
 	je .skip
 	cmp al, "N"
@@ -91,21 +89,13 @@ main:
 	mov cx, msg_was_len
 	lea si, [msg_was]
 	int 0x21
-.valid:
-	xor ah, ah
-	int 0x16
-
-	retf
 .skip:
 	mov ah, 0x3
 	mov bl, 0x4
 	mov cx, msg_not_len
 	lea si, [msg_not]
 	int 0x21
-
-	xor ah, ah
-	int 0x16
-
+.valid:
 	retf
 
 bootloader db 512 dup(0)

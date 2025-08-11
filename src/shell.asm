@@ -7,6 +7,7 @@ org 0x0
 
 endl equ 0xa
 include "src/inc/8086.inc"
+include "src/inc/center.inc"
 
 ;==============================================================================
 ; Executable header
@@ -20,29 +21,12 @@ db 20 dup(0)
 ; Constants and variables
 ;==============================================================================
 
-macro center_text str {
-    local len, pad, left_pad, right_pad
-    virtual at 0
-        db str
-        len = $
-    end virtual
-    pad = 80 - len
-    left_pad = pad / 2
-    right_pad = pad - left_pad
-    repeat left_pad
-        db ' '
-    end repeat
-    db str
-    repeat right_pad
-        db ' '
-    end repeat
-}
-
 title: center_text "NSR-DOS Shell v0.5"
 instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
 msg_insert_diskette2 db ", then press any key", endl, 0
+msg_any_key db endl, "Press any key...", 0
 
 error_unknown_format db "The file was not a valid executable.", endl, 0
 error_reading db "Error reading from floppy", endl, 0
@@ -50,6 +34,7 @@ error_drive_missing db "Disk is not inserted into the drive", endl, 0
 
 sp_save dw ?
 selected dw ?
+selected_file_type db ?
 counter dw ?
 amount dw ?
 drive db ?
@@ -84,16 +69,19 @@ main:
 	mov ch, 0x3f
 	int 0x10
 
+	mov byte [title_color], 0xe
 	mov ah, 0xf
 	int 0x21
+	test al, al
 	jz .dont_set_pallete
-	
+
 	mov ah, 0x12
 	mov al, 0x14
 	mov bl, 63
 	mov bh, 50
 	mov cl, 0
 	int 0x21
+	mov byte [title_color], 0x6
 .dont_set_pallete:
 	mov word [selected], 1
 
@@ -270,6 +258,12 @@ crash_floppy_error:
 ;==============================================================================
 
 run_file:
+	cmp byte [selected_file_type], 1
+	je .continue
+	cmp byte [selected_file_type], 2
+	je read_file
+	jmp main.loop
+.continue:
 	pusha
 	mov ah, 0x10
 	mov bl, 0xf
@@ -316,9 +310,66 @@ run_file:
 
 	pop es
 
+	xor ah, ah
+	mov bl, [title_color]
+	lea si, [msg_any_key]
+	int 0x21
+
+	xor ah, ah
+	int 0x16
+
 	popa
 	jmp main
 
+read_file:
+	pusha
+	mov ah, 0x10
+	mov bl, 0xf
+	int 0x21
+
+	mov ah, 0x1
+	mov cx, 0x0607
+	int 0x10
+
+	call clear_free
+
+	push es
+
+	push ds
+	call filename_from_number
+	mov ah, 0x7
+	int 0x21
+	pop ds
+	test di, di
+	jz crash_floppy_error
+	mov ah, 0x8
+	mov dl, [drive]
+	lea bx, [0x5000]
+	mov es, bx
+	xor bx, bx
+	int 0x21
+
+	push ds
+	mov ax, es
+	mov ds, ax
+	xor ah, ah
+	mov bl, 0x7
+	xor si, si
+	int 0x21
+	pop ds
+
+	pop es
+
+	xor ah, ah
+	mov bl, [title_color]
+	lea si, [msg_any_key]
+	int 0x21
+
+	xor ah, ah
+	int 0x16
+
+	popa
+	jmp main
 
 ;==============================================================================
 ; Filesystem routines
@@ -557,7 +608,25 @@ render_directories:
 	xor ah, ah
 	int 0x21
 	pop ds
-
+	push ax
+	mov ax, [selected]
+	cmp word [counter], ax
+	jne .le_skip
+	mov byte [selected_file_type], 0
+	cmp word [es:si], "EX"
+	jne .check_txt
+	cmp word [es:si+2], "E"
+	jne .check_txt
+	mov byte [selected_file_type], 1
+	jmp .le_skip
+.check_txt:
+	cmp word [es:si], "TX"
+	jne .le_skip
+	cmp word [es:si+2], "T"
+	jne .le_skip
+	mov byte [selected_file_type], 2
+.le_skip:
+	pop ax
 	inc ah
 	mov al, endl
 	int 0x21

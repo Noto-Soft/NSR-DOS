@@ -40,7 +40,4 @@ main:
 	lea si, [msg]
 	int 0x21
 
-	xor ah, ah
-	int 0x16
-
 	retf
