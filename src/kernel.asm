@@ -1126,7 +1126,6 @@ macro route index, handler {
 int21:
 	route 0x0, puts_attr
 	route 0x1, putc_attr
-	route 0x2, putsle_attr
 	route 0x3, putsls_attr
 	route 0x4, putsfz_attr
 	route 0x5, print_hex_byte

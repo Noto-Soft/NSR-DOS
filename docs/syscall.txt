@@ -1,0 +1,146 @@
+---- syscall table ----
+INT # | AH=? | function
+_______________________________________________________________________________
+ 21h  | 00h  | puts_attr
+ 21h  | 01h  | putc_attr
+ 21h  | 02h  | REMOVED
+ 21h  | 03h  | putsls_attr
+ 21h  | 04h  | putsfz_attr
+ 21h  | 05h  | print_hex_byte
+ 21h  | 06h  | print_hex_word
+ 21h  | 07h  | file_safe_get
+ 21h  | 08h  | file_read_entry
+ 21h  | 09h  | drive_switch
+ 21h  | 0ah  | file_soft_delete_entry
+ 21h  | 0bh  | set_cursor
+ 21h  | 0ch  | read_cursor
+ 21h  | 0dh  | print_decimal_cx
+ 21h  | 0eh  | set_mode
+ 21h  | 0fh  | check_vga
+ 21h  | 10h  | clear_scrn
+ 21h  | 11h  | get_pallete
+ 21h  | 12h  | set_pallete
+ 21h  | 13h  | map_pallete
+      |      |
+ 22h  | xxh  | disk_read
+      |      |
+ 23h  | xxh  | disk_write
+      |      |
+ 24h  | 00h  | clear_free
+
+puts_attr---------------
+Prints a null terminated string with an attribute byte
+bl - attribute byte
+ds:si - string
+
+putc_attr---------------
+Prints a character with an attribute byte
+al - character
+bl - attribute byte
+
+putsls_attr-------------
+Prints a string with an attribute byte, length specified by cx.
+bl - attribute byte
+cx - length
+ds:si - string
+
+putsfz_attr-------------
+Just puts_attr without preserving si. Arguments the same as puts_attr
+
+print_hex_byte----------
+Prints a hex byte with an attribute byte.
+bl - attribute byte
+cl - byte
+
+print_hex_word----------
+Prints a hex word with an attribute byte.
+bl - attribute byte
+cx - word
+
+file_safe_get-----------
+Returns the pointer to a specified file in segment 0 (fs segment). Returns null if none found.
+Doubles as both a file getting and file verifying routine.
+ds:si - filename
+Returns:
+    0000h:di - File entry pointer
+
+file_read_entry---------
+Reads a file into memory from an entry pointer
+es:bx - Location to load into memory at
+dl - Drive to read from
+0000h:di - File entry pointer
+
+drive_switch------------
+Reads filesystem sectors into memory from drive at drive number
+dl - Drive number
+
+file_soft_delete_entry--
+Deletes file from filesystem and updates drive as well
+dl - drive number
+0000h:di - entry
+
+set_cursor--------------
+Sets the vga text mode cursor position
+dh - row
+dl - col
+
+read_cursor-------------
+Returns the value of the vga text mode cursor position
+returns:
+     dh - row
+     dl - col
+
+print_decimal_cx--------
+Prints number in cx in decimal form with attribute byte
+bl - attribute byte
+cx - number
+
+set_mode----------------
+Sets text mode output mode (VGA/Serial)
+al - mode number (write_mode.inc)
+
+check_vga---------------
+Returns a 0 in al if a vga card is installed
+returns:
+     al - vga card available?
+
+clear_scrn--------------
+Sets the entire text mode screen to blank with the attribute byte in bl
+bl - attribute byte
+
+get_pallete-------------
+Gets rgb values for the dac specified (only for vga)
+al - pallete index
+returns:
+     bl - r
+     bh - g
+     cl - b
+
+set_pallete-------------
+Sets rgb values for the pallete index (only for vga)
+al - pallete index
+bl - r
+bh - g
+cl - b
+
+map_pallete-------------
+Maps logical colors to the pallete index (vga only)
+al - logical color
+bl - dac pallete index
+
+disk_read---------------
+reads disk sectors into memory
+ax - lba
+es:bx - buffer
+cl - length
+dl - drive
+
+disk_write--------------
+writes memory into disk sectors
+ax - lba
+es:bx - buffer
+cl - length
+dl - drive
+
+clear_free--------------
+Clears memory from linear 0x20000 to linear 0x5ffff (also known as program memory)
