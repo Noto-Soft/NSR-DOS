@@ -69,20 +69,7 @@ main:
 	mov ch, 0x3f
 	int 0x10
 
-	mov byte [title_color], 0xe
-	mov ah, 0xf
-	int 0x21
-	test al, al
-	jz .dont_set_pallete
-
-	mov ah, 0x12
-	mov al, 0x14
-	mov bl, 63
-	mov bh, 50
-	mov cl, 0
-	int 0x21
-	mov byte [title_color], 0x6
-.dont_set_pallete:
+	call set_gold_if_available
 	mov word [selected], 1
 
 	call render_directories
@@ -189,6 +176,30 @@ set_drive:
 	int 0x21
 
 	jmp main
+
+set_gold_if_available:
+	push ax
+	push bx
+	push cx
+
+	mov byte [title_color], 0xe
+	mov ah, 0xf
+	int 0x21
+	test al, al
+	jz .dont_set_pallete
+
+	mov ah, 0x12
+	mov al, 0x14
+	mov bl, 63
+	mov bh, 50
+	mov cl, 0
+	int 0x21
+	mov byte [title_color], 0x6
+.dont_set_pallete:
+	pop cx
+	pop bx
+	pop ax
+	ret
 
 crash_drive_empty:
 	mov ax, cs
@@ -309,6 +320,8 @@ run_file:
 	pop ds
 
 	pop es
+
+	call set_gold_if_available
 
 	xor ah, ah
 	mov bl, [title_color]
