@@ -1,5 +1,5 @@
 Notosoft R-DOS
-Version 0.951
+Version 0.952
 
 (c) 2025 Notosoft Solutions
 
