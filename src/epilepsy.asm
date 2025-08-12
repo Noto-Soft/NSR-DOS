@@ -47,7 +47,7 @@ main:
     jmp .loop
 .quit:
     mov ah, 0x10
-    mov bl 0xf
+    mov bl, 0xf
     int 0x21
 
 	retf
