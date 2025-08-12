@@ -21,7 +21,7 @@ db 20 dup(0)
 ; Constants and variables
 ;==============================================================================
 
-title: center_text "NSR-DOS Shell v0.6"
+title: center_text "NSR-DOS Shell 0.61"
 instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
