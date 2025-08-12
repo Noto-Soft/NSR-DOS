@@ -110,6 +110,7 @@ macro patch num, handler, rcs, msg {
 	patch 0x22, disk_read_interrupt_wrapper, ax
 	patch 0x23, disk_write_interrupt_wrapper, ax
 	patch 0x24, int24, ax
+	patch 0x25, int25, ax
 	patch 0xff, intff, ax
 	pop es
 
@@ -1104,6 +1105,23 @@ check_vga:
 	ret
 
 ;==============================================================================
+; Misc routines
+;==============================================================================
+
+random_num:
+	push cx
+	push dx
+	xor ah, ah
+	int 0x1a
+	mov ax, dx
+	rol ax, 5
+	xor ax, cx
+	rol ax, 3
+	pop dx
+	pop cx
+	ret
+
+;==============================================================================
 ; Interrupt handlers/wrappers
 ;==============================================================================
 
@@ -1148,6 +1166,11 @@ int21:
 
 int24:
 	route 0x0, clear_free
+.done:
+	iret
+
+int25:
+	route 0x0, random_num
 .done:
 	iret
 

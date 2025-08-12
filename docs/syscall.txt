@@ -27,6 +27,8 @@ _______________________________________________________________________________
  23h  | xxh  | disk_write
       |      |
  24h  | 00h  | clear_free
+      |      |
+ 25h  | 00h  | random_num
 
 puts_attr---------------
 Prints a null terminated string with an attribute byte
@@ -144,3 +146,6 @@ dl - drive
 
 clear_free--------------
 Clears memory from linear 0x20000 to linear 0x5ffff (also known as program memory)
+
+random_num--------------
+Returns pseudo-random number in ax
