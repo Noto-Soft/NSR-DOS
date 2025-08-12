@@ -57,6 +57,8 @@ if [ "$JUST_TEST" = false ]; then
 	cat build/boot.bin >> build/chkhdr.exe
 	fasm src/shell.asm build/shell.exe
 	fasm src/malware.asm build/malware.exe
+	fasm src/random.asm build/random.exe
+	fasm src/epilepsy.asm build/epilepsy.exe
 
 	python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 	add_to_disk nsr-dos.img \
@@ -77,6 +79,8 @@ if [ "$JUST_TEST" = false ]; then
 		build/basic.exe \
 		build/malware.exe \
 		build/instmsdb.exe \
+		build/random.exe \
+		build/epilepsy.exe \
 		build/graphix.exe \
 		$(find build/bitmaps/ -type f)
 	truncate -s 1440k disk-2.img

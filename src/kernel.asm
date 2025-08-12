@@ -41,6 +41,9 @@ drive db ?
 vga_installed db ?
 write_mode db ?
 
+random_seed_base dw 25173
+random_seed_offset dw 13849
+
 ;==============================================================================
 ; Main program
 ;==============================================================================
@@ -1109,16 +1112,23 @@ check_vga:
 ;==============================================================================
 
 random_num:
+	push ds
+	push ax
+	mov ax, cs
+	mov ds, ax
+	pop ax
 	push cx
 	push dx
 	xor ah, ah
 	int 0x1a
 	mov ax, dx
-	rol ax, 5
-	xor ax, cx
-	rol ax, 3
+	mov cx, [random_seed_base]
+	mul cx
+	mov cx, [random_seed_offset]
+	sub ax, cx
 	pop dx
 	pop cx
+	pop ds
 	ret
 
 ;==============================================================================
