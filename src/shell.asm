@@ -438,6 +438,7 @@ find_last_dot:
 	push si
 	mov ax, cs
 	mov es, ax
+	cld
 .loop:
 	lodsb
 	test al, al
@@ -467,6 +468,7 @@ clear_free:
 	xor di, di
 	xor ax, ax
 	mov cx, 8
+	cld
 	rep stosw
 
 	inc bx

@@ -50,6 +50,7 @@ puts:
 	push si
 	mov ah, 0xe
 	xor bh, bh
+	cld
 .loop:
 	lodsb
 	or al, al

@@ -111,6 +111,7 @@ realloc:
     xchg si, di
     mov cx, ax
     push di
+    cld
     rep movsb
     pop di
     mov si, di

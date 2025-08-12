@@ -212,6 +212,7 @@ clear_screen:
     ; Clear screen buffer
     xor di, di        ; Start at offset 0
     mov cx, 320*200   ; Number of pixels (bytes in mode 13h)
+	cld
     rep stosb         ; Store AL to ES:DI, CX times
 
     pop es

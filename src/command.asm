@@ -337,6 +337,7 @@ clear_buffer:
 
 find_zero:
 	push ax
+	cld
 .loop:
 	lodsb
 	test al, al

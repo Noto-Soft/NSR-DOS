@@ -738,6 +738,7 @@ case_up:
 
 find_zero:
 	push ax
+	cld
 .loop:
 	lodsb
 	test al, al
@@ -1081,6 +1082,7 @@ clear_free:
 	xor di, di
 	xor ax, ax
 	mov cx, 8
+	cld
 	rep stosw
 
 	inc bx
