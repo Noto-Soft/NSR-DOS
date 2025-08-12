@@ -53,6 +53,19 @@ start:
 	mov [drive], dl
 
 main:
+	mov byte [vga_installed], 0
+
+	mov ax, 0x12
+	int 0x10
+	mov ah, 0xf
+	int 0x10
+	cmp al, 0x12
+	jne .vga_not_installed
+	mov byte [vga_installed], 1
+.vga_not_installed:
+	mov ax, 0x3
+	int 0x10
+
 	mov bl, 0xf
 	call clear_scrn_help
 
@@ -60,21 +73,6 @@ main:
 	call set_cursor
 
 	mov byte [write_mode], MODE_VGA
-
-	mov byte [vga_installed], 0
-	mov bl, 0xf
-	lea si, [vga_check]
-	call puts_attr
-	xor ah, ah
-	int 0x16
-	cmp al, "n"
-	je .vga_off
-	cmp al, "N"
-	je .vga_off
-	mov byte [vga_installed], 1
-.vga_off:
-	mov bl, 0xf
-	call clear_scrn_help
 
 	xor dx, dx
 	call set_cursor

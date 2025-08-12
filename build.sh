@@ -2,11 +2,14 @@
 
 SAVE_TEMPS=false
 JUST_TEST=false
+NO_TEST=false
 for arg in "$@"; do
 	if [ "$arg" = "-save-temps" ]; then
 		SAVE_TEMPS=true
 	elif [ "$arg" = "-t" ]; then
 		JUST_TEST=true
+	elif [ "$arg" = "-n" ]; then
+		NO_TEST=true
 	fi
 done
 
@@ -83,10 +86,12 @@ if [ "$JUST_TEST" = false ]; then
 	fi
 fi
 
-qemu-system-i386 \
-	-monitor stdio \
-	-cpu 486 \
-	-drive file=nsr-dos.img,if=floppy,format=raw \
-	-drive file=disk-2.img,if=floppy,format=raw \
-	# -machine pcspk-audiodev=spk \
-	# -audiodev alsa,id=spk \
+if [ "$NO_TEST" = false ]; then
+	qemu-system-i386 \
+		-monitor stdio \
+		-cpu 486 \
+		-drive file=nsr-dos.img,if=floppy,format=raw \
+		-drive file=disk-2.img,if=floppy,format=raw \
+		# -machine pcspk-audiodev=spk \
+		# -audiodev alsa,id=spk \
+fi
