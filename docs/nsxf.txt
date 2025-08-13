@@ -22,3 +22,6 @@ for expansions
 
 Version 3.x layout:
 header, data section, text section
+
+protocall for 3.0+::
+the segment the program is loaded in should always be zeroed. following free segments MAY be zeroed, but dont always count on it
