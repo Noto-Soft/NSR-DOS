@@ -23,7 +23,7 @@ db "(c) 2025 Notosoft Solutions"
 ; Constants and variables
 ;==============================================================================
 
-title: center_text "NSR-DOS Shell 0.61"
+title: center_text "NSR-DOS Shell 0.62"
 instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
@@ -47,7 +47,7 @@ largest_size db ?
 last_dot dw ?
 last_cx dw ?
 
-title_color db 0x06
+title_color db 0x0e
 instruction_color db 0x07
 entry_color db 0x0e
 selected_color db 0x1e
@@ -181,25 +181,23 @@ set_drive:
 
 set_gold_if_available:
 	push ax
-	push bx
-	push cx
 
-	mov byte [title_color], 0xe
 	mov ah, 0xf
 	int 0x21
 	test al, al
 	jz .dont_set_pallete
 
+	push bx
+	push cx
 	mov ah, 0x12
-	mov al, 0x14
-	mov bl, 63
+	mov al, 0x3e
+	mov bl, 59
 	mov bh, 50
 	mov cl, 0
 	int 0x21
-	mov byte [title_color], 0x6
-.dont_set_pallete:
 	pop cx
 	pop bx
+.dont_set_pallete:
 	pop ax
 	ret
 
