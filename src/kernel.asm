@@ -514,21 +514,6 @@ putsfz_attr:
 	call update_cursor
 	ret
 
-putsle_attr:
-	push ax
-	push cx
-	push si
-	cld
-	mov cx, [si-2]
-.loop:
-	lodsb
-	call putc_attr
-	loop .loop
-	pop si
-	pop cx
-	pop ax
-	ret
-
 putsls_attr:
 	push ax
 	push cx
