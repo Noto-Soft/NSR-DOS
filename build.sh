@@ -50,9 +50,6 @@ if [ "$JUST_TEST" = false ]; then
 	fasm src/graphix.asm build/graphix.exe
 	fasm src/basic.asm build/basic.exe
 	fasm src/heaptest.asm build/heaptest.exe
-	fasm src/instmsdb.asm build/instmsdb.exe
-	fasm src/MSDB.asm build/MSDB.bin
-	cat build/MSDB.bin >> build/instmsdb.exe
 	fasm src/chkhdr.asm build/chkhdr.exe
 	cat build/boot.bin >> build/chkhdr.exe
 	fasm src/shell.asm build/shell.exe
@@ -78,7 +75,6 @@ if [ "$JUST_TEST" = false ]; then
 	add_to_disk disk-2.img \
 		build/basic.exe \
 		build/malware.exe \
-		build/instmsdb.exe \
 		build/random.exe \
 		build/epilepsy.exe \
 		build/graphix.exe \

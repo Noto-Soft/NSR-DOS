@@ -272,7 +272,7 @@ main:
 	mov ax, [di]
 	mov cl, [di+2]
 	mov dl, [drive]
-	lea bx, [0x600]
+	lea bx, [0x7000]
 	mov es, bx
 	xor bx, bx
 	call disk_read
