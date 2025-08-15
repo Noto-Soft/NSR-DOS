@@ -16,7 +16,7 @@ db "ES"
 dw start
 db 20 dup(0)
 
-db "(c) 2025 Notosoft Solutions"
+db "(c) 2025 Notosoft Solutions", 0
 
 ;==============================================================================
 ; Constants and variables
