@@ -34,6 +34,8 @@ str_a db "a:", 0
 	db " - Set drive to drive A: (drive #0)", endl, 0
 str_b db "b:", 0
 	db " - Set drive to drive B: (drive #1)", endl, 0
+str_beep db "beep", 0
+	db " - Tests int 26h (beep interrupt)", endl, 0
 str_cls db "cls", 0
 	db " - Clear console output", endl, 0
 str_del db "del", 0
@@ -163,6 +165,11 @@ line_done:
 	call strcmp
 	or al, al
 	jz cls
+
+	lea di, [str_beep]
+	call strcmp
+	or al, al
+	jz beep
 
 	lea di, [str_a]
 	call strcmp
@@ -488,6 +495,10 @@ dir:
 	int 0x21
 
 	popa ; macro
+	jmp line
+
+beep:
+	int 0x26
 	jmp line
 
 a:

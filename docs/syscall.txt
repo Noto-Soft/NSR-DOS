@@ -30,6 +30,8 @@ _______________________________________________________________________________
       |      |
  25h  | 00h  | random_num
 
+ 26h  | xxh  | beep
+
 puts_attr---------------
 Prints a null terminated string with an attribute byte
 bl - attribute byte
@@ -149,3 +151,7 @@ Clears memory from linear 0x20000 to linear 0x5ffff (also known as program memor
 
 random_num--------------
 Returns pseudo-random number in ax
+
+beep--------------------
+Produces beep sound (880hz, high A) for roughly 3/4 of a tenth of a second (0.075s)
+that's literally all it does

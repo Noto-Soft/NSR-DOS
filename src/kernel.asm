@@ -114,6 +114,7 @@ macro patch num, handler, rcs, msg {
 	patch 0x23, disk_write_interrupt_wrapper, ax
 	patch 0x24, int24, ax
 	patch 0x25, int25, ax
+	patch 0x26, beep, ax
 	patch 0xff, intff, ax
 	pop es
 
@@ -1232,6 +1233,39 @@ fatal_exception:
 	out 0x61, al
 
 	jmp $
+
+beep:
+	push ax
+
+	mov al, 0xb6
+	out 0x43, al
+
+	mov ax, 1193182 / 880
+	out 0x42, al
+	mov al, ah
+	out 0x42, al
+
+	in al, 0x61
+	or al, 3
+	out 0x61, al
+
+	push cx
+	push dx
+
+	mov ah, 0x86
+	mov cx, 0x0001
+	mov dx, 0x24f8
+	int 0x15
+
+	pop dx
+	pop cx
+
+	in al, 0x61
+	and al, not 3
+	out 0x61, al
+
+	pop ax
+	iret
 
 ;==============================================================================
 ; Errors
