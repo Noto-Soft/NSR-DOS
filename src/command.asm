@@ -530,7 +530,11 @@ set_drive:
 	mov byte [msg_command], al
 	mov ah, 0x9
 	int 0x21
-	jmp dir
+	mov ah, 0x1
+	mov al, 0xa
+	mov bl, 0xf
+	int 0x21
+	jmp line
 
 drive_empty:
 	xor ah, ah

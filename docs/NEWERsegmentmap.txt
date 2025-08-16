@@ -1,7 +1,7 @@
 TO MINIMIZE CONFUZZLEMENT: The segment map is now in linear addresses
 ---------- RESERVED ----------
 0x00000-0x0ffff: ivt, bda, filesystem (always at 0x00800)
-0x10000-0x1ffff: kernel process (command.exe, *.sys files)
+0x10000-0x1ffff: kernel process (*.sys files)
 ----------   FREE   ----------
 0x20000-0x2ffff: free segment A (usually for programs)
 0x30000-0x3ffff: free segment B (usually for file loading)

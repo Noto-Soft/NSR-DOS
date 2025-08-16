@@ -23,7 +23,7 @@ db "(c) 2025 Notosoft Solutions", 0
 ; Constants and variables
 ;==============================================================================
 
-title: center_text "NSR-DOS Shell 0.62"
+title: center_text "NSR-DOS Shell 0.70"
 instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
@@ -49,8 +49,7 @@ last_cx dw ?
 
 title_color db 0x0e
 instruction_color db 0x07
-entry_color db 0x0e
-selected_color db 0x1e
+entry_color db 0x0f
 bg_color db 0x00
 
 ;==============================================================================
@@ -542,11 +541,12 @@ render_directories:
 
 	mov bl, [entry_color]
 
+	mov bp, 0
 	push ax
 	mov ax, [counter]
 	cmp ax, [selected]
 	jne .not_selected
-	mov bl, [selected_color]
+	mov bp, 1
 .not_selected:
 	pop ax
 
@@ -563,14 +563,48 @@ render_directories:
 	push si
 	call find_last_dot
 	pop si
+	push si
+	add si, cx
+	cmp word [si], "EX"
+	jne .not_executable
+	cmp word [si+2], "E"
+	jne .not_executable
+	and bl, 0xf0
+	or bl, 0x2
+	jmp .after_checks
+.not_executable:
+	cmp word [si], "SY"
+	jne .not_sys
+	cmp word [si+2], "S"
+	jne .not_sys
+	and bl, 0xf0
+	or bl, 0x3
+	jmp .after_checks
+.not_sys:
+	cmp word [si], "BM"
+	jne .not_bmp
+	cmp word [si+2], "P"
+	jne .not_bmp
+	and bl, 0xf0
+	or bl, 0x5
+.not_bmp:
+.after_checks:
+	pop si
 	dec cx
+	cmp bp, 1
+	jne .dont_flip
+	rol bl, 4
+.dont_flip:
 	int 0x21
 	pop cx
 	pop ax
 	pop ds
 	mov ah, 0x1
 	mov al, " "
-	mov bl, [entry_color]
+	cmp bp, 1
+	jne .dont_unflip
+	rol bl, 4
+.dont_unflip:
 	int 0x21
 	mov ah, 0xc
 	int 0x21
