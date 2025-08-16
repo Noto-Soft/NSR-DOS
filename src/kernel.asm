@@ -88,7 +88,7 @@ main:
 	call putsfz_attr
 	mov [next_appendation], si
 
-macro patch num, handler, rcs, msg {
+macro patch num, handler, rcs {
 	mov bl, 0xf
 	lea si, [msg_patch]
 	call puts_attr
