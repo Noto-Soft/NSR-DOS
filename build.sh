@@ -92,6 +92,7 @@ if [ "$NO_TEST" = false ]; then
 		-cpu 486 \
 		-drive file=nsr-dos.img,if=floppy,format=raw \
 		-drive file=disk-2.img,if=floppy,format=raw \
-		# -machine pcspk-audiodev=spk \
-		# -audiodev alsa,id=spk \
+		-machine pcspk-audiodev=spk \
+		-audiodev alsa,id=spk \
+		
 fi
