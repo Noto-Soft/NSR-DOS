@@ -46,6 +46,11 @@ START:
 		call	ILM_INIT				;init function (clear all)
 		call	ILM_NLINE				;new line
 
+NEW_LINNE:
+		lea dx, [STR_READY]
+		call PRINT_STR
+		int 0x26
+
 CO:     
 
 		mov		ax,PGM					;copy PGM address
@@ -301,7 +306,7 @@ S13:
         je      L_END
 
 		call	ILM_DONE				;no need to test DONE result
-        jmp		CO						;always jump to collection routine
+        jmp		NEW_LINNE				;always jump to collection routine
 
 
 S14:    
@@ -2088,7 +2093,7 @@ ILM_XINIT:
 ; Vars section
 ;==============================================================================
 ;welcome string
-STR_WELCOME		db "TINY BASIC 8086",0Ah,0Dh,"Vers.2023 by Honny",0Ah,0Dh,"Ported to NSR-DOS",00h	
+STR_WELCOME		db "TINY BASIC 8086",0Ah,0Dh,"Vers.2025 by Honny, Noto",0Ah,0Dh,"Ported to NSR-DOS",00h	
 
 ;list of language keywords
 STR_REM			db "REM",00h
@@ -2123,6 +2128,9 @@ STR_OP_LE		db "<=",00h
 STR_OP_GE		db ">=",00h
 STR_OP_L		db "<",00h
 STR_OP_G		db ">",00h
+
+;ready
+STR_READY 		db "READY.",0ah,0dh,00h
 
 ;error flag and list of available errors
 ERROR_CODE					dw 0000h
