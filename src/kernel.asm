@@ -140,10 +140,7 @@ macro patch num, handler, rcs {
 	lea si, [command_exe]
 	call file_safe_get
 	test di, di
-	jnz .command_exe_not_null
-	mov al, 3
-	int 0xff
-.command_exe_not_null:
+	jz missing_command_exe
 	mov dl, [drive]
 	mov bx, 0x1000
 	mov es, bx
@@ -1128,6 +1125,36 @@ random_num:
 	ret
 
 ;==============================================================================
+; This thing
+;==============================================================================
+
+macro errmsggetter code, msg {
+	local .message
+	local .next
+	cmp al, code
+	jne .next
+	lea si, [.message]
+	jmp .done
+.message:
+	db msg
+	db 0
+.next:
+}
+
+get_error_message_from_code:
+	lea si, [fatal_exception_unknown]
+	errmsggetter 0, "Divide by zero exception"
+	errmsggetter 1, "Program overwrite"
+	errmsggetter 2, "Invalid executable"
+	errmsggetter 3, "File does not exist"
+	errmsggetter 4, "Floppy error"
+	errmsggetter 5, "Disk is not formatted to ThinFS"
+	errmsggetter 6, "Invalid opcode"
+	errmsggetter 7, "Kernel panicing"
+.done:
+	ret
+
+;==============================================================================
 ; Interrupt handlers/wrappers
 ;==============================================================================
 
@@ -1193,21 +1220,13 @@ intff:
 	jmp fatal_exception
 
 fatal_exception:
-	cmp bl, 0x6
-	jna .continue
-	mov bl, 0xff
-.continue:
 	xor ah, ah
 	mov al, 0x3
 	int 0x10
-	mov ah, 0x6
-	xor al, al
-	mov bh, 0x17
-	xor cx, cx
-	mov dx, 0x184f
-	int 0x10
-	xor dx, dx
-	call set_cursor
+	push bx
+	mov bl, 0x17
+	call clear_scrn_help
+	pop bx
 	; ip
 	pop dx
 	; cs
@@ -1216,6 +1235,7 @@ fatal_exception:
 	add sp, 2
 	mov ax, cs
 	mov ds, ax
+	mov al, bl
 	mov cl, bl
 	mov bl, 0x71
 	lea si, [nsr_dos]
@@ -1226,6 +1246,8 @@ fatal_exception:
 	xor ch, ch
 	call print_decimal_cx
 	lea si, [fatal_exception_part_2]
+	call puts_attr
+	call get_error_message_from_code
 	call puts_attr
 
 	mov al, 0xb6
@@ -1285,6 +1307,10 @@ floppy_error:
 
 drive_invalid_fs:
 	mov al, 5
+	int 0xff
+
+missing_command_exe:
+	mov al, 7
 	int 0xff
 
 l_end:

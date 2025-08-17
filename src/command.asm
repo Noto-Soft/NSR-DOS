@@ -63,7 +63,6 @@ error_not_command_or_file db "Not a command nor an executable file", endl, 0
 error_not_file db "File does not exist", endl, 0
 error_drive_missing db "Disk is not inserted into the drive", endl, 0
 error_invalid_executable db "Invalid executable file.", endl, 0
-error_insufficient_permissions db "Insufficient permissions", endl, 0
 
 buffer db 148 dup(0)
 BUFFER_END = $
@@ -372,24 +371,6 @@ del:
 	int 0x21
 	test di, di
 	jz .not_exist
-	push si
-	call find_zero
-	sub si, 5
-	mov ax, [si]
-	cmp ax, ".S"
-	jne .cont
-	mov ax, [si+2]
-	cmp ax, "YS"
-	jne .cont
-	xor ah, ah
-	mov bl, 0x4
-	lea si, [error_insufficient_permissions]
-	int 0x21
-
-	pop si
-	jmp line
-.cont:
-	pop si
 	mov ah, 0xa
 	int 0x21
 
