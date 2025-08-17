@@ -27,10 +27,10 @@ nsr_dos db "NSR-DOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
-msg_patch db "Patching Interrupt 0x", 0
-msg_ellipses db "...", 0
-msg_ivt db "IVT...", 0
-msg_ok db "OK!", endl, 0
+msg_patching_ivt db "Patching IVT...", 0
+msg_ivt_patched db "IVT patched!", endl, 0
+msg_init_serial db "Initializing serial port...", 0
+msg_serial_init db "Serial port initialized!", endl, 0
 
 vga_check db "Do you have a VGA card installed? [Y/n]", endl, 0
 
@@ -89,19 +89,13 @@ main:
 	mov [next_appendation], si
 
 macro patch num, handler, rcs {
-	mov bl, 0xf
-	lea si, [msg_patch]
-	call puts_attr
-	mov cl, num
-	call print_hex_byte
-	lea si, [msg_ellipses]
-	call puts_attr
 	mov word [es:num*4], handler
 	mov word [es:num*4+2], rcs
-	mov bl, 0xa
-	lea si, [msg_ok]
-	call puts_attr
 }
+
+	mov bl, 0xf
+	lea si, [msg_patching_ivt]
+	call puts_attr
 
 	push es
 	xor ax, ax
@@ -118,16 +112,30 @@ macro patch num, handler, rcs {
 	patch 0xff, intff, ax
 	pop es
 
-	mov bl, 0xf
-	lea si, [msg_ivt]
-	call puts_attr
 	mov bl, 0xa
-	lea si, [msg_ok]
+	lea si, [msg_ivt_patched]
 	call puts_attr
-	mov al, bl
-	call putc_attr
+
+	mov bl, 0xf
+	lea si, [msg_init_serial]
+	call puts_attr
 
 	call init_serial
+
+	mov bl, 0xa
+	lea si, [msg_serial_init]
+	call puts_attr
+
+	xor ah, ah
+	int 0x1a
+	mov [random_seed_base], dx
+	rol cx, 4
+	mov [random_seed_offset], cx
+
+	call read_cursor
+	inc dh
+	xor dl, dl
+	call set_cursor
 
 	lea si, [command_exe]
 	call file_safe_get
