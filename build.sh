@@ -46,6 +46,7 @@ if [ "$JUST_TEST" = false ]; then
 	catza assets/text/boot/logo.txt >> build/kernel.sys
 	catza assets/text/boot/text.txt >> build/kernel.sys
 	fasm src/command.asm build/command.sys
+	fasm src/unreal.asm build/unreal.sys
 	fasm src/helloworld.asm build/helloworld.exe
 	fasm src/graphix.asm build/graphix.exe
 	fasm src/basic.asm build/basic.exe
@@ -61,6 +62,7 @@ if [ "$JUST_TEST" = false ]; then
 	add_to_disk nsr-dos.img \
 		build/kernel.sys \
 		build/command.sys \
+		build/unreal.sys \
 		build/helloworld.exe \
 		build/heaptest.exe \
 		build/shell.exe \
@@ -90,9 +92,10 @@ if [ "$NO_TEST" = false ]; then
 	qemu-system-i386 \
 		-monitor stdio \
 		-cpu 486 \
+		-m 32M \
 		-drive file=nsr-dos.img,if=floppy,format=raw \
 		-drive file=disk-2.img,if=floppy,format=raw \
-		-machine pcspk-audiodev=spk \
-		-audiodev alsa,id=spk \
+		# -machine pcspk-audiodev=spk \
+		# -audiodev alsa,id=spk \
 		
 fi

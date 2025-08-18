@@ -23,7 +23,7 @@ db "(c) 2025 Notosoft Solutions", 0
 ; Constants and variables
 ;==============================================================================
 
-nsr_dos db "NSR-DOS", 0
+nsr_dos db "nsrdos", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
@@ -35,6 +35,7 @@ msg_serial_init db "Serial port initialized!", endl, 0
 vga_check db "Do you have a VGA card installed? [Y/n]", endl, 0
 
 command_exe db "COMMAND.SYS", 0
+unreal_sys db "UNREAL.SYS", 0
 
 next_appendation dw l_end
 
@@ -136,6 +137,32 @@ macro patch num, handler, rcs {
 	inc dh
 	xor dl, dl
 	call set_cursor
+
+	lea si, [unreal_sys]
+	call file_safe_get
+	test di, di
+	jz missing_command_exe
+	mov dl, [drive]
+	mov bx, 0x1000
+	mov es, bx
+	xor bx, bx
+	call file_read_entry
+
+	mov ax, [es:0x0]
+	cmp ax, "ES"
+	mov ax, [es:0x2]
+	push ds
+	push es
+	mov dl, [drive]
+	lea bx, [.unreal_sys_return]
+	push cs
+	push bx
+	push es
+	push ax
+	retf
+.unreal_sys_return:
+	pop es
+	pop ds
 
 	lea si, [command_exe]
 	call file_safe_get
@@ -1141,6 +1168,7 @@ macro errmsggetter code, msg {
 .next:
 }
 
+fatal_exception_unknown db "Unknown error", 0
 get_error_message_from_code:
 	lea si, [fatal_exception_unknown]
 	errmsggetter 0, "Divide by zero exception"

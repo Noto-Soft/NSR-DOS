@@ -13,7 +13,7 @@ entry layout -----------
 word for the lba of the file
 byte for the length in sectors
 byte representing filename length
-null terminated string of any size up to 129 for the filename
+null terminated string of any size up to 32 for the filename
 (counting null terminator)
 ------------------------
 file sectors span from the end of entry sectors to the end of the disk

@@ -102,6 +102,5 @@ main:
 .valid:
 	retf
 
-bootloader db 512 dup(0)
-
-valid_bootloader:
+valid_bootloader = $
+bootloader = $+512 

@@ -32,7 +32,7 @@ msg_choose_image db "Enter image filename (Or leave blank for default)", endl, "
 msg_image_doesnt_exist db "Image file requested does not exist", endl, 0
 
 default_image db "NSRDOS.BMP", 0
-image_file_name db 128 dup(0)
+image_file_name db 31 dup(0)
 FILENAME_BUFFER_LENGTH = $-image_file_name
 db 0
 

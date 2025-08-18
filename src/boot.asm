@@ -18,13 +18,36 @@ start:
 	mov ss, ax
 	mov sp, 0x0
 
+unreal_init:
+	cli
+	push fs
+
+	lgdt [gdtinfo]
+
+	mov eax, cr0
+	or eax, 1
+	mov cr0, eax
+	jmp 0x8:.pmode
+.pmode:
+	mov bx, 0x10
+	mov fs, bx
+
+	and eax, not 1
+	mov cr0, eax
+	jmp 0x0:.unreal
+.unreal:
+	pop fs
+	sti
+
+	; a20 line
+	in al, 0x92
+	or al, 2
+	out 0x92, al
+
 	; just in case the pc speaker is still enabled from a reboot or something
 	in al, 0x61
 	and al, not 3
 	out 0x61, al
-
-	lea si, [msg_boot]
-	call puts
 
 	mov [drive], dl
 
@@ -286,13 +309,20 @@ main:
 	push ax
 	retf
 
-msg_boot db "Small Diversified Bootloader 1.0", endl, 0
-
 error_kernel_not_found db " missing", endl, 0
 
 kernel_sys db "KERNEL.SYS", 0
 
 drive db ?
+
+gdtinfo:
+   dw gdt_end - gdt - 1   ;last byte in table
+   dd gdt                 ;start of table
+
+gdt:        dd 0,0        ; entry 0 is always unused
+codedesc:   db 0xff, 0xff, 0, 0, 0, 10011010b, 00000000b, 0
+flatdesc:   db 0xff, 0xff, 0, 0, 0, 10010010b, 11001111b, 0
+gdt_end:
 
 db 510-($-$$) dup(0)
 dw 0xaa55
