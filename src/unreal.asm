@@ -20,8 +20,11 @@ db 20 dup(0)
 ; Constants and variables
 ;==============================================================================
 
-testing db "UNREAL.SYS is testing available high memory", endl, 0
+testing db "UNREAL.SYS is testing available high memory (up to 14mb)", endl, 0
 msg db "Unreal mode is working perfectly!", endl, 0
+
+mb db "mb (", 0
+kb db "kb)", endl, 0
 
 ;==============================================================================
 ; Main program
@@ -44,16 +47,30 @@ main:
     test cx, cx
     jnz .cx_has_mem
     mov cx, ax
+    mov dx, bx
 .cx_has_mem:
+    sub cx, 1024 ; dont count the isa memory hole
+
+    mov [fs:0x80000], cx
+    mov [fs:0x80002], dx
+
+    push cx
+    mov ah, 0xd
+    mov bl, 0xf
+    shr cx, 10
+    int 0x21
+    xor ah, ah
+    mov bl, 0xf
+    lea si, [mb]
+    int 0x21
+    pop cx
+    
     mov ah, 0xd
     mov bl, 0xf
     int 0x21
-    mov ah, 0x1
-    mov al, "k"
-    int 0x21
-    mov al, "b"
-    int 0x21
-    mov al, 0xa
+    xor ah, ah
+    mov bl, 0xf
+    lea si, [kb]
     int 0x21
 
     xor ebx, ebx
@@ -72,4 +89,9 @@ main:
     int 0x21
 
 quit:
+    mov ah, 0x1
+    mov al, 0xa
+    mov bl, 0xf
+    int 0x21
+
 	retf

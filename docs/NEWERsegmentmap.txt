@@ -1,18 +1,26 @@
 TO MINIMIZE CONFUZZLEMENT: The segment map is now in linear addresses
 ---------- RESERVED ----------
-0x00000-0x0ffff: ivt, bda, filesystem (always at 0x00800)
-0x10000-0x1ffff: kernel process (*.sys files)
+0x00000000-0x0000ffff: ivt, bda, filesystem (always at 0x00800)
+0x00010000-0x0001ffff: kernel process (*.sys files)
 ----------   FREE   ----------
-0x20000-0x2ffff: free segment A (usually for programs)
-0x30000-0x3ffff: free segment B (usually for file loading)
-0x40000-0x4ffff: free segment C (use for whatever)
-0x50000-0x5ffff: free segment D (use for whatever)
-0x60000-0x6ffff: free segment E (use for persistent memory because it's not cleared by clear_free)
+0x00020000-0x0002ffff: free segment A (usually for programs)
+0x00030000-0x0003ffff: free segment B (usually for file loading)
+0x00040000-0x0004ffff: free segment C (use for whatever)
+0x00050000-0x0005ffff: free segment D (use for whatever)
+0x00060000-0x0006ffff: free segment E (use for persistent memory because it's not cleared by clear_free)
 ---------- RESERVED ----------
-0x70000-0x7ffff: kernel itself
-0x80000-0x8ffff: reserved by kernel
-0x90000-0x9ffff: stack segment
-0xa0000-0xbffff: video memory
-0xc0000-0xc7fff: video bios
-0xc8000-0xeffff: bios expansions
-0xf0000-0xfffff: bios
+0x00070000-0x0007ffff: kernel itself
+0x00080000-0x0008ffff: reserved by kernel
+0x00090000-0x0009ffff: stack segment
+0x000a0000-0x000bffff: video memory
+0x000c0000-0x000c7fff: video bios
+0x000c8000-0x000effff: bios expansions
+0x000f0000-0x000fffff: bios
+----------   FREE   ----------
+0x00100000-0x00efffff: high memory (access with fs segment)
+---------- RESERVED ----------
+0x00f00000-0x00ffffff: potentially memory mapped
+----------   FREE   ----------
+0x01000000-0xbfffffff: can be available, but its not tested by unreal.sys
+---------- RESERVED ----------
+0xc0000000-0xffffffff: potentially memory mapped

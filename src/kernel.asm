@@ -43,6 +43,7 @@ cursor dw ?
 drive db ?
 vga_installed db ?
 write_mode db ?
+high_mem dw ? 
 
 random_seed_base dw 25173
 random_seed_offset dw 13849
