@@ -740,5 +740,5 @@ ttys:
 	jmp line
 
 fate:
-	mov al, 255
+	mov al, 9
 	int 0xff

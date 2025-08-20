@@ -1,5 +1,5 @@
 Notosoft R-DOS
-Version 0.98_b2
+Version 0.98_b3
 
 (c) 2025 Notosoft Solutions
 

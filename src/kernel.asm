@@ -1180,6 +1180,8 @@ get_error_message_from_code:
 	errmsggetter 5, "Disk is not formatted to ThinFS"
 	errmsggetter 6, "Invalid opcode"
 	errmsggetter 7, "Kernel panicing"
+	errmsggetter 8, "you are an idiot"
+	errmsggetter 9, "Forced exception"
 .done:
 	ret
 
