@@ -50,6 +50,8 @@ str_help db "help", 0
 	db ", "
 str_cmds db "cmds", 0
 	db " - List available commands and their functions", endl, 0
+str_reboot db "reboot", 0
+	db " - Reboots the system", endl, 0
 str_ttyc db "tty/c", 0
 	db " - Set the tty mode to VGA", endl, 0
 str_ttys db "tty/s", 0
@@ -184,6 +186,13 @@ line_done:
 	call strcmp
 	or al, al
 	jz fate
+
+	lea di, [str_reboot]
+	call strcmp
+	or al, al
+	jnz .what
+	jmp 0xffff:0x0000
+.what:
 
 	lea di, [str_ttyc]
 	call strcmp

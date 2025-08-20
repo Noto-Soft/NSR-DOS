@@ -134,7 +134,25 @@ main:
 	cmp word [si], "BM"
 	je .gotData
 	cmp word [si], "CM"
+	je .read_8bpp_pallete
+	cmp word [si], "4M"
 	jne .done
+	add si, 6
+	mov cx, 16
+	xor al, al
+.pallete4_set_loop:
+	mov bx, [si]
+	push cx
+	mov cl, [si+2]
+	mov ah, 0x12
+	int 0x21
+	pop cx
+	inc al
+	add si, 3
+	loop .pallete4_set_loop
+	call draw_fullscreen_4bpp_bmp
+	jmp .finally_done
+.read_8bpp_pallete:
 	add si, 6
 	mov cx, 256
 	xor al, al
@@ -152,7 +170,7 @@ main:
 .gotData:
 	add si, 6
 	call draw_fullscreen_bmp
-
+.finally_done:
 	mov ax, cs
 	mov ds, ax
 .wait:
@@ -279,3 +297,35 @@ draw_fullscreen_bmp:
 	pop bx
 	pop ax
 	ret
+
+; ds:si - bitmap data
+draw_fullscreen_4bpp_bmp:
+	push ax
+	push bx
+	push cx
+	push es
+	mov ax, 0xa000
+	mov es, ax
+
+	xor bx, bx
+	xor bp, bp
+	mov cx, 320*100
+.loop:
+	mov al, [si+bx]
+	push ax
+	shr al, 4
+	mov [es:bp], al
+	pop ax
+	and al, 0xf
+	inc bp
+	mov [es:bp], al
+	inc bx
+	inc bp
+	cmp bx, cx
+	jb .loop
+
+	pop es
+	pop cx
+	pop bx
+	pop ax
+	ret	
