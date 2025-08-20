@@ -135,6 +135,8 @@ main:
 	je .gotData
 	cmp word [si], "CM"
 	je .read_8bpp_pallete
+	cmp word [si], "MM"
+	je .monochrome
 	cmp word [si], "4M"
 	jne .done
 	add si, 6
@@ -151,6 +153,20 @@ main:
 	add si, 3
 	loop .pallete4_set_loop
 	call draw_fullscreen_4bpp_bmp
+	jmp .finally_done
+.monochrome:
+	mov ah, 0x12
+	mov al, 0x0
+	xor bx, bx
+	xor cl, cl
+	int 0x21
+	mov al, 0x1
+	mov bh, 63
+	mov bl, 63
+	mov cl, 63
+	int 0x21
+	add si, 6
+	call draw_fullscreen_mono_bmp
 	jmp .finally_done
 .read_8bpp_pallete:
 	add si, 6
@@ -309,7 +325,7 @@ draw_fullscreen_4bpp_bmp:
 
 	xor bx, bx
 	xor bp, bp
-	mov cx, 320*100
+	mov cx, 320*(200/2)
 .loop:
 	mov al, [si+bx]
 	push ax
@@ -321,6 +337,48 @@ draw_fullscreen_4bpp_bmp:
 	mov [es:bp], al
 	inc bx
 	inc bp
+	cmp bx, cx
+	jb .loop
+
+	pop es
+	pop cx
+	pop bx
+	pop ax
+	ret	
+
+macro draw_msb {
+	push ax
+	rol al, 1
+	and al, 0x1
+	mov [es:bp], al
+	pop ax
+	shl al, 1
+	inc bp
+}
+
+; ds:si - bitmap data
+draw_fullscreen_mono_bmp:
+	push ax
+	push bx
+	push cx
+	push es
+	mov ax, 0xa000
+	mov es, ax
+
+	xor bx, bx
+	xor bp, bp
+	mov cx, 320*(200/8)
+.loop:
+	mov al, [si+bx]
+	draw_msb
+	draw_msb
+	draw_msb
+	draw_msb
+	draw_msb
+	draw_msb
+	draw_msb
+	draw_msb
+	inc bx
 	cmp bx, cx
 	jb .loop
 

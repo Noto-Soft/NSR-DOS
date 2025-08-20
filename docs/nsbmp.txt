@@ -3,16 +3,21 @@
 if BM
 2 bytes for width
 2 bytes for height
-the rest of image is 8bbp indexed
+the rest of image is 8bpp indexed
 
 if CM
 2 bytes for width
 2 bytes for height
 768 bytes describing the pallete
-the rest of the image is 8bbp indexed
+the rest of the image is 8bpp indexed
 
 if 4M
 2 bytes for width
 2 bytes for height
 48 bytes describing the pallete
-the rest of the image is 4bbp indexed
+the rest of the image is 4bpp indexed
+
+if MM
+2 bytes for width
+2 bytes for height
+the rest of the image is 1bpp monochrome
