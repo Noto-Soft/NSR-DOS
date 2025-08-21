@@ -22,7 +22,7 @@ add_to_disk() {
 }
 
 convert_images() {
-    input_dir="assets/images/convert"
+    input_dir="assets/images/convert8bpp"
     output_dir="build/bitmaps"
     mkdir -p "$output_dir"
 
@@ -80,8 +80,7 @@ if [ "$JUST_TEST" = false ]; then
 		build/helloworld.exe \
 		build/heaptest.exe \
 		build/shell.exe \
-		build/chkhdr.exe \
-		$(find docs/ -type f)
+		build/chkhdr.exe
 	truncate -s 1440k nsr-dos.img
 
 	cp assets/images/preconverted/* build/bitmaps

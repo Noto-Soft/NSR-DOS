@@ -341,26 +341,19 @@ write_character_memory:
 	inc dh 
 	call scroll_if_need_be
 .cursor_good:
-	push es
+	push edi
 
-	push di
-
-	push ax
-	mov ax, 0xb800
-	mov es, ax
-	pop ax
-
+	xor edi, edi
+	
 	call get_mem_pos
 
-	mov al, [es:di+1]
+	mov al, [fs:0xb8000+edi+1]
 	and al, 0xf0
 	and bl, 0xf
 	add bl, al
-	mov [es:di+1], bl
+	mov [fs:0xb8000+edi+1], bl
 
-	pop di
-
-	pop es
+	pop edi
 
 	jmp .done
 .newline:
@@ -382,30 +375,25 @@ write_character_memory:
 	ret
 
 clear_scrn_help:
-	push ax
 	push cx
 	push dx
-	push es
-
-	mov ax, 0xb800
-	mov es, ax
+	push edi
 	
-	xor di, di
+	xor edi, edi
 	mov cx, 80*25
 .loop:
-	mov byte [es:di], 0
+	mov byte [fs:0xb8000+edi], 0
 	inc di
-	mov [es:di], bl
+	mov [fs:0xb8000+edi], bl
 	inc di
 	loop .loop
 
 	xor dx, dx
 	call set_cursor
 	
-	pop es
+	pop edi
 	pop dx
 	pop cx
-	pop ax
 	ret
 
 ;==============================================================================

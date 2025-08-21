@@ -28,7 +28,7 @@ drive db ?
 
 err_vga_not_installed db "You must have a VGA card installed.", endl, 0
 
-msg_choose_image db "Enter image filename (Or leave blank for default)", endl, "When finished viewing the beauty you desire, press q", endl, 0
+msg_choose_image db "Enter image filename (Or leave blank for default)", endl, 0
 msg_image_doesnt_exist db "Image file requested does not exist", endl, 0
 
 default_image db "NSRDOS.BMP", 0
@@ -122,11 +122,6 @@ main:
 	xor bx, bx
 	int 0x21
 
-	mov al, 0xf
-	mov dx, 50
-	mov cx, 50
-	call draw_pixel
-
 	mov ax, es
 	mov ds, ax
 
@@ -155,17 +150,18 @@ main:
 	call draw_fullscreen_4bpp_bmp
 	jmp .finally_done
 .monochrome:
+	add si, 6
 	mov ah, 0x12
 	mov al, 0x0
-	xor bx, bx
-	xor cl, cl
+	mov bx, [si]
+	mov cl, [si+2]
 	int 0x21
+	add si, 3
 	mov al, 0x1
-	mov bh, 63
-	mov bl, 63
-	mov cl, 63
+	mov bx, [si]
+	mov cl, [si+2]
 	int 0x21
-	add si, 6
+	add si, 3
 	call draw_fullscreen_mono_bmp
 	jmp .finally_done
 .read_8bpp_pallete:
@@ -189,14 +185,9 @@ main:
 .finally_done:
 	mov ax, cs
 	mov ds, ax
-.wait:
+
 	xor ah, ah
 	int 0x16
-	cmp al, "q"
-	je .done
-	cmp al, "Q"
-	je .done
-	jmp .wait
 .done:
 	xor ah, ah
 	mov al, 0x3
@@ -238,18 +229,15 @@ clear_screen:
     push di
     push es
 
-    ; Set ES to video memory segment A000h
     mov ax, 0xa000
     mov es, ax
 
-    ; Set AL to the value to clear the screen with (e.g., 0 for black)
-    xor al, al        ; Clear AL (set to 0)
+    xor al, al
 
-    ; Clear screen buffer
-    xor di, di        ; Start at offset 0
-    mov cx, 320*200   ; Number of pixels (bytes in mode 13h)
+    xor di, di
+    mov cx, 320*200
 	cld
-    rep stosb         ; Store AL to ES:DI, CX times
+    rep stosb
 
     pop es
     pop di
@@ -262,13 +250,9 @@ draw_pixel:
 	push bx
 	push cx
 	push dx
-	push di
-	push es
+	push edi
 
 	mov di, ax
-
-	mov ax, 0xa000
-	mov es, ax
 
 	mov ax, dx
 	mov bx, 320
@@ -276,10 +260,9 @@ draw_pixel:
 	add ax, cx
 
 	xchg di, ax
-	mov [es:di], al
+	mov [fs:0xa0000+edi], al
 
-	pop es
-	pop di
+	pop edi
 	pop dx
 	pop cx
 	pop bx
@@ -295,20 +278,16 @@ draw_fullscreen_bmp:
 	push ax
 	push bx
 	push cx
-	push es
-	mov ax, 0xa000
-	mov es, ax
 
-	xor bx, bx
+	xor ebx, ebx
 	mov cx, 320*200
 .loop:
 	mov al, [si+bx]
-	mov [es:bx], al
+	mov [fs:0xa0000+ebx], al
 	inc bx
 	cmp bx, cx
 	jb .loop
 
-	pop es
 	pop cx
 	pop bx
 	pop ax
@@ -319,70 +298,57 @@ draw_fullscreen_4bpp_bmp:
 	push ax
 	push bx
 	push cx
-	push es
-	mov ax, 0xa000
-	mov es, ax
+	push ebp
 
 	xor bx, bx
-	xor bp, bp
+	xor ebp, ebp
 	mov cx, 320*(200/2)
 .loop:
 	mov al, [si+bx]
 	push ax
 	shr al, 4
-	mov [es:bp], al
+	mov [fs:0xa0000+ebp], al
 	pop ax
 	and al, 0xf
 	inc bp
-	mov [es:bp], al
+	mov [fs:0xa0000+ebp], al
 	inc bx
-	inc bp
+	inc ebp
 	cmp bx, cx
 	jb .loop
 
-	pop es
+	pop ebp
 	pop cx
 	pop bx
 	pop ax
 	ret	
-
-macro draw_msb {
-	push ax
-	rol al, 1
-	and al, 0x1
-	mov [es:bp], al
-	pop ax
-	shl al, 1
-	inc bp
-}
 
 ; ds:si - bitmap data
 draw_fullscreen_mono_bmp:
 	push ax
 	push bx
 	push cx
-	push es
-	mov ax, 0xa000
-	mov es, ax
+	push ebp
 
 	xor bx, bx
-	xor bp, bp
+	xor ebp, ebp
 	mov cx, 320*(200/8)
 .loop:
 	mov al, [si+bx]
-	draw_msb
-	draw_msb
-	draw_msb
-	draw_msb
-	draw_msb
-	draw_msb
-	draw_msb
-	draw_msb
+rept 8 {
+	push ax
+	rol al, 1
+	and al, 0x1
+	mov [fs:0xa0000+ebp], al
+	pop ax
+	shl al, 1
+	inc ebp
+}
 	inc bx
 	cmp bx, cx
 	jb .loop
 
-	pop es
+	pop ebp
 	pop cx
 	pop bx
 	pop ax

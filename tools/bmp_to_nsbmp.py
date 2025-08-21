@@ -26,14 +26,25 @@ def convert_bmp_to_raw(input_path, output_path, use_default_vga=False, small=Fal
         f.write(header)
 
         if mono:
-            # 1bpp format (no palette)
+            # 1bpp format (with 2-color palette)
+            palette = img.getpalette()
+            if palette is None:
+                # default black & white palette (scaled to 6-bit VGA values)
+                palette = [0, 0, 0, 63, 63, 63]
+            else:
+                needed = 2 * 3  # two colors (RGB each)
+                palette = palette[:needed] + [0] * (needed - len(palette))
+                palette = [v // 4 for v in palette]  # scale 0-255 -> 0-63
+            f.write(bytearray(palette))  # write color0 + color1
+
+            # Pack pixels (1bpp)
             packed_pixels = bytearray()
             for y in range(height):
                 row = pixel_data[y * width : (y + 1) * width]
                 byte_val = 0
                 bit_count = 0
                 for p in row:
-                    bit = p & 1  # treat palette index LSB as mono value
+                    bit = p & 1  # palette index (0 or 1)
                     byte_val = (byte_val << 1) | bit
                     bit_count += 1
                     if bit_count == 8:

@@ -68,8 +68,6 @@ main:
     lea si, [kb]
     int 0x21
 
-    mov ebx, 0x100000
-
     mov ah, 0x1
     mov al, 0xa
     mov bl, 0xf

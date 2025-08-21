@@ -44,8 +44,6 @@ str_dir db "dir", 0
 	db 0x1, "List files on the disk directory", endl, 0
 str_echo db "echo", 0
 	db 0x1, "Repeats what the user wants (useless because there's no piping)", endl, 0
-str_fate db "fate", 0
-	db 0x1, "Throw a fatal exception (why would you want this)", endl, 0
 str_help db "help", 0
 	db 0x1, ", "
 str_cmds db "cmds", 0
@@ -182,11 +180,6 @@ line_done:
 	call strcmp
 	or al, al
 	jz b
-
-	lea di, [str_fate]
-	call strcmp
-	or al, al
-	jz fate
 
 	lea di, [str_reboot]
 	call strcmp
@@ -773,7 +766,3 @@ ttys:
 	int 0x21
 
 	jmp line
-
-fate:
-	mov al, 9
-	int 0xff

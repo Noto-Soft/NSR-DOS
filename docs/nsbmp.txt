@@ -20,4 +20,5 @@ the rest of the image is 4bpp indexed
 if MM
 2 bytes for width
 2 bytes for height
+6 bytes for the pallete
 the rest of the image is 1bpp monochrome
