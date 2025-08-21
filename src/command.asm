@@ -31,33 +31,33 @@ msg_insert_diskette2 db ", then press any key", endl, 0
 
 str_commands db endl, "List of commands:", endl, 0
 str_a db "a:", 0
-	db " - Set drive to drive A: (drive #0)", endl, 0
+	db 0x1, "Set drive to drive A: (drive #0)", endl, 0
 str_b db "b:", 0
-	db " - Set drive to drive B: (drive #1)", endl, 0
+	db 0x1, "Set drive to drive B: (drive #1)", endl, 0
 str_beep db "beep", 0
-	db " - Tests int 26h (beep interrupt)", endl, 0
+	db 0x1, "Tests int 26h (beep interrupt)", endl, 0
 str_cls db "cls", 0
-	db " - Clear console output", endl, 0
+	db 0x1, "Clear console output", endl, 0
 str_del db "del", 0
-	db " - Deletes a file from the disk directory", endl, 0
+	db 0x1, "Deletes a file from the disk directory", endl, 0
 str_dir db "dir", 0
-	db " - List files on the disk directory", endl, 0
+	db 0x1, "List files on the disk directory", endl, 0
 str_echo db "echo", 0
-	db " - Repeats what the user wants (useless because there's no piping)", endl, 0
+	db 0x1, "Repeats what the user wants (useless because there's no piping)", endl, 0
 str_fate db "fate", 0
-	db " - Throw a fatal exception (why would you want this)", endl, 0
+	db 0x1, "Throw a fatal exception (why would you want this)", endl, 0
 str_help db "help", 0
-	db ", "
+	db 0x1, ", "
 str_cmds db "cmds", 0
-	db " - List available commands and their functions", endl, 0
+	db 0x1, "List available commands and their functions", endl, 0
 str_reboot db "reboot", 0
-	db " - Reboots the system", endl, 0
+	db 0x1, "Reboots the system", endl, 0
 str_ttyc db "tty/c", 0
-	db " - Set the tty mode to VGA", endl, 0
+	db 0x1, "Set the tty mode to VGA", endl, 0
 str_ttys db "tty/s", 0
-	db " - Set the tty mode to serial", endl, 0
+	db 0x1, "Set the tty mode to serial", endl, 0
 str_type db "type", 0
-	db " - Read a file out to the console", endl, 0
+	db 0x1, "Read a file out to the console", endl, 0
 db endl, 0
 db 0
 
@@ -129,6 +129,7 @@ line_done:
 	push di
 
 	lea si, [buffer]
+	call case_down
 
 	lea di, [str_dir]
 	call strcmp
@@ -323,6 +324,29 @@ case_up:
 	ja .loop
 
 	sub al, 'a' - 'A'
+	mov [si-1], al
+	
+	jmp .loop
+.print:
+	pop si
+	pop ax
+	ret
+
+case_down:
+	push ax
+	push si
+	cld
+.loop:
+	lodsb
+
+	test al, al
+	jz .print
+	cmp al, 'A'
+	jb .loop
+	cmp al, 'Z'
+	ja .loop
+
+	add al, 'a' - 'A'
 	mov [si-1], al
 	
 	jmp .loop
@@ -561,6 +585,17 @@ help:
 	mov al, [si]
 	test al, al
 	jz line
+	cmp al, 0x1
+	je .line_up
+	jmp .loop
+.line_up:
+	mov ah, 0xc
+	int 0x21
+	mov dl, 8
+	mov ah, 0xb
+	int 0x21
+	inc si
+	mov ah, 0x4
 	jmp .loop
 
 echo:
