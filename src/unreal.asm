@@ -47,7 +47,7 @@ main:
     jnz .cx_has_mem
     mov cx, ax
 .cx_has_mem:
-    mov [fs:0x80000], cx
+    mov [fs:0x8f000], cx
 
     push cx
     mov ah, 0xd
@@ -68,9 +68,7 @@ main:
     lea si, [kb]
     int 0x21
 
-    mov ah, 0x1
-    mov al, 0xa
-    mov bl, 0xf
+    mov ah, 0x14
     int 0x21
 
 	retf

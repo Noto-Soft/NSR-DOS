@@ -487,6 +487,30 @@ write_character:
 	pop dx
 	ret
 
+newline:
+	push dx
+	push ax
+	push es
+	mov ax, cs
+	mov es, ax
+	mov dl, [es:write_mode]
+	pop es
+	cmp dl, MODE_SERIAL
+	jne .VGA
+	mov al, 0xa
+	call write_character_serial
+	jmp .done
+.VGA:
+	call read_cursor
+	inc dh
+	xor dl, dl
+	call scroll_if_need_be
+	call set_cursor
+.done:
+	pop ax
+	pop dx
+	ret
+
 clear_scrn:
 	push ax
 	push es
@@ -1190,10 +1214,13 @@ macro route index, handler {
     jne @f
     call handler
     jmp .done
+	db `index
 @@:
 }
 
 int21:
+	cmp ah, 0x10
+	jae .set2
 	route 0x0, puts_attr
 	route 0x1, putc_attr
 	route 0x3, putsls_attr
@@ -1209,10 +1236,12 @@ int21:
 	route 0xd, print_decimal_cx
 	route 0xe, set_mode
 	route 0xf, check_vga
+.set2:
 	route 0x10, clear_scrn
 	route 0x11, get_pallete
 	route 0x12, set_pallete
 	route 0x13, map_pallete
+	route 0x14, newline
 .done:
 	iret
 

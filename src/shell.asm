@@ -675,10 +675,10 @@ render_directories:
 	jne .le_skip
 	mov byte [selected_file_type], 2
 .le_skip:
+	mov ah, 0x14
+	int 0x21
 	pop ax
 	inc ah
-	mov al, endl
-	int 0x21
 .skip:
 	dec di
 	mov al, [es:di]

@@ -86,17 +86,14 @@ main:
     inc cx
     jmp .loop
 .done:
-    mov ah, 1
-    mov al, 0xa
-    mov bl, 0x7
+    mov ah, 0x14
     int 0x21
 
-    dec ah
+    xor ah, ah
     int 0x21
     call free
 
-    inc ah
-    mov al, 0xa
+    mov ah, 0x14
     int 0x21
 
     jmp exit
@@ -143,7 +140,7 @@ testrealloc:
     mov al, [si]
     mov bl, 0xf
     int 0x21
-    mov al, endl
+    mov ah, 0x14
     int 0x21
     call free
 
@@ -172,9 +169,7 @@ addr:
     mov cx, si
     int 0x21
 
-    mov ah, 0x1
-    mov al, endl
-    mov bl, 0x7
+    mov ah, 0x14
     int 0x21
 
     popa

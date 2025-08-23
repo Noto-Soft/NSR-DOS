@@ -64,7 +64,7 @@ if [ "$JUST_TEST" = false ]; then
 	fasm src/helloworld.asm build/helloworld.exe
 	fasm src/graphix.asm build/graphix.exe
 	fasm src/basic.asm build/basic.exe
-	fasm src/heaptest.asm build/heaptest.exe
+	fasm src/allocator.asm build/allocator.exe
 	fasm src/chkhdr.asm build/chkhdr.exe
 	cat build/boot.bin >> build/chkhdr.exe
 	fasm src/shell.asm build/shell.exe
@@ -78,7 +78,7 @@ if [ "$JUST_TEST" = false ]; then
 		build/command.sys \
 		build/unreal.sys \
 		build/helloworld.exe \
-		build/heaptest.exe \
+		build/allocator.exe \
 		build/shell.exe \
 		build/chkhdr.exe
 	truncate -s 1440k nsr-dos.img
@@ -105,7 +105,7 @@ if [ "$NO_TEST" = false ]; then
 	qemu-system-i386 \
 		-monitor stdio \
 		-cpu 486 \
-		-m 32M \
+		-m 8M \
 		-drive file=nsr-dos.img,if=floppy,format=raw \
 		-drive file=disk-2.img,if=floppy,format=raw \
 		# -machine pcspk-audiodev=spk \

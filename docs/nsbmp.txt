@@ -22,3 +22,10 @@ if MM
 2 bytes for height
 6 bytes for the pallete
 the rest of the image is 1bpp monochrome
+
+if Bm (NSBMP 2.0)
+1 byte for the type (V for default vga pallete, C for custom pallete, R for reduced 4bpp pallete, M for 1bpp pallete)
+2 bytes for width
+2 bytes for height
+??? bytes for the pallete (6 for monochrome, 0 for vga, 48 for 4bpp, 768 for 8bpp)
+the rest of the image is image data

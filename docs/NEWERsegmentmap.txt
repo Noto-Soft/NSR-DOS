@@ -1,4 +1,9 @@
 TO MINIMIZE CONFUZZLEMENT: The segment map is now in linear addresses
+
+==================================
+============   REAL   ============
+==================================
+
 ---------- RESERVED ----------
 0x00000000-0x0000ffff: ivt, bda, filesystem (always at 0x00800)
 0x00010000-0x0001ffff: kernel process (*.sys files)
@@ -7,17 +12,24 @@ TO MINIMIZE CONFUZZLEMENT: The segment map is now in linear addresses
 0x00030000-0x0003ffff: free segment B (usually for file loading)
 0x00040000-0x0004ffff: free segment C (use for whatever)
 0x00050000-0x0005ffff: free segment D (use for whatever)
-0x00060000-0x0006ffff: free segment E (use for persistent memory because it's not cleared by clear_free)
 ---------- RESERVED ----------
-0x00070000-0x0007ffff: kernel itself
-0x00080000-0x0008ffff: reserved by kernel
+0x00060000-0x0006ffff: kernel itself
+0x00070000-0x0008efff: reserved by kernel (system files likely stuff)
+0x0008f000-0x0008ffff: reserved by kernel (kernel data)
 0x00090000-0x0009ffff: stack segment
 0x000a0000-0x000bffff: video memory
 0x000c0000-0x000c7fff: video bios
 0x000c8000-0x000effff: bios expansions
 0x000f0000-0x000fffff: bios
+
+==================================
+============   HIGH   ============
+==================================
+
+0x00100000-0x0017ffff: kernel reserved high memory
 ----------   FREE   ----------
-0x00100000-0x00efffff: high memory (access with fs segment)
+0x00180000-0x001fffff: free high memory (access with fs segment)
+0x00200000-0x00efffff: potentially existant high memory (check if it exists before using)
 ---------- RESERVED ----------
 0x00f00000-0x00ffffff: potentially memory mapped
 ----------   FREE   ----------

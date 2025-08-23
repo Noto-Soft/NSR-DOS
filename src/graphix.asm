@@ -126,14 +126,30 @@ main:
 	mov ds, ax
 
 	xor si, si
-	cmp word [si], "BM"
+	mov ax, [si]
+	cmp ax, "Bm"
+	jne .check_legacy_headers
+	mov al, [si+2]
+	add si, 1
+	cmp al, "V"
 	je .gotData
-	cmp word [si], "CM"
+	cmp al, "C"
 	je .read_8bpp_pallete
-	cmp word [si], "MM"
+	cmp al, "R"
+	je .pallete4
+	cmp al, "M"
 	je .monochrome
-	cmp word [si], "4M"
+	jmp .done
+.check_legacy_headers:
+	cmp ax, "BM"
+	je .gotData
+	cmp ax, "CM"
+	je .read_8bpp_pallete
+	cmp ax, "MM"
+	je .monochrome
+	cmp ax, "4M"
 	jne .done
+.pallete4:
 	add si, 6
 	mov cx, 16
 	xor al, al

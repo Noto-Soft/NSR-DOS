@@ -65,7 +65,67 @@ unreal_init:
 	mov [0x502], dh
 	mov byte [0x503], 0
 
-	jmp 0x0000:main
+main:
+	mov ax, 1
+	mov cl, 1
+	mov dl, [drive]
+	xor bx, bx
+	mov es, bx
+	lea bx, [0x600]
+	call disk_read
+
+	mov ax, 2
+	mov cl, [0x600+13]
+	mov dl, [drive]
+	xor bx, bx
+	mov es, bx
+	lea bx, [0x800]
+	call disk_read
+
+	lea si, [kernel_sys]
+	lea di, [0x800]
+.locate_kernel_loop:
+	mov al, [di]
+	or al, al
+	; end of entries
+	jz .not_found
+	add di, 4
+	call strcmp
+	test ax, ax
+	jz .located_kernel
+	dec di
+	mov al, [di]
+	xor ah, ah
+	add di, ax
+	inc di
+	jmp .locate_kernel_loop
+.not_found:
+	lea ax, [puts]
+	lea si, [kernel_sys]
+	call ax
+	lea si, [error_kernel_not_found]
+	call ax
+
+	jmp $
+.located_kernel:
+	sub di, 4
+
+	mov ax, [di]
+	mov cl, [di+2]
+	mov dl, [drive]
+	lea bx, [0x6000]
+	mov es, bx
+	xor bx, bx
+	call disk_read
+
+	mov ax, [es:0x0]
+	cmp ax, "ES"
+	jne $
+	mov ax, [es:0x2]
+	mov dl, [drive]
+	push es
+	push ax
+	retf
 
 puts:
 	push ax
@@ -246,68 +306,6 @@ disk_reset:
 floppy_error:
 	mov al, 4
 	int 0xff
-
-main:
-	mov ax, 1
-	mov cl, 1
-	mov dl, [drive]
-	xor bx, bx
-	mov es, bx
-	lea bx, [0x600]
-	call disk_read
-
-	mov ax, 2
-	mov cl, [0x600+13]
-	mov dl, [drive]
-	xor bx, bx
-	mov es, bx
-	lea bx, [0x800]
-	call disk_read
-
-	lea si, [kernel_sys]
-	lea di, [0x800]
-.locate_kernel_loop:
-	mov al, [di]
-	or al, al
-	; end of entries
-	jz .not_found
-	add di, 4
-	call strcmp
-	test ax, ax
-	jz .located_kernel
-	dec di
-	mov al, [di]
-	xor ah, ah
-	add di, ax
-	inc di
-	jmp .locate_kernel_loop
-.not_found:
-	lea ax, [puts]
-	lea si, [kernel_sys]
-	call ax
-	lea si, [error_kernel_not_found]
-	call ax
-
-	jmp $
-.located_kernel:
-	sub di, 4
-
-	mov ax, [di]
-	mov cl, [di+2]
-	mov dl, [drive]
-	lea bx, [0x7000]
-	mov es, bx
-	xor bx, bx
-	call disk_read
-
-	mov ax, [es:0x0]
-	cmp ax, "ES"
-	jne $
-	mov ax, [es:0x2]
-	mov dl, [drive]
-	push es
-	push ax
-	retf
 
 error_kernel_not_found db " missing", endl, 0
 

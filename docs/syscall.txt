@@ -21,6 +21,7 @@ _______________________________________________________________________________
  21h  | 11h  | get_pallete
  21h  | 12h  | set_pallete
  21h  | 13h  | map_pallete
+ 21h  | 14h  | newline
       |      |
  22h  | xxh  | disk_read
       |      |
@@ -155,3 +156,6 @@ Returns pseudo-random number in ax
 beep--------------------
 Produces beep sound (880hz, high A) for roughly 3/4 of a tenth of a second (0.075s)
 that's literally all it does
+
+newline-----------------
+Same as printing a newline character, but faster!

@@ -1,4 +1,7 @@
 The bootloader starts the OS in unreal mode automatically, with A20 enabled.
-The unrealized segment is FS. Do not modify FS or anything utilizing unreal mode will break.
+The unrealized segment is FS. Do not modify FS or anything utilizing unreal mode will break. (The EGA character write routine utilizes it as of 0.98, which is indeed a problem that would be hard to debug!)
 To get the memory available between 1mb and 15mb in kilobytes, read from fs:0x80000, or 0x8000:0x0000.
-To get the memory available after 16mb in 64kb blocks, read from fs:0x80002, or 0x8000:0x0002.
+
+OUTDATED:
+To get the memory available after 16mb in 64kb blocks, read from fs:0x8f002, or 0x8f00:0x0002.
+this is false now

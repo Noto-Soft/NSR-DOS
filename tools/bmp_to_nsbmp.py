@@ -2,62 +2,64 @@ import struct
 from PIL import Image
 import sys
 
-def convert_bmp_to_raw(input_path, output_path, use_default_vga=False, small=False, mono=False):
+def convert_bmp_to_nsbmp(input_path, output_path, use_default_vga=False, small=False, mono=False):
     img = Image.open(input_path)
 
     if img.mode != 'P' and not mono:
-        raise ValueError("Image must be paletted (indexed) for BM/CM/4M formats")
+        raise ValueError("Image must be paletted (indexed) for paletted NSBMP types")
 
     width, height = img.size
     pixel_data = list(img.getdata())
 
-    # Header
-    if mono:
-        header = b'MM'
-    elif small:
-        header = b'4M'
-    else:
-        header = b'BM' if use_default_vga else b'CM'
+    # Always NSBMP 2.0
+    header = b'Bm'
 
+    # Determine subtype
+    if mono:
+        subtype = b'M'   # 1bpp monochrome
+    elif small:
+        subtype = b'R'   # reduced 4bpp palette
+    elif use_default_vga:
+        subtype = b'V'   # VGA default palette
+    else:
+        subtype = b'C'   # custom 8bpp palette
+
+    header += subtype
     header += struct.pack('<H', width)
     header += struct.pack('<H', height)
 
     with open(output_path, 'wb') as f:
         f.write(header)
 
-        if mono:
-            # 1bpp format (with 2-color palette)
+        if subtype == b'M':
+            # Monochrome palette (2 colors = 6 bytes)
             palette = img.getpalette()
             if palette is None:
-                # default black & white palette (scaled to 6-bit VGA values)
-                palette = [0, 0, 0, 63, 63, 63]
-            else:
-                needed = 2 * 3  # two colors (RGB each)
-                palette = palette[:needed] + [0] * (needed - len(palette))
-                palette = [v // 4 for v in palette]  # scale 0-255 -> 0-63
-            f.write(bytearray(palette))  # write color0 + color1
+                palette = [0, 0, 0, 255, 255, 255]
+            needed = 2 * 3
+            palette = palette[:needed] + [0] * (needed - len(palette))
+            palette = [v // 4 for v in palette]  # scale 0–255 -> 0–63
+            f.write(bytearray(palette))
 
-            # Pack pixels (1bpp)
+            # Pack pixels into 1bpp
             packed_pixels = bytearray()
             for y in range(height):
                 row = pixel_data[y * width : (y + 1) * width]
-                byte_val = 0
-                bit_count = 0
+                byte_val, bit_count = 0, 0
                 for p in row:
-                    bit = p & 1  # palette index (0 or 1)
+                    bit = p & 1
                     byte_val = (byte_val << 1) | bit
                     bit_count += 1
                     if bit_count == 8:
                         packed_pixels.append(byte_val)
-                        byte_val = 0
-                        bit_count = 0
-                if bit_count > 0:  # pad remaining bits in row
+                        byte_val, bit_count = 0, 0
+                if bit_count > 0:
                     byte_val <<= (8 - bit_count)
                     packed_pixels.append(byte_val)
             f.write(packed_pixels)
 
-        elif small:
-            # 16-color 4bpp format
+        elif subtype == b'R':
+            # 4bpp palette (16 colors = 48 bytes)
             palette = img.getpalette()
             if palette is None:
                 raise ValueError("No palette found in image")
@@ -66,35 +68,36 @@ def convert_bmp_to_raw(input_path, output_path, use_default_vga=False, small=Fal
             palette = [v // 4 for v in palette]
             f.write(bytearray(palette))
 
+            # Pack 4bpp pixels
             packed_pixels = bytearray()
             for i in range(0, len(pixel_data), 2):
                 p1 = pixel_data[i] & 0x0F
-                if i + 1 < len(pixel_data):
-                    p2 = pixel_data[i + 1] & 0x0F
-                else:
-                    p2 = 0
+                p2 = pixel_data[i + 1] & 0x0F if i + 1 < len(pixel_data) else 0
                 packed_pixels.append((p1 << 4) | p2)
             f.write(packed_pixels)
 
-        else:
-            # 256-color 8bpp format
-            if not use_default_vga:
-                palette = img.getpalette()
-                if palette is None:
-                    raise ValueError("No palette found in image")
-                needed = 256 * 3
-                palette = palette[:needed] + [0] * (needed - len(palette))
-                palette = [v // 4 for v in palette]
-                f.write(bytearray(palette))
+        elif subtype == b'C':
+            # 8bpp custom palette (256 colors = 768 bytes)
+            palette = img.getpalette()
+            if palette is None:
+                raise ValueError("No palette found in image")
+            needed = 256 * 3
+            palette = palette[:needed] + [0] * (needed - len(palette))
+            palette = [v // 4 for v in palette]
+            f.write(bytearray(palette))
             f.write(bytearray(pixel_data))
 
-    print(f"[OK] Converted {input_path} to {output_path}")
+        elif subtype == b'V':
+            # 8bpp VGA default palette (no palette data written)
+            f.write(bytearray(pixel_data))
+
+    print(f"[OK] Converted {input_path} -> {output_path} (NSBMP 2.0, subtype {subtype.decode()})")
 
 
 # --- CLI handling ---
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python bmp2raw.py input.bmp output.raw [-v] [-s] [-m]")
+        print("Usage: python bmp2nsbmp.py input.bmp output.raw [-v] [-s] [-m]")
         sys.exit(1)
 
     use_default_vga = '-v' in sys.argv
@@ -105,4 +108,4 @@ if __name__ == "__main__":
     input_path = args[0]
     output_path = args[1]
 
-    convert_bmp_to_raw(input_path, output_path, use_default_vga, small, mono)
+    convert_bmp_to_nsbmp(input_path, output_path, use_default_vga, small, mono)

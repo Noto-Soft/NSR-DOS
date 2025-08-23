@@ -36,8 +36,7 @@ main:
     mov bl, 0xf
     mov cl, al
     int 0x21
-    mov ah, 0x1
-    mov al, 0xa
+    mov ah, 0x14
     int 0x21
 
 	retf

@@ -116,9 +116,7 @@ line:
 	jmp .loop
 
 line_done:
-	mov ah, 0x1
-	mov bl, 0xf
-	mov al, endl
+	mov ah, 0x14
 	int 0x21
 
 	cmp di, buffer
@@ -415,30 +413,27 @@ dir:
 	pusha ; macro
 	push ds
 
-	xor ah, ah
-	inc ah
-	mov al, endl
-	mov bl, 0xf
+	mov ah, 0x14
 	int 0x21
-	dec ah
+	xor ah, ah
 	lea si, [msg_directory_of]
 	int 0x21
 	inc ah
 	; holds drive letter conveniently
 	mov al, [msg_command]
 	int 0x21
-	mov al, endl
+	mov ah, 0x14
 	int 0x21
 	int 0x21
 
 	xor ax, ax
 	mov ds, ax
 	lea di, [0x800]
-	xor ah, ah
 	mov bl, 0xf
-	xor cx, cx
 	xor dx, dx
 .loop:
+	xor ah, ah
+
 	mov al, [di]
 	cmp al, 0
 	je .done
@@ -453,22 +448,11 @@ dir:
 	mov al, " "
 	int 0x21
 
-	mov ah, 0xd
+	xor cx, cx
 	mov cl, [di-2]
-	push cx
-	add cl, 1
-	shr cl, 1
-	int 0x21
-	pop cx
 	add dx, cx
 
-	mov ah, 0x1
-	mov al, "k"
-	int 0x21
-	mov al, "b"
-	int 0x21
-
-	mov al, endl
+	mov ah, 0x14
 	int 0x21
 .skip:
 	dec di
@@ -496,8 +480,7 @@ dir:
 	mov al, "b"
 	int 0x21
 
-	mov ah, 0x1
-	mov al, endl
+	mov ah, 0x14
 	int 0x21
 	int 0x21
 
@@ -548,10 +531,8 @@ set_drive:
 	mov byte [msg_command], al
 	mov ah, 0x9
 	int 0x21
-	mov ah, 0x1
-	mov al, 0xa
-	mov bl, 0xf
-	int 0x21
+	mov ah, 0x14
+    int 0x21
 	jmp line
 
 drive_empty:
@@ -596,8 +577,7 @@ echo:
 	xor ah, ah
 	mov bl, 0x7
 	int 0x21
-	inc ah
-	mov al, endl
+	mov ah, 0x14
 	int 0x21
 	jmp line
 
