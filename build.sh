@@ -77,8 +77,7 @@ if [ "$JUST_TEST" = false ]; then
 		build/helloworld.exe \
 		build/allocator.exe \
 		build/shell.exe \
-		build/chkhdr.exe \
-		$(find src/ -type f)
+		build/chkhdr.exe
 	truncate -s 1440k nsr-dos.img
 
 	cp assets/images/preconverted/* build/bitmaps
