@@ -424,7 +424,6 @@ dir:
     int 0x21
     mov ah, 0x14
     int 0x21
-    int 0x21
 
     xor ax, ax
     mov ds, ax
