@@ -25,12 +25,12 @@ db 20 dup(0)
 ;==============================================================================
 
 start:
-	mov ax, cs
-	mov ds, ax
-	mov es, ax
+    mov ax, cs
+    mov ds, ax
+    mov es, ax
 
 main:
-	xor ah, ah
+    xor ah, ah
     int 0x25
     mov ah, 0x5
     mov bl, 0xf
@@ -39,4 +39,4 @@ main:
     mov ah, 0x14
     int 0x21
 
-	retf
+    retf

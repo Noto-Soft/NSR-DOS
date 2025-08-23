@@ -30,9 +30,9 @@ kb db "kb)", endl, 0
 ;==============================================================================
 
 start:
-	mov ax, cs
-	mov ds, ax
-	mov es, ax
+    mov ax, cs
+    mov ds, ax
+    mov es, ax
 
 main:
     xor ah, ah
@@ -71,4 +71,4 @@ main:
     mov ah, 0x14
     int 0x21
 
-	retf
+    retf

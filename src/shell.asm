@@ -57,641 +57,641 @@ bg_color db 0x00
 ;==============================================================================
 
 start:
-	mov ax, cs
-	mov ds, ax
-	mov es, ax
+    mov ax, cs
+    mov ds, ax
+    mov es, ax
 
-	mov [drive], dl
-	mov [before_drive], dl
-	mov [sp_save], sp
+    mov [drive], dl
+    mov [before_drive], dl
+    mov [sp_save], sp
 
 main:
-	mov ah, 0x1
-	mov ch, 0x3f
-	int 0x10
+    mov ah, 0x1
+    mov ch, 0x3f
+    int 0x10
 
-	call set_gold_if_available
-	mov word [selected], 1
+    call set_gold_if_available
+    mov word [selected], 1
 
-	call render_directories
-	call render_blank
-	call render_head
+    call render_directories
+    call render_blank
+    call render_head
 .loop:
-	call render_directories
-	xor ah, ah
-	int 0x16
-	cmp al, "q"
-	je .quit
-	cmp al, "Q"
-	je .quit
-	cmp al, "a"
-	je .a
-	cmp al, "b"
-	je .b
-	cmp ah, 0x48
-	je .up
-	cmp ah, 0x50
-	je .down
-	cmp al, 0xd
-	je run_file
-	jmp .loop
+    call render_directories
+    xor ah, ah
+    int 0x16
+    cmp al, "q"
+    je .quit
+    cmp al, "Q"
+    je .quit
+    cmp al, "a"
+    je .a
+    cmp al, "b"
+    je .b
+    cmp ah, 0x48
+    je .up
+    cmp ah, 0x50
+    je .down
+    cmp al, 0xd
+    je run_file
+    jmp .loop
 .up:
-	mov ax, [selected]
-	dec ax
-	cmp ax, 0
-	jne .up_dont_wrap_around
-	mov ax, [amount]
+    mov ax, [selected]
+    dec ax
+    cmp ax, 0
+    jne .up_dont_wrap_around
+    mov ax, [amount]
 .up_dont_wrap_around:
-	mov [selected], ax
-	jmp .loop
+    mov [selected], ax
+    jmp .loop
 .down:
-	mov ax, [selected]
-	cmp ax, [amount]
-	jne .down_dont_wrap_around
-	xor ax, ax
+    mov ax, [selected]
+    cmp ax, [amount]
+    jne .down_dont_wrap_around
+    xor ax, ax
 .down_dont_wrap_around:
-	inc ax
-	mov [selected], ax
-	jmp .loop
+    inc ax
+    mov [selected], ax
+    jmp .loop
 .a:
-	xor dl, dl
-	cmp [drive], dl
-	je .loop
-	mov al, "A"
-	jmp set_drive
+    xor dl, dl
+    cmp [drive], dl
+    je .loop
+    mov al, "A"
+    jmp set_drive
 .b:
-	mov dl, 1
-	cmp [drive], dl
-	je .loop
-	mov al, "B"
-	jmp set_drive
+    mov dl, 1
+    cmp [drive], dl
+    je .loop
+    mov al, "B"
+    jmp set_drive
 .quit:
-	mov ah, 0x9
-	mov dl, [before_drive]
-	int 0x21
+    mov ah, 0x9
+    mov dl, [before_drive]
+    int 0x21
 
-	mov ah, 0x10
-	mov bl, 0xf
-	int 0x21
+    mov ah, 0x10
+    mov bl, 0xf
+    int 0x21
 
-	mov ah, 0x1
-	mov cx, 0x0607
-	int 0x10
+    mov ah, 0x1
+    mov cx, 0x0607
+    int 0x10
 
-	retf
+    retf
 
 set_drive:
-	mov ah, 0x10
-	mov bl, 0xf
-	int 0x21
+    mov ah, 0x10
+    mov bl, 0xf
+    int 0x21
 
-	mov ah, 0x1
-	mov cx, 0x0607
-	int 0x10
+    mov ah, 0x1
+    mov cx, 0x0607
+    int 0x10
 
-	mov byte [largest_text], 0
-	mov byte [largest_size], 0
+    mov byte [largest_text], 0
+    mov byte [largest_size], 0
 
-	xor ah, ah
-	mov bl, 0xf
-	lea si, [msg_insert_diskette]
-	int 0x21
-	inc ah
-	int 0x21
-	dec ah
-	lea si, [msg_insert_diskette2]
-	int 0x21
-	push ax
-	xor ah, ah
-	int 0x16
-	pop ax
-	pusha ; macro
-	push es
-	mov ah, 0x8
-	int 0x13
-	jc crash_drive_empty
-	pop es
-	popa ; macro
-	mov [drive], dl
-	mov ah, 0x9
-	int 0x21
+    xor ah, ah
+    mov bl, 0xf
+    lea si, [msg_insert_diskette]
+    int 0x21
+    inc ah
+    int 0x21
+    dec ah
+    lea si, [msg_insert_diskette2]
+    int 0x21
+    push ax
+    xor ah, ah
+    int 0x16
+    pop ax
+    pusha ; macro
+    push es
+    mov ah, 0x8
+    int 0x13
+    jc crash_drive_empty
+    pop es
+    popa ; macro
+    mov [drive], dl
+    mov ah, 0x9
+    int 0x21
 
-	jmp main
+    jmp main
 
 set_gold_if_available:
-	push ax
+    push ax
 
-	mov ah, 0xf
-	int 0x21
-	test al, al
-	jz .dont_set_pallete
+    mov ah, 0xf
+    int 0x21
+    test al, al
+    jz .dont_set_pallete
 
-	push bx
-	push cx
-	mov ah, 0x12
-	mov al, 0x3e
-	mov bl, 59
-	mov bh, 50
-	mov cl, 0
-	int 0x21
-	pop cx
-	pop bx
+    push bx
+    push cx
+    mov ah, 0x12
+    mov al, 0x3e
+    mov bl, 59
+    mov bh, 50
+    mov cl, 0
+    int 0x21
+    pop cx
+    pop bx
 .dont_set_pallete:
-	pop ax
-	ret
+    pop ax
+    ret
 
 crash_drive_empty:
-	mov ax, cs
-	mov ds, ax
+    mov ax, cs
+    mov ds, ax
 
-	mov sp, [sp_save]
+    mov sp, [sp_save]
 
-	mov ah, 0x10
-	mov bl, 0xf
-	int 0x21
+    mov ah, 0x10
+    mov bl, 0xf
+    int 0x21
 
-	mov ah, 0x1
-	mov cx, 0x0607
-	int 0x10
+    mov ah, 0x1
+    mov cx, 0x0607
+    int 0x10
 
-	xor ah, ah
-	mov bl, 0x4
-	lea si, [error_drive_missing]
-	int 0x21
-	
-	retf
+    xor ah, ah
+    mov bl, 0x4
+    lea si, [error_drive_missing]
+    int 0x21
+    
+    retf
 
 crash_unknown_format:
-	mov ax, cs
-	mov ds, ax
+    mov ax, cs
+    mov ds, ax
 
-	mov sp, [sp_save]
+    mov sp, [sp_save]
 
-	mov ah, 0x10
-	mov bl, 0xf
-	int 0x21
+    mov ah, 0x10
+    mov bl, 0xf
+    int 0x21
 
-	mov ah, 0x1
-	mov cx, 0x0607
-	int 0x10
+    mov ah, 0x1
+    mov cx, 0x0607
+    int 0x10
 
-	xor ah, ah
-	mov bl, 0x4
-	lea si, [error_unknown_format]
-	int 0x21
+    xor ah, ah
+    mov bl, 0x4
+    lea si, [error_unknown_format]
+    int 0x21
 
-	retf
+    retf
 
 crash_floppy_error:
-	mov ax, cs
-	mov ds, ax
+    mov ax, cs
+    mov ds, ax
 
-	mov sp, [sp_save]
+    mov sp, [sp_save]
 
-	mov ah, 0x10
-	mov bl, 0xf
-	int 0x21
+    mov ah, 0x10
+    mov bl, 0xf
+    int 0x21
 
-	mov ah, 0x1
-	mov cx, 0x0607
-	int 0x10
+    mov ah, 0x1
+    mov cx, 0x0607
+    int 0x10
 
-	xor ah, ah
-	mov bl, 0x4
-	lea si, [error_reading]
-	int 0x21
+    xor ah, ah
+    mov bl, 0x4
+    lea si, [error_reading]
+    int 0x21
 
-	retf
+    retf
 
 ;==============================================================================
 ; The scary
 ;==============================================================================
 
 run_file:
-	cmp byte [selected_file_type], 1
-	je .continue
-	cmp byte [selected_file_type], 2
-	je read_file
-	jmp main.loop
+    cmp byte [selected_file_type], 1
+    je .continue
+    cmp byte [selected_file_type], 2
+    je read_file
+    jmp main.loop
 .continue:
-	pusha
-	mov ah, 0x10
-	mov bl, 0xf
-	int 0x21
+    pusha
+    mov ah, 0x10
+    mov bl, 0xf
+    int 0x21
 
-	mov ah, 0x1
-	mov cx, 0x0607
-	int 0x10
+    mov ah, 0x1
+    mov cx, 0x0607
+    int 0x10
 
-	call clear_free
+    call clear_free
 
-	push es
+    push es
 
-	push ds
-	call filename_from_number
-	mov ah, 0x7
-	int 0x21
-	pop ds
-	test di, di
-	jz crash_floppy_error
-	mov ah, 0x8
-	mov dl, [drive]
-	lea bx, [0x5000]
-	mov es, bx
-	xor bx, bx
-	int 0x21
+    push ds
+    call filename_from_number
+    mov ah, 0x7
+    int 0x21
+    pop ds
+    test di, di
+    jz crash_floppy_error
+    mov ah, 0x8
+    mov dl, [drive]
+    lea bx, [0x5000]
+    mov es, bx
+    xor bx, bx
+    int 0x21
 
-	mov ax, [es:0x0]
-	cmp ax, "ES"
-	jne crash_unknown_format
-	mov ax, [es:0x2]
-	push ds
-	push es
-	mov dl, [drive]
-	lea bx, [.after]
-	push cs
-	push bx
-	push es
-	push ax
-	retf
+    mov ax, [es:0x0]
+    cmp ax, "ES"
+    jne crash_unknown_format
+    mov ax, [es:0x2]
+    push ds
+    push es
+    mov dl, [drive]
+    lea bx, [.after]
+    push cs
+    push bx
+    push es
+    push ax
+    retf
 .after:
-	pop es
-	pop ds
+    pop es
+    pop ds
 
-	pop es
+    pop es
 
-	call set_gold_if_available
+    call set_gold_if_available
 
-	xor ah, ah
-	mov bl, [title_color]
-	lea si, [msg_any_key]
-	int 0x21
+    xor ah, ah
+    mov bl, [title_color]
+    lea si, [msg_any_key]
+    int 0x21
 
-	xor ah, ah
-	int 0x16
+    xor ah, ah
+    int 0x16
 
-	popa
-	jmp main
+    popa
+    jmp main
 
 read_file:
-	pusha
-	mov ah, 0x10
-	mov bl, 0xf
-	int 0x21
+    pusha
+    mov ah, 0x10
+    mov bl, 0xf
+    int 0x21
 
-	mov ah, 0x1
-	mov cx, 0x0607
-	int 0x10
+    mov ah, 0x1
+    mov cx, 0x0607
+    int 0x10
 
-	call clear_free
+    call clear_free
 
-	push es
+    push es
 
-	push ds
-	call filename_from_number
-	mov ah, 0x7
-	int 0x21
-	pop ds
-	test di, di
-	jz crash_floppy_error
-	mov ah, 0x8
-	mov dl, [drive]
-	lea bx, [0x5000]
-	mov es, bx
-	xor bx, bx
-	int 0x21
+    push ds
+    call filename_from_number
+    mov ah, 0x7
+    int 0x21
+    pop ds
+    test di, di
+    jz crash_floppy_error
+    mov ah, 0x8
+    mov dl, [drive]
+    lea bx, [0x5000]
+    mov es, bx
+    xor bx, bx
+    int 0x21
 
-	push ds
-	mov ax, es
-	mov ds, ax
-	xor ah, ah
-	mov bl, 0x7
-	xor si, si
-	int 0x21
-	pop ds
+    push ds
+    mov ax, es
+    mov ds, ax
+    xor ah, ah
+    mov bl, 0x7
+    xor si, si
+    int 0x21
+    pop ds
 
-	pop es
+    pop es
 
-	xor ah, ah
-	mov bl, [title_color]
-	lea si, [msg_any_key]
-	int 0x21
+    xor ah, ah
+    mov bl, [title_color]
+    lea si, [msg_any_key]
+    int 0x21
 
-	xor ah, ah
-	int 0x16
+    xor ah, ah
+    int 0x16
 
-	popa
-	jmp main
+    popa
+    jmp main
 
 ;==============================================================================
 ; Filesystem routines
 ;==============================================================================
 
 filename_from_number:
-	pusha
+    pusha
 
-	xor ax, ax
-	mov ds, ax
-	lea di, [0x800]
-	xor ah, ah
-	xor cx, cx
-	xor dx, dx
-	mov word [es:counter], 0
+    xor ax, ax
+    mov ds, ax
+    lea di, [0x800]
+    xor ah, ah
+    xor cx, cx
+    xor dx, dx
+    mov word [es:counter], 0
 .loop:
-	inc word [es:counter]
+    inc word [es:counter]
 
-	xor si, si
-	mov al, [di]
-	cmp al, 0
-	je .done
-	add di, 4
-	mov al, [di]
-	cmp al, 0
-	je .skip
+    xor si, si
+    mov al, [di]
+    cmp al, 0
+    je .done
+    add di, 4
+    mov al, [di]
+    cmp al, 0
+    je .skip
 
-	mov ax, [es:counter]
-	cmp ax, [es:selected]
-	je .found
+    mov ax, [es:counter]
+    cmp ax, [es:selected]
+    je .found
 .skip:
-	dec di
-	mov al, [di]
-	xor ah, ah
-	add di, ax
-	inc di
-	jmp .loop
+    dec di
+    mov al, [di]
+    xor ah, ah
+    add di, ax
+    inc di
+    jmp .loop
 .found:
-	mov si, di
+    mov si, di
 .done:
-	mov [es:lazy], si
-	popa
-	mov si, [es:lazy]
-	ret
+    mov [es:lazy], si
+    popa
+    mov si, [es:lazy]
+    ret
 
 ;==============================================================================
 ; Misc routines
 ;==============================================================================
 
 find_last_dot:
-	push es
-	push ax
-	push si
-	mov ax, cs
-	mov es, ax
-	cld
+    push es
+    push ax
+    push si
+    mov ax, cs
+    mov es, ax
+    cld
 .loop:
-	lodsb
-	test al, al
-	jz .done
-	cmp al, "."
-	jne .loop
-	mov [es:last_dot], si
-	jmp .loop
+    lodsb
+    test al, al
+    jz .done
+    cmp al, "."
+    jne .loop
+    mov [es:last_dot], si
+    jmp .loop
 .done:
-	pop si
-	mov cx, [es:last_dot]
-	sub cx, si
-	mov si, [es:last_dot]
-	pop ax
-	pop es
-	ret
+    pop si
+    mov cx, [es:last_dot]
+    sub cx, si
+    mov si, [es:last_dot]
+    pop ax
+    pop es
+    ret
 
 clear_free:
-	push ax
-	push bx
-	push cx
-	push di
-	push es
-	mov bx, 0x3000
+    push ax
+    push bx
+    push cx
+    push di
+    push es
+    mov bx, 0x3000
 .loop:
-	mov es, bx
-	xor di, di
-	xor ax, ax
-	mov cx, 8
-	cld
-	rep stosw
+    mov es, bx
+    xor di, di
+    xor ax, ax
+    mov cx, 8
+    cld
+    rep stosw
 
-	inc bx
-	cmp bx, 0x6000
-	jne .loop
+    inc bx
+    cmp bx, 0x6000
+    jne .loop
 .done:
-	pop es
-	pop di
-	pop cx
-	pop bx
-	pop ax
-	ret
+    pop es
+    pop di
+    pop cx
+    pop bx
+    pop ax
+    ret
 
 ;==============================================================================
 ; Rendering routines
 ;==============================================================================
 
 render_blank:
-	push ax
-	push bx
+    push ax
+    push bx
 
-	mov ah, 0x10
-	mov bl, [bg_color]
-	int 0x21
+    mov ah, 0x10
+    mov bl, [bg_color]
+    int 0x21
 
-	pop bx
-	pop ax
-	ret
+    pop bx
+    pop ax
+    ret
 
 render_head:
-	pusha
+    pusha
 
-	mov ah, 0x3
-	mov bl, [title_color]
-	mov cx, 80
-	lea si, [title]
-	int 0x21
-	mov bl, [instruction_color]
-	lea si, [instructon]
-	int 0x21
+    mov ah, 0x3
+    mov bl, [title_color]
+    mov cx, 80
+    lea si, [title]
+    int 0x21
+    mov bl, [instruction_color]
+    lea si, [instructon]
+    int 0x21
 
-	popa
-	ret
+    popa
+    ret
 
 render_directories:
-	pusha
+    pusha
 
-	mov ah, 0xb
-	mov dx, 0x0200
-	int 0x21
+    mov ah, 0xb
+    mov dx, 0x0200
+    int 0x21
 
-	push es
+    push es
 
-	xor ax, ax
-	mov es, ax
-	lea di, [0x800]
-	xor ah, ah
-	xor cx, cx
-	xor dx, dx
-	mov word [counter], 0
+    xor ax, ax
+    mov es, ax
+    lea di, [0x800]
+    xor ah, ah
+    xor cx, cx
+    xor dx, dx
+    mov word [counter], 0
 .loop:
-	inc word [counter]
+    inc word [counter]
 
-	mov al, [es:di]
-	cmp al, 0
-	je .done
-	add di, 4
-	mov al, [es:di]
-	cmp al, 0
-	je .skip
+    mov al, [es:di]
+    cmp al, 0
+    je .done
+    add di, 4
+    mov al, [es:di]
+    cmp al, 0
+    je .skip
 
-	mov bl, [entry_color]
+    mov bl, [entry_color]
 
-	mov bp, 0
-	push ax
-	mov ax, [counter]
-	cmp ax, [selected]
-	jne .not_selected
-	mov bp, 1
+    mov bp, 0
+    push ax
+    mov ax, [counter]
+    cmp ax, [selected]
+    jne .not_selected
+    mov bp, 1
 .not_selected:
-	pop ax
+    pop ax
 
-	mov [lazy], di
-	push ds
-	push ax
-	mov ax, es
-	mov ds, ax
-	pop ax
-	push ax
-	push cx
-	mov ah, 0x3
-	mov si, di
-	push si
-	call find_last_dot
-	pop si
-	push si
-	add si, cx
-	cmp word [si], "EX"
-	jne .not_executable
-	cmp word [si+2], "E"
-	jne .not_executable
-	and bl, 0xf0
-	or bl, 0x2
-	jmp .after_checks
+    mov [lazy], di
+    push ds
+    push ax
+    mov ax, es
+    mov ds, ax
+    pop ax
+    push ax
+    push cx
+    mov ah, 0x3
+    mov si, di
+    push si
+    call find_last_dot
+    pop si
+    push si
+    add si, cx
+    cmp word [si], "EX"
+    jne .not_executable
+    cmp word [si+2], "E"
+    jne .not_executable
+    and bl, 0xf0
+    or bl, 0x2
+    jmp .after_checks
 .not_executable:
-	cmp word [si], "SY"
-	jne .not_sys
-	cmp word [si+2], "S"
-	jne .not_sys
-	and bl, 0xf0
-	or bl, 0x3
-	jmp .after_checks
+    cmp word [si], "SY"
+    jne .not_sys
+    cmp word [si+2], "S"
+    jne .not_sys
+    and bl, 0xf0
+    or bl, 0x3
+    jmp .after_checks
 .not_sys:
-	cmp word [si], "BM"
-	jne .not_bmp
-	cmp word [si+2], "P"
-	jne .not_bmp
-	and bl, 0xf0
-	or bl, 0x5
+    cmp word [si], "BM"
+    jne .not_bmp
+    cmp word [si+2], "P"
+    jne .not_bmp
+    and bl, 0xf0
+    or bl, 0x5
 .not_bmp:
 .after_checks:
-	pop si
-	dec cx
-	cmp bp, 1
-	jne .dont_flip
-	rol bl, 4
+    pop si
+    dec cx
+    cmp bp, 1
+    jne .dont_flip
+    rol bl, 4
 .dont_flip:
-	int 0x21
-	pop cx
-	pop ax
-	pop ds
-	mov ah, 0x1
-	mov al, " "
-	cmp bp, 1
-	jne .dont_unflip
-	rol bl, 4
+    int 0x21
+    pop cx
+    pop ax
+    pop ds
+    mov ah, 0x1
+    mov al, " "
+    cmp bp, 1
+    jne .dont_unflip
+    rol bl, 4
 .dont_unflip:
-	int 0x21
-	mov ah, 0xc
-	int 0x21
-	cmp dl, [largest_text]
-	jna .not_larger
-	mov [largest_text], dl
-	jmp .after_not_larger
+    int 0x21
+    mov ah, 0xc
+    int 0x21
+    cmp dl, [largest_text]
+    jna .not_larger
+    mov [largest_text], dl
+    jmp .after_not_larger
 .not_larger:
-	mov dl, [largest_text]
-	mov ah, 0xb
-	int 0x21
+    mov dl, [largest_text]
+    mov ah, 0xb
+    int 0x21
 .after_not_larger:
-	mov ah, 0xd
-	mov cl, [es:di-2]
-	push cx
-	add cl, 1
-	shr cl, 1
-	int 0x21
-	pop cx
-	add dx, cx
+    mov ah, 0xd
+    mov cl, [es:di-2]
+    push cx
+    add cl, 1
+    shr cl, 1
+    int 0x21
+    pop cx
+    add dx, cx
 
-	mov ah, 0x1
-	mov al, "k"
-	int 0x21
-	mov al, "b"
-	int 0x21
-	mov al, " "
-	int 0x21
+    mov ah, 0x1
+    mov al, "k"
+    int 0x21
+    mov al, "b"
+    int 0x21
+    mov al, " "
+    int 0x21
 
-	mov ah, 0xc
-	int 0x21
-	cmp dl, [largest_size]
-	jna .not_larger_size
-	mov [largest_size], dl
-	jmp .after_not_larger_size
+    mov ah, 0xc
+    int 0x21
+    cmp dl, [largest_size]
+    jna .not_larger_size
+    mov [largest_size], dl
+    jmp .after_not_larger_size
 .not_larger_size:
-	mov dl, [largest_size]
-	mov ah, 0xb
-	int 0x21
+    mov dl, [largest_size]
+    mov ah, 0xb
+    int 0x21
 .after_not_larger_size:	
-	mov si, [lazy]
-	push ds
-	push ax
-	mov ax, es
-	mov ds, ax
-	pop ax
-	push cx
-	call find_last_dot
-	pop cx
-	xor ah, ah
-	int 0x21
-	pop ds
-	push ax
-	mov ax, [selected]
-	cmp word [counter], ax
-	jne .le_skip
-	mov byte [selected_file_type], 0
-	cmp word [es:si], "EX"
-	jne .check_txt
-	cmp word [es:si+2], "E"
-	jne .check_txt
-	mov byte [selected_file_type], 1
-	jmp .le_skip
+    mov si, [lazy]
+    push ds
+    push ax
+    mov ax, es
+    mov ds, ax
+    pop ax
+    push cx
+    call find_last_dot
+    pop cx
+    xor ah, ah
+    int 0x21
+    pop ds
+    push ax
+    mov ax, [selected]
+    cmp word [counter], ax
+    jne .le_skip
+    mov byte [selected_file_type], 0
+    cmp word [es:si], "EX"
+    jne .check_txt
+    cmp word [es:si+2], "E"
+    jne .check_txt
+    mov byte [selected_file_type], 1
+    jmp .le_skip
 .check_txt:
-	cmp word [es:si], "TX"
-	jne .le_skip
-	cmp word [es:si+2], "T"
-	jne .le_skip
-	mov byte [selected_file_type], 2
+    cmp word [es:si], "TX"
+    jne .le_skip
+    cmp word [es:si+2], "T"
+    jne .le_skip
+    mov byte [selected_file_type], 2
 .le_skip:
-	mov ah, 0x14
-	int 0x21
-	pop ax
-	inc ah
+    mov ah, 0x14
+    int 0x21
+    pop ax
+    inc ah
 .skip:
-	dec di
-	mov al, [es:di]
-	xor ah, ah
-	add di, ax
-	inc di
-	jmp .loop
+    dec di
+    mov al, [es:di]
+    xor ah, ah
+    add di, ax
+    inc di
+    jmp .loop
 .done:
-	pop es
+    pop es
 
-	mov ax, [counter]
-	dec ax
-	mov [amount], ax
+    mov ax, [counter]
+    dec ax
+    mov [amount], ax
 
-	popa
-	ret
+    popa
+    ret

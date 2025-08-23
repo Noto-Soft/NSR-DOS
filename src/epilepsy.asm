@@ -25,9 +25,9 @@ db 20 dup(0)
 ;==============================================================================
 
 start:
-	mov ax, cs
-	mov ds, ax
-	mov es, ax
+    mov ax, cs
+    mov ds, ax
+    mov es, ax
 
 main:
 .loop:
@@ -50,4 +50,4 @@ main:
     mov bl, 0xf
     int 0x21
 
-	retf
+    retf

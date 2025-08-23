@@ -10,165 +10,165 @@ jmp start
 db "R-DOS0.9 "
 
 start:
-	xor ax, ax
-	mov ds, ax
-	mov es, ax
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
 
-	mov ax, 0x9000
-	mov ss, ax
-	mov sp, 0x0
+    mov ax, 0x9000
+    mov ss, ax
+    mov sp, 0x0
 
 unreal_init:
-	cli
-	push fs
+    cli
+    push fs
 
-	lgdt [gdtinfo]
+    lgdt [gdtinfo]
 
-	mov eax, cr0
-	or eax, 1
-	mov cr0, eax
-	jmp 0x8:.pmode
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
+    jmp 0x8:.pmode
 .pmode:
-	mov bx, 0x10
-	mov fs, bx
+    mov bx, 0x10
+    mov fs, bx
 
-	and eax, not 1
-	mov cr0, eax
-	jmp 0x0:.unreal
+    and eax, not 1
+    mov cr0, eax
+    jmp 0x0:.unreal
 .unreal:
-	pop fs
-	sti
+    pop fs
+    sti
 
-	; a20 line
-	in al, 0x92
-	or al, 2
-	out 0x92, al
+    ; a20 line
+    in al, 0x92
+    or al, 2
+    out 0x92, al
 
-	; just in case the pc speaker is still enabled from a reboot or something
-	in al, 0x61
-	and al, not 3
-	out 0x61, al
+    ; just in case the pc speaker is still enabled from a reboot or something
+    in al, 0x61
+    and al, not 3
+    out 0x61, al
 
-	mov [drive], dl
+    mov [drive], dl
 
-	push es
-	mov ah, 0x08
-	int 0x13
-	jc floppy_error
-	pop es
+    push es
+    mov ah, 0x08
+    int 0x13
+    jc floppy_error
+    pop es
 
-	and cl, 0x3F
-	xor ch, ch
-	mov [0x500], cx
+    and cl, 0x3F
+    xor ch, ch
+    mov [0x500], cx
  
-	inc dh
-	mov [0x502], dh
-	mov byte [0x503], 0
+    inc dh
+    mov [0x502], dh
+    mov byte [0x503], 0
 
 main:
-	mov ax, 1
-	mov cl, 1
-	mov dl, [drive]
-	xor bx, bx
-	mov es, bx
-	lea bx, [0x600]
-	call disk_read
+    mov ax, 1
+    mov cl, 1
+    mov dl, [drive]
+    xor bx, bx
+    mov es, bx
+    lea bx, [0x600]
+    call disk_read
 
-	mov ax, 2
-	mov cl, [0x600+13]
-	mov dl, [drive]
-	xor bx, bx
-	mov es, bx
-	lea bx, [0x800]
-	call disk_read
+    mov ax, 2
+    mov cl, [0x600+13]
+    mov dl, [drive]
+    xor bx, bx
+    mov es, bx
+    lea bx, [0x800]
+    call disk_read
 
-	lea si, [kernel_sys]
-	lea di, [0x800]
+    lea si, [kernel_sys]
+    lea di, [0x800]
 .locate_kernel_loop:
-	mov al, [di]
-	or al, al
-	; end of entries
-	jz .not_found
-	add di, 4
-	call strcmp
-	test ax, ax
-	jz .located_kernel
-	dec di
-	mov al, [di]
-	xor ah, ah
-	add di, ax
-	inc di
-	jmp .locate_kernel_loop
+    mov al, [di]
+    or al, al
+    ; end of entries
+    jz .not_found
+    add di, 4
+    call strcmp
+    test ax, ax
+    jz .located_kernel
+    dec di
+    mov al, [di]
+    xor ah, ah
+    add di, ax
+    inc di
+    jmp .locate_kernel_loop
 .not_found:
-	lea ax, [puts]
-	lea si, [kernel_sys]
-	call ax
-	lea si, [error_kernel_not_found]
-	call ax
+    lea ax, [puts]
+    lea si, [kernel_sys]
+    call ax
+    lea si, [error_kernel_not_found]
+    call ax
 
-	jmp $
+    jmp $
 .located_kernel:
-	sub di, 4
+    sub di, 4
 
-	mov ax, [di]
-	mov cl, [di+2]
-	mov dl, [drive]
-	lea bx, [0x6000]
-	mov es, bx
-	xor bx, bx
-	call disk_read
+    mov ax, [di]
+    mov cl, [di+2]
+    mov dl, [drive]
+    lea bx, [0x6000]
+    mov es, bx
+    xor bx, bx
+    call disk_read
 
-	mov ax, [es:0x0]
-	cmp ax, "ES"
-	jne $
-	mov ax, [es:0x2]
-	mov dl, [drive]
-	push es
-	push ax
-	retf
+    mov ax, [es:0x0]
+    cmp ax, "ES"
+    jne $
+    mov ax, [es:0x2]
+    mov dl, [drive]
+    push es
+    push ax
+    retf
 
 puts:
-	push ax
-	push bx
-	push si
-	mov ah, 0xe
-	xor bh, bh
-	cld
+    push ax
+    push bx
+    push si
+    mov ah, 0xe
+    xor bh, bh
+    cld
 .loop:
-	lodsb
-	or al, al
-	jz .done
-	int 0x10
-	jmp .loop
+    lodsb
+    or al, al
+    jz .done
+    int 0x10
+    jmp .loop
 .done:
-	pop si
-	pop bx
-	pop ax
-	ret
+    pop si
+    pop bx
+    pop ax
+    ret
 
 strcmp:
-	push si
-	push di
+    push si
+    push di
 .loop:
-	mov al, [si]
-	mov ah, [di]
-	inc si
-	inc di
-	cmp al, ah
-	jne .notequal
-	cmp al, 0
-	je .endofstring
-	jmp .loop
+    mov al, [si]
+    mov ah, [di]
+    inc si
+    inc di
+    cmp al, ah
+    jne .notequal
+    cmp al, 0
+    je .endofstring
+    jmp .loop
 .endofstring:
-	xor ax, ax
-	jmp .done
+    xor ax, ax
+    jmp .done
 .notequal:
-	mov ax, 1
-	jmp .done
+    mov ax, 1
+    jmp .done
 .done:
-	pop di
-	pop si
-	ret
+    pop di
+    pop si
+    ret
 
 ;==============================================================================
 ; Disk routines
@@ -187,41 +187,41 @@ strcmp:
 
 lba_to_chs:
 
-	push ax
-	push dx
+    push ax
+    push dx
 
-	; dx = 0
-	xor dx, dx
-	; ax = LBA / SectorsPerTrack
-	div word [0x500]
-										; dx = LBA % SectorsPerTrack
+    ; dx = 0
+    xor dx, dx
+    ; ax = LBA / SectorsPerTrack
+    div word [0x500]
+                                        ; dx = LBA % SectorsPerTrack
 
-	; dx = (LBA % SectorsPerTrack + 1) = sector
-	inc dx
-	; cx = sector
-	mov cx, dx
+    ; dx = (LBA % SectorsPerTrack + 1) = sector
+    inc dx
+    ; cx = sector
+    mov cx, dx
 
-	; dx = 0
-	xor dx, dx
-	; ax = (LBA / SectorsPerTrack) / Heads = cylinder
-	div word [0x502]
-										; dx = (LBA / SectorsPerTrack) % Heads = head
-	; dh = head
-	mov dh, dl
-	; ch = cylinder (lower 8 bits)
-	mov ch, al
-	push cx
-	mov cl, 6
-	shl ah, cl
-	pop cx
-	; put upper 2 bits of cylinder in CL
-	or cl, ah
+    ; dx = 0
+    xor dx, dx
+    ; ax = (LBA / SectorsPerTrack) / Heads = cylinder
+    div word [0x502]
+                                        ; dx = (LBA / SectorsPerTrack) % Heads = head
+    ; dh = head
+    mov dh, dl
+    ; ch = cylinder (lower 8 bits)
+    mov ch, al
+    push cx
+    mov cl, 6
+    shl ah, cl
+    pop cx
+    ; put upper 2 bits of cylinder in CL
+    or cl, ah
 
-	pop ax
-	; restore DL
-	mov dl, al
-	pop ax
-	ret
+    pop ax
+    ; restore DL
+    mov dl, al
+    pop ax
+    ret
 
 
 ;
@@ -234,56 +234,56 @@ lba_to_chs:
 ;
 disk_read:
 
-	; save registers we will modify
-	push ax
-	push bx
-	push cx
-	push dx
-	push di
+    ; save registers we will modify
+    push ax
+    push bx
+    push cx
+    push dx
+    push di
 
-	; temporarily save CL (number of sectors to read)
-	push cx
-	; compute CHS
-	call lba_to_chs
-	; AL = number of sectors to read
-	pop ax
-	
-	mov ah, 0x02
-	; retry count
-	mov di, 3
+    ; temporarily save CL (number of sectors to read)
+    push cx
+    ; compute CHS
+    call lba_to_chs
+    ; AL = number of sectors to read
+    pop ax
+    
+    mov ah, 0x02
+    ; retry count
+    mov di, 3
 
 .retry:
-	; save all registers, we don't know what bios modifies
-	pusha ; macro
-	; set carry flag, some BIOS'es don't set it
-	stc
-	; carry flag cleared = success
-	int 0x13
-	; jump if carry not set
-	jnc .done
+    ; save all registers, we don't know what bios modifies
+    pusha ; macro
+    ; set carry flag, some BIOS'es don't set it
+    stc
+    ; carry flag cleared = success
+    int 0x13
+    ; jump if carry not set
+    jnc .done
 
-	; read failed
-	popa ; macro
-	call disk_reset
+    ; read failed
+    popa ; macro
+    call disk_reset
 
-	dec di
-	test di, di
-	jnz .retry
+    dec di
+    test di, di
+    jnz .retry
 
 .fail:
-	; all attempts are exhausted
-	jmp floppy_error
+    ; all attempts are exhausted
+    jmp floppy_error
 
 .done:
-	popa ; macro
+    popa ; macro
 
-	pop di
-	pop dx
-	pop cx
-	pop bx
-	; restore registers modified
-	pop ax
-	ret
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    ; restore registers modified
+    pop ax
+    ret
 
 
 ;
@@ -292,20 +292,20 @@ disk_read:
 ;   dl: drive number
 ;
 disk_reset:
-	pusha ; macro
-	xor ah, ah
-	stc
-	int 0x13
-	jc floppy_error
-	lea si, [.disk_retry]
-	call puts
-	popa ; macro
-	ret
+    pusha ; macro
+    xor ah, ah
+    stc
+    int 0x13
+    jc floppy_error
+    lea si, [.disk_retry]
+    call puts
+    popa ; macro
+    ret
 .disk_retry db "Retry read", endl, 0
 
 floppy_error:
-	mov al, 4
-	int 0xff
+    mov al, 4
+    int 0xff
 
 error_kernel_not_found db " missing", endl, 0
 

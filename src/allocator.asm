@@ -90,6 +90,7 @@ main:
     int 0x21
 
     xor ah, ah
+    mov bl, 0x7
     int 0x21
     call free
 

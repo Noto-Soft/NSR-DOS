@@ -21,7 +21,7 @@ db 20 dup(0)
 ;==============================================================================
 
 msg:
-	db "Hello, world!", endl
+    db "Hello, world!", endl
 msg_len = $-msg
 
 ;==============================================================================
@@ -29,15 +29,15 @@ msg_len = $-msg
 ;==============================================================================
 
 start:
-	mov ax, cs
-	mov ds, ax
-	mov es, ax
+    mov ax, cs
+    mov ds, ax
+    mov es, ax
 
 main:
-	mov ah, 0x3
-	mov bl, 0x7
-	mov cx, msg_len
-	lea si, [msg]
-	int 0x21
+    mov ah, 0x3
+    mov bl, 0x7
+    mov cx, msg_len
+    lea si, [msg]
+    int 0x21
 
-	retf
+    retf
