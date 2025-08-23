@@ -473,6 +473,12 @@ dir:
     mov ah, 0x14
     int 0x21
 
+    inc bp
+    cmp bp, 25
+    jne .L1
+    xor ah, ah
+    int 0x16
+.L1:
     xor ah, ah
     mov bl, 0xf
     lea si, [msg_sectors_used]
@@ -491,8 +497,20 @@ dir:
 
     mov ah, 0x14
     int 0x21
+    inc bp
+    cmp bp, 25
+    jne .L2
+    xor ah, ah
+    int 0x16
+    mov ah, 0x14
+.L2:
     int 0x21
-
+    inc bp
+    cmp bp, 25
+    jne .L3
+    xor ah, ah
+    int 0x16
+.L3:
     popa ; macro
     jmp line
 

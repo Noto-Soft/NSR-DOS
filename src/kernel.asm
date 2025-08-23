@@ -23,7 +23,7 @@ db "(c) 2025 Notosoft Solutions", 0
 ; Constants and variables
 ;==============================================================================
 
-nsr_dos db "nsrdos", 0
+nsr_dos db "nsrDOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
@@ -1214,7 +1214,6 @@ macro route index, handler {
     jne @f
     call handler
     jmp .done
-    db `index
 @@:
 }
 
