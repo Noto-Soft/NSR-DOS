@@ -1,0 +1,11 @@
+Notosoft PC Speaker Music Format (NSPSMF)
+Music is stored in .spk files
+
+The file is filled with a contiguous list of "entries" which are 7 bytes long
+
+Each entry is a special byte that's usually 0, word for the rounded frequency of the note, and then a dword of how long to play it (in microseconds) before going to the next entry.
+If the special byte is 0, the note is played like normal.
+If the special byte is 1, it turns off the pc speaker. (Before setting the frequency)
+If the special byte is 2, it turns on the pc speaker. (After setting the frequency)
+If the special byte is 3, it marks the end of the song. The PC speaker is automatically turned off.
+If the special byte is 4, the frequency is not set but the delay still runs.

@@ -3,11 +3,14 @@
 SAVE_TEMPS=false
 JUST_TEST=false
 NO_TEST=false
+WINDOWS=false
 for arg in "$@"; do
 	if [ "$arg" = "-save-temps" ]; then
 		SAVE_TEMPS=true
 	elif [ "$arg" = "-t" ]; then
 		JUST_TEST=true
+	elif [ "$arg" = "-w" ]; then
+		WINDOWS=true
 	elif [ "$arg" = "-n" ]; then
 		NO_TEST=true
 	fi
@@ -68,6 +71,7 @@ if [ "$JUST_TEST" = false ]; then
 	fasm src/chkhdr.asm build/chkhdr.exe
 	cat build/boot.bin >> build/chkhdr.exe
 	fasm src/shell.asm build/shell.exe
+	fasm src/music.asm build/music.exe
 
 	python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 	add_to_disk nsr-dos.img \
@@ -77,7 +81,9 @@ if [ "$JUST_TEST" = false ]; then
 		build/helloworld.exe \
 		build/allocator.exe \
 		build/shell.exe \
-		build/chkhdr.exe
+		build/chkhdr.exe \
+		build/music.exe \
+		$(find assets/speaker_music -type f)
 	truncate -s 1440k nsr-dos.img
 
 	cp assets/images/preconverted/* build/bitmaps
@@ -96,13 +102,21 @@ if [ "$JUST_TEST" = false ]; then
 fi
 
 if [ "$NO_TEST" = false ]; then
-	qemu-system-i386 \
-		-monitor stdio \
-		-cpu 486 \
-		-m 8M \
-		-drive file=nsr-dos.img,if=floppy,format=raw \
-		-drive file=disk-2.img,if=floppy,format=raw \
-		# -machine pcspk-audiodev=spk \
-		# -audiodev alsa,id=spk \
-		
+	if [ "$WINDOWS" = true ]; then
+		qemu-system-i386.exe \
+			-drive file=A:/Noto-Soft/NSR-DOS/nsr-dos.img,if=floppy,format=raw \
+			-machine pcspk-audiodev=spk \
+			-audiodev sdl,id=spk \
+			
+	else
+		qemu-system-i386 \
+			-monitor stdio \
+			-cpu 486 \
+			-m 8M \
+			-drive file=nsr-dos.img,if=floppy,format=raw \
+			-drive file=disk-2.img,if=floppy,format=raw \
+			-machine pcspk-audiodev=spk \
+			-audiodev alsa,id=spk \
+
+	fi
 fi
