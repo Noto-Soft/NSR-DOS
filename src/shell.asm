@@ -585,7 +585,15 @@ render_directories:
     jne .not_bmp
     and bl, 0xf0
     or bl, 0x5
+    jmp .after_checks
 .not_bmp:
+    cmp word [si], "SP"
+    jne .not_spk
+    cmp word [si+2], "K"
+    jne .not_spk
+    and bl, 0xf0
+    or bl, 0x9
+.not_spk:
 .after_checks:
     pop si
     dec cx

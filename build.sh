@@ -105,6 +105,7 @@ if [ "$NO_TEST" = false ]; then
 	if [ "$WINDOWS" = true ]; then
 		qemu-system-i386.exe \
 			-drive file=A:/Noto-Soft/NSR-DOS/nsr-dos.img,if=floppy,format=raw \
+			-drive file=disk-2.img,if=floppy,format=raw \
 			-machine pcspk-audiodev=spk \
 			-audiodev sdl,id=spk \
 			
