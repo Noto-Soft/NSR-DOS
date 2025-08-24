@@ -10,7 +10,7 @@ NOTE_OFFSETS = {
 def note_name_to_midi(note_name: str) -> int:
     note_name = note_name.upper()
     if len(note_name) < 2:
-        raise ValueError("Invalid note name")
+        raise ValueError("Invalid note name: " + note_name)
     if note_name[1] in ("#", "B"):
         letter = note_name[:2]
         octave = int(note_name[2:])
@@ -28,7 +28,7 @@ def write_entry(f, special, freq, delay):
 
 def parse_note(note_str: str) -> int:
     note_str = note_str.strip()
-    if note_str.isdigit():
+    if note_str.isdigit():  # decimal midi number
         return int(note_str)
     else:
         return note_name_to_midi(note_str)
@@ -41,7 +41,6 @@ def process_line(line, us_per_beat, speaker_on):
     if not parts:
         return None, None, None, speaker_on
 
-    # Detect prefix
     if len(parts) == 3:
         prefix, note_str, beats = parts
         prefix = prefix.upper()
@@ -53,27 +52,29 @@ def process_line(line, us_per_beat, speaker_on):
     beats = float(beats)
     delay = int(us_per_beat * beats)
 
-    # Handle rests
+    # --- REST (just delay, don’t touch speaker state) ---
     if note_str.lower() == "rest":
-        if speaker_on:
-            return 1, 0, delay, False  # speaker off
-        else:
-            return 4, 0, delay, False  # delay only
+        return 4, 0, delay, speaker_on
 
-    # Parse note
+    # --- OFF (turn off speaker for duration) ---
+    if prefix == "OFF":
+        # First turn speaker off immediately
+        if speaker_on:
+            return [(1, 0, 0), (4, 0, delay)], 0, 0, False
+        else:
+            return (4, 0, delay, False)  # already off, just delay
+
+
+    # --- Parse actual note ---
     midi_note = parse_note(note_str)
     freq = midi_note_to_freq(midi_note)
 
-    # Determine special byte
     if prefix == "ON":
         return 2, freq, delay, True
-    elif prefix == "OFF":
-        return 1, freq, delay, False
     else:
         if not speaker_on:
-            return 2, freq, delay, True
-        else:
-            return 0, freq, delay, speaker_on
+            raise ValueError("Bare note given while speaker is off: " + line)
+        return 0, freq, delay, speaker_on  # continue with speaker on
 
 def main():
     print("NSPSMF Tracker with optional input file")
@@ -115,8 +116,8 @@ def main():
 
     # Ensure speaker off and end-of-song
     if speaker_on:
-        entries.append((1, 0, 0))
-    entries.append((3, 0, 0))
+        entries.append((1, 0, 0))  # force off
+    entries.append((3, 0, 0))      # end marker
 
     # Write SPK file
     with open(out_file, "wb") as f:

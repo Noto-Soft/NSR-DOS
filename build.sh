@@ -83,7 +83,7 @@ if [ "$JUST_TEST" = false ]; then
 		build/shell.exe \
 		build/chkhdr.exe \
 		build/music.exe \
-		$(find assets/speaker_music -type f)
+		$(find assets/speaker_music -maxdepth 1 -type f)
 	truncate -s 1440k nsr-dos.img
 
 	cp assets/images/preconverted/* build/bitmaps
