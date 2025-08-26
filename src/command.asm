@@ -50,6 +50,8 @@ str_cmds db "cmds", 0
     db 0x1, "List available commands and their functions", endl, 0
 str_reboot db "reboot", 0
     db 0x1, "Reboots the system", endl, 0
+str_throw db "throw", 0
+    db 0x1, "Throws specified error (hex code)", 0
 str_ttyc db "tty/c", 0
     db 0x1, "Set the tty mode to VGA", endl, 0
 str_ttys db "tty/s", 0
@@ -149,6 +151,12 @@ line_done:
     call strcmp_until_delimiter
     or al, al
     jz echo
+
+    lea di, [str_throw]
+    mov bl, " "
+    call strcmp_until_delimiter
+    or al, al
+    jz throw
 
     lea di, [str_help]
     call strcmp
@@ -346,6 +354,58 @@ case_down:
     pop ax
     ret
 
+hex2byte:
+    push si
+    push bx
+    xor bx, bx
+    lodsb
+    call .hex_nibble
+    jc .error
+    shl al, 4
+    mov bl, al
+    lodsb
+    call .hex_nibble
+    jc .error
+    or bl, al
+    mov al, bl
+    pop bx
+    pop si
+    ret
+.error:
+    xor al, al
+    pop bx
+    pop si
+    ret
+.hex_nibble:
+    cmp al, '0'
+    jb .bad
+    cmp al, '9'
+    jbe .digit
+    cmp al, 'A'
+    jb .check_lower
+    cmp al, 'F'
+    jbe .upper
+    jmp .check_lower
+.check_lower:
+    cmp al, 'a'
+    jb .bad
+    cmp al, 'f'
+    ja .bad
+    sub al, 'a' - 10
+    clc
+    ret
+.digit:
+    sub al, '0'
+    clc
+    ret
+.upper:
+    sub al, 'A' - 10
+    clc
+    ret
+.bad:
+    stc
+    ret
+
 ;==============================================================================
 ; Misc routines
 ;==============================================================================
@@ -378,6 +438,11 @@ find_zero:
 ;==============================================================================
 ; Command routines
 ;==============================================================================
+
+throw:
+    add si, 6
+    call hex2byte
+    int 0xff
 
 cls:
     mov ah, 0x10

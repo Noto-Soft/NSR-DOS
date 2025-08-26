@@ -137,7 +137,35 @@ main:
     je .pallete4
     cmp al, "M"
     je .monochrome
+	cmp al, "T"
+	je .pallete2
     jmp .done
+.pallete2:
+	add si, 6
+	mov ah, 0x12
+    mov al, 0x0
+    mov bx, [si]
+    mov cl, [si+2]
+    int 0x21
+    add si, 3
+    mov al, 0x1
+    mov bx, [si]
+    mov cl, [si+2]
+    int 0x21
+    add si, 3
+	mov ah, 0x12
+    mov al, 0x2
+    mov bx, [si]
+    mov cl, [si+2]
+    int 0x21
+    add si, 3
+    mov al, 0x3
+    mov bx, [si]
+    mov cl, [si+2]
+    int 0x21
+    add si, 3
+	call draw_fullscreen_2bpp_bmp
+	jmp .finally_done
 .check_legacy_headers:
     cmp ax, "BM"
     je .gotData
@@ -328,6 +356,37 @@ draw_fullscreen_4bpp_bmp:
     mov [fs:0xa0000+ebp], al
     inc bx
     inc ebp
+    cmp bx, cx
+    jb .loop
+
+    pop ebp
+    pop cx
+    pop bx
+    pop ax
+    ret	
+
+; ds:si - bitmap data
+draw_fullscreen_2bpp_bmp:
+    push ax
+    push bx
+    push cx
+    push ebp
+
+    xor bx, bx
+    xor ebp, ebp
+    mov cx, 320*(200/4)
+.loop:
+    mov al, [si+bx]
+rept 4 {
+    push ax
+    rol al, 2
+    and al, 0x3
+    mov [fs:0xa0000+ebp], al
+    pop ax
+    shl al, 2
+    inc ebp
+}
+	inc bx
     cmp bx, cx
     jb .loop
 

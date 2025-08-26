@@ -47,6 +47,13 @@ convert_images() {
         filename=$(basename "$file")
         python3 tools/bmp_to_nsbmp.py "$file" "$output_dir/$filename" -m
     done
+
+	input_dir="assets/images/convert2bpp"
+
+    for file in "$input_dir"/*.bmp; do
+        filename=$(basename "$file")
+        python3 tools/bmp_to_nsbmp.py "$file" "$output_dir/$filename" -t
+    done
 }
 
 catza() {
