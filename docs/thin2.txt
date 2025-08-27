@@ -1,0 +1,43 @@
+disk layout ------------
+[Boot sector] | 1
+[Info sector (includes info about the filesystem)] | 1
+[Root directory entries] | 64 sectors at max (32kb)
+[Data sectors] | rest of disk
+info sector layout -----
+2 free bytes, can fit a short jump in here to possibly extend the boot sector
+11 bytes padded by spaces representing the name of the filesystem
+byte representing amount of root directory entry sectors
+word for the lba of the kernel
+byte for the kernel length in sectors
+entry sectors layout ---
+each entry comes right after another
+entry layout -----------
+FLAGS byte
+[if file flag is set]
+word for the lba of the file
+byte for the length in sectors
+32 byte filename padded with zeros
+then a zero, just in case the filename took up the whole 32 bytes.
+[if directory flag is set]
+word for the lba of the directory's entry sectors
+byte for the length in sectors
+32 byte directory name padded with zeros
+then a zero, just in case the filename took up the whole 32 bytes.
+[if jump flag is set]
+word for the lba to jump to, 0 if none
+the 34 bytes to align to entry size are actually not necessary because the jump will stop the reading from this point
+this should be put at the end of entry sectors just to make sure that they can be continued in a different place
+------------------------
+data sectors contain both file data and directory entry sectors
+------------------------
+flag byte layout ---------
+from left to right
+xxxxPTTE
+x - saved for expansions
+TT - 2 bit number representing type
+    00 - file
+    01 - directory
+    10 - jump
+    11 - saved for expansions
+E - executable
+P - preserved (cannot be deleted by user [well it can but it requires programming eugh])
