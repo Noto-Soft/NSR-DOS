@@ -79,6 +79,7 @@ if [ "$JUST_TEST" = false ]; then
 	cat build/boot.bin >> build/chkhdr.exe
 	fasm src/shell.asm build/shell.exe
 	fasm src/music.asm build/music.exe
+	fasm src/keystrk.asm build/keystrk.exe
 
 	python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 	add_to_disk nsr-dos.img \
@@ -89,6 +90,7 @@ if [ "$JUST_TEST" = false ]; then
 		build/allocator.exe \
 		build/shell.exe \
 		build/chkhdr.exe \
+		build/keystrk.exe \
 		build/music.exe \
 		$(find assets/speaker_music -maxdepth 1 -type f) \
 		assets/text/semi.txt

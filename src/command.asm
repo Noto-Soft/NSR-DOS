@@ -113,6 +113,10 @@ line:
     mov ah, 0x1
     mov bl, 0xf
     int 0x21
+    mov al, " "
+    int 0x21
+    mov al, 0x8
+    int 0x21
     dec di
     mov byte [di], 0
     jmp .loop

@@ -361,8 +361,6 @@ write_character_memory:
     jmp .done
 .backspace:
     dec dl
-    mov al, " "
-    call set_char
     jmp .done
 .done:
     call set_cursor_mem

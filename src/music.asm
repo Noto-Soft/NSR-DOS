@@ -78,6 +78,10 @@ main:
     mov al, 0x8
     mov bl, 0xf
     int 0x21
+    mov al, " "
+    int 0x21
+    mov al, 0x8
+    int 0x21
     pop bx
     mov byte [di+bx], 0
     dec bx
