@@ -80,6 +80,7 @@ if [ "$JUST_TEST" = false ]; then
 	fasm src/shell.asm build/shell.exe
 	fasm src/music.asm build/music.exe
 	fasm src/keystrk.asm build/keystrk.exe
+	fasm src/shapez.asm build/shapez.exe
 
 	python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 	add_to_disk nsr-dos.img \
@@ -91,6 +92,7 @@ if [ "$JUST_TEST" = false ]; then
 		build/shell.exe \
 		build/chkhdr.exe \
 		build/keystrk.exe \
+		build/shapez.exe \
 		build/music.exe \
 		$(find assets/speaker_music -maxdepth 1 -type f) \
 		assets/text/semi.txt
@@ -126,8 +128,8 @@ if [ "$NO_TEST" = false ]; then
 			-m 8M \
 			-drive file=nsr-dos.img,if=floppy,format=raw \
 			-drive file=disk-2.img,if=floppy,format=raw \
-			-machine pcspk-audiodev=spk \
-			-audiodev alsa,id=spk \
+			#-machine pcspk-audiodev=spk \
+			#-audiodev alsa,id=spk \
 
 	fi
 fi

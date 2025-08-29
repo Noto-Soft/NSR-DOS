@@ -105,7 +105,7 @@ Sets text mode output mode (VGA/Serial)
 al - mode number (write_mode.inc)
 
 check_vga---------------
-Returns a 0 in al if a vga card is installed
+Returns a 0 in al if a vga card is installed (not really needed anymore and will be phased out by 0.99)
 returns:
      al - vga card available?
 

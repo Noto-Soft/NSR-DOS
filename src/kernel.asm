@@ -232,28 +232,6 @@ get_mem_pos:
     shl di, 1
     ret
 
-set_char:
-    push es
-
-    push dx
-    push di
-
-    push ax
-    mov ax, 0xb800
-    mov es, ax
-    pop ax
-
-    call get_mem_pos
-
-    mov [es:di], al
-    mov [es:di+1], bl
-
-    pop di
-    pop dx
-
-    pop es
-    ret
-
 set_cursor:
     push ax
     push bx
@@ -329,7 +307,14 @@ write_character_memory:
 
     call scroll_if_need_be
 
-    call set_char
+    push edi
+
+    call get_mem_pos
+    
+    mov [fs:0xb8000+edi], al
+    mov [fs:0xb8000+edi+1], bl
+
+    pop edi
 
     inc dl
     cmp dl, 80

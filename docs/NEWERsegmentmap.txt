@@ -8,7 +8,7 @@ TO MINIMIZE CONFUZZLEMENT: The segment map is now in linear addresses
 0x00000000-0x0000ffff: ivt, bda, filesystem (always at 0x00800)
 0x00010000-0x0001ffff: kernel process (*.sys files)
 ----------   FREE   ----------
-0x00020000-0x0002ffff: free segment A (usually for programs)
+0x00020000-0x0002ffff: free segment A [STANDARD PROGRAM STARTING POINT]
 0x00030000-0x0003ffff: free segment B (usually for file loading)
 0x00040000-0x0004ffff: free segment C (use for whatever)
 0x00050000-0x0005ffff: free segment D (use for whatever)
