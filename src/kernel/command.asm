@@ -66,6 +66,8 @@ error_not_file db "File does not exist", endl, 0
 error_drive_missing db "Disk is not inserted into the drive", endl, 0
 error_invalid_executable db "Invalid executable file.", endl, 0
 
+start_point dd ?
+
 buffer db 56 dup(0)
 BUFFER_END = $
     ; allow some extra space for .exe autofill
@@ -135,77 +137,77 @@ line_done:
 
     lea di, [str_dir]
     call strcmp
-    or al, al
+    test al, al
     jz dir
 
     lea di, [str_type]
     mov bl, " "
     call strcmp_until_delimiter
-    or al, al
+    test al, al
     jz type
 
     lea di, [str_del]
     mov bl, " "
     call strcmp_until_delimiter
-    or al, al
+    test al, al
     jz del
 
     lea di, [str_echo]
     mov bl, " "
     call strcmp_until_delimiter
-    or al, al
+    test al, al
     jz echo
 
     lea di, [str_throw]
     mov bl, " "
     call strcmp_until_delimiter
-    or al, al
+    test al, al
     jz throw
 
     lea di, [str_help]
     call strcmp
-    or al, al
+    test al, al
     jz help
     lea di, [str_cmds]
     call strcmp
-    or al, al
+    test al, al
     jz help
 
     lea di, [str_cls]
     call strcmp
-    or al, al
+    test al, al
     jz cls
 
     lea di, [str_beep]
     call strcmp
-    or al, al
+    test al, al
     jz beep
 
     lea di, [str_a]
     call strcmp
-    or al, al
+    test al, al
     jz a
 
     lea di, [str_b]
     call strcmp
-    or al, al
+    test al, al
     jz b
 
     lea di, [str_reboot]
     call strcmp
-    or al, al
+    test al, al
     jnz .what
     jmp 0xffff:0x0000
 .what:
 
     lea di, [str_ttyc]
     call strcmp
-    or al, al
+    test al, al
     jz ttyc
 
     lea di, [str_ttys]
     call strcmp
-    or al, al
+    test al, al
     jz ttys
 
     pop di
@@ -677,112 +679,62 @@ echo:
     jmp line
 
 exec:
-    mov ah, 0x7
-    int 0x21
-    test di, di
-    jz .check_autofill
-    push ax
-    push si
-    call find_zero
-    sub si, 5
-    mov ax, [si]
-    cmp ax, ".E"
-    jne .unknown_format_a
-    mov ax, [si+2]
-    cmp ax, "XE"
-    jne .unknown_format_a
-    pop si
-    pop ax
-.after_autofill_check:
-    mov dl, [drive]
-    lea bx, [0x2000]
+    xor bp, bp
+    jmp .anyways
+.loop:
+    mov bp, 0x1
+.anyways:
     mov ax, cs
-    cmp bx, ax
-    jne .after_error
-    mov al, 1
+    mov bx, 0x2000
+    cmp ax, bx
+    mov bx, 0x2000
+    cmp ax, bx
+    jne .c1
+    mov al, 0x4
     int 0xff
-.after_error:
-    xor ah, ah
-    int 0x24
-    mov ah, 0x8
-    mov es, bx
-    xor bx, bx
+.c1:
+    mov ah, 0x15
+    mov dl, [drive]
     int 0x21
-
-    call .get_starting_point
-    pusha ; macro
+    cmp al, 0x1
+    jne .c2
+    test bp, bp
+    jz .check_autofill
+    jmp .e1
+.c2:
+    cmp al, 0x2
+    je .e2
+    test al, al
+    jnz .e1
+    mov word [start_point], bx
+    mov word [start_point+2], cx
     push ds
     push es
-    mov dl, [drive]
-    lea bx, [.after]
-    push cs
-    push bx
-    push es
-    push ax
-    retf
-.after:
+    call far [start_point]
     pop es
     pop ds
 
-    popa
-    jmp .done
-.not_exist:
-    mov ax, cs
-    mov ds, ax
-    
+    jmp line
+.check_autofill:
+    push si
+    call find_zero
+    dec si
+    mov dword [si], ".EXE"
+    mov byte [si+4], 0
+    pop si
+    jmp .loop
+.e1:
     xor ah, ah
     mov bl, 0x4
     lea si, [error_not_command_or_file]
     int 0x21
-.done:
-    mov ax, cs
-    mov ds, ax
-    mov es, ax
-
     jmp line
-.unknown_format_a:
-    pop si
-    pop ax
-.unknown_format:
-    mov ax, cs
-    mov ds, ax
-
+.e2:
     xor ah, ah
     mov bl, 0x4
     lea si, [error_invalid_executable]
     int 0x21
-
-    jmp .done
-.check_autofill:
-    push si
-.find_terminator_loop:
-    inc si
-    cmp byte [si-1], 0
-    jne .find_terminator_loop
-    mov word [si-1], ".E"
-    mov word [si+1], "XE"
-    pop si
-
-    mov ah, 0x7
-    int 0x21
-    test di, di
-    jz .not_exist
-
-    jmp .after_autofill_check
-.get_starting_point:
-    mov ax, [es:0x0]
-    cmp ax, "AD"
-    jne .check_es
-    mov al, [es:0x2]
-    cmp al, 0x2
-    jne .unknown_format
-    mov ax, [es:0x4]
-    ret
-.check_es:
-    cmp ax, "ES"
-    jne .unknown_format
-    mov ax, [es:0x2]
-    ret
+    jmp line
 
 type:
     pusha ; macro

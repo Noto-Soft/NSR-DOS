@@ -86,7 +86,7 @@ main:
     lea di, [0x800]
 .locate_kernel_loop:
     mov al, [di]
-    or al, al
+    test al, al
     ; end of entries
     jz .not_found
     add di, 4
@@ -136,7 +136,7 @@ puts:
     cld
 .loop:
     lodsb
-    or al, al
+    test al, al
     jz .done
     int 0x10
     jmp .loop

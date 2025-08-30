@@ -61,26 +61,51 @@ catza() {
 	printf '\0'
 }
 
+assemble() {
+    while [ $# -gt 0 ]; do
+        infile="$1"
+        shift
+        outfile=""
+
+        # Default extension is .exe
+        ext=".exe"
+
+        # If next arg starts with "-e", override extension
+        if [ $# -gt 0 ] && [[ "$1" =~ ^-e ]]; then
+            ext=".${1#-e}"
+            shift
+        fi
+
+        # Build output path
+        base=$(basename "$infile" .asm)
+        outfile="build/$base$ext"
+
+        fasm "$infile" "$outfile"
+    done
+}
+
 if [ "$JUST_TEST" = false ]; then
 	mkdir -p build
 	mkdir -p build/bitmaps
 
-	fasm src/boot.asm build/boot.bin
-	fasm src/kernel.asm build/kernel.sys
+	assemble \
+		src/bootloader/boot.asm -ebin \
+		src/kernel/kernel.asm -esys \
+		src/kernel/command.asm -esys \
+		src/kernel/unreal.asm -esys \
+		src/misc/helloworld.asm \
+		src/misc/graphix.asm \
+		src/misc/basic.asm \
+		src/misc/allocator.asm \
+		src/misc/chkhdr.asm \
+		src/misc/shell.asm \
+		src/misc/music.asm \
+		src/misc/keystrk.asm \
+		src/misc/shapez.asm
+
 	catza assets/text/boot/logo.txt >> build/kernel.sys
 	catza assets/text/boot/text.txt >> build/kernel.sys
-	fasm src/command.asm build/command.sys
-	fasm src/unreal.asm build/unreal.sys
-	fasm src/helloworld.asm build/helloworld.exe
-	fasm src/graphix.asm build/graphix.exe
-	fasm src/basic.asm build/basic.exe
-	fasm src/allocator.asm build/allocator.exe
-	fasm src/chkhdr.asm build/chkhdr.exe
 	cat build/boot.bin >> build/chkhdr.exe
-	fasm src/shell.asm build/shell.exe
-	fasm src/music.asm build/music.exe
-	fasm src/keystrk.asm build/keystrk.exe
-	fasm src/shapez.asm build/shapez.exe
 
 	python3 tools/thinfs.py createbootable nsr-dos.img build/boot.bin NSRDOS
 	add_to_disk nsr-dos.img \
@@ -128,8 +153,8 @@ if [ "$NO_TEST" = false ]; then
 			-m 8M \
 			-drive file=nsr-dos.img,if=floppy,format=raw \
 			-drive file=disk-2.img,if=floppy,format=raw \
-			#-machine pcspk-audiodev=spk \
-			#-audiodev alsa,id=spk \
+			-machine pcspk-audiodev=spk \
+			-audiodev alsa,id=spk \
 
 	fi
 fi

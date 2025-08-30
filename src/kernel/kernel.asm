@@ -46,6 +46,8 @@ high_mem dw ?
 random_seed_base dw 25173
 random_seed_offset dw 13849
 
+strating_pont dd ?
+
 ;==============================================================================
 ; Main program
 ;==============================================================================
@@ -137,55 +139,31 @@ macro patch num, handler, rcs {
     xor dl, dl
     call set_cursor
 
-    lea si, [unreal_sys]
-    call file_safe_get
-    test di, di
-    jz missing_command_exe
-    mov dl, [drive]
     mov bx, 0x1000
-    mov es, bx
-    xor bx, bx
-    call file_read_entry
-
-    mov ax, [es:0x0]
-    cmp ax, "ES"
-    mov ax, [es:0x2]
+    mov dl, [drive]
+    lea si, [unreal_sys]
+    call executable_load
+    test al, al
+    jnz missing_command_exe
+    mov word [strating_pont], bx
+    mov word [strating_pont+2], cx
     push ds
     push es
-    mov dl, [drive]
-    lea bx, [.unreal_sys_return]
-    push cs
-    push bx
-    push es
-    push ax
-    retf
-.unreal_sys_return:
+    call far [strating_pont]
     pop es
     pop ds
 
-    lea si, [command_exe]
-    call file_safe_get
-    test di, di
-    jz missing_command_exe
-    mov dl, [drive]
     mov bx, 0x1000
-    mov es, bx
-    xor bx, bx
-    call file_read_entry
-
-    mov ax, [es:0x0]
-    cmp ax, "ES"
-    mov ax, [es:0x2]
+    mov dl, [drive]
+    lea si, [command_exe]
+    call executable_load
+    test al, al
+    jnz missing_command_exe
+    mov word [strating_pont], bx
+    mov word [strating_pont+2], cx
     push ds
     push es
-    mov dl, [drive]
-    lea bx, [.command_exe_return]
-    push cs
-    push bx
-    push es
-    push ax
-    retf
-.command_exe_return:
+    call far [strating_pont]
     pop es
     pop ds
 
@@ -425,6 +403,8 @@ write_character_serial_help:
 write_character_serial:
     cmp al, 0x8
     je .backspace
+    cmp al, 0xa
+    je .newline
     call write_character_serial_help
     ret
 .backspace:
@@ -432,6 +412,11 @@ write_character_serial:
     mov al, " "
     call write_character_serial_help
     mov al, 0x8
+    call write_character_serial_help
+    ret
+.newline:
+    call write_character_serial_help
+    mov al, 0xd
     call write_character_serial_help
     ret
 
@@ -517,7 +502,7 @@ puts_attr:
     cld
 .loop:
     lodsb
-    or al, al
+    test al, al
     jz .done
     call write_character
     jmp .loop
@@ -532,7 +517,7 @@ putsfz_attr:
     cld
 .loop:
     lodsb
-    or al, al
+    test al, al
     jz .done
     call write_character
     jmp .loop
@@ -1081,6 +1066,55 @@ drive_switch:
     popa ; macro
     ret
 
+; bx - segment to load executable to (always offset 0)
+; dl - drive
+; ds:si - filename
+; returns:
+;   al - status byte (  0x0 - success
+;                       0x1 - file not exist
+;                       0x2 - invalid executable  )
+;   es:bx - segment:offset of program starting point
+executable_load:
+    push es
+    push dx
+    push ax
+    push di
+    call file_safe_get
+    test di, di
+    jz .err1
+    mov es, bx
+    xor bx, bx
+    call file_read_entry
+
+    mov ax, [es:0x0]
+    cmp ax, "ES"
+    jne .err2
+    mov bx, [es:0x2]
+    mov cx, es
+    pop di
+    xor dl, dl
+    pop ax
+    mov al, dl
+    pop dx
+    pop es
+    ret
+.err1:
+    pop di
+    mov dl, 0x1
+    pop ax
+    mov al, dl
+    pop dx
+    pop es
+    ret
+.err2:
+    pop di
+    mov dl, 0x2
+    pop ax
+    mov al, dl
+    pop dx
+    pop es
+    ret
+
 ;==============================================================================
 ; Memory routines
 ;==============================================================================
@@ -1222,6 +1256,7 @@ int21:
     route 0x12, set_pallete
     route 0x13, map_pallete
     route 0x14, newline
+    route 0x15, executable_load
 .done:
     iret
 

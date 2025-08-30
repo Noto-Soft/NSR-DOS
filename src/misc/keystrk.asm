@@ -50,7 +50,7 @@ forever:
 newline:
     mov ah, 0x14
     int 0x21
-    mov byte [es:di], 0xa
+    mov byte [es:di], endl
     inc di
     jmp forever
 

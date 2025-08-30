@@ -22,6 +22,7 @@ _______________________________________________________________________________
  21h  | 12h  | set_pallete
  21h  | 13h  | map_pallete
  21h  | 14h  | newline
+ 21h  | 15h  | executable_load
       |      |
  22h  | xxh  | disk_read
       |      |
@@ -159,3 +160,14 @@ that's literally all it does
 
 newline-----------------
 Same as printing a newline character, but faster!
+
+executable_load---------
+loads an executable and gets the starting point to call
+bx - segment to load executable to (always offset 0)
+dl - drive
+ds:si - filename
+returns:
+     al - status byte (  0x0 - success
+                         0x1 - file not exist
+                         0x2 - invalid executable )
+     cx:bx - segment:offset of program starting point
