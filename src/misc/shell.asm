@@ -21,7 +21,7 @@ db 20 dup(0)
 ; Constants and variables
 ;==============================================================================
 
-title: center_text "nsrDOS Shell 0.70"
+title: center_text "nsrDOS Shell 0.80"
 instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
@@ -44,6 +44,7 @@ largest_text db ?
 largest_size db ?
 last_dot dw ?
 last_cx dw ?
+starting_point dd ?
 
 title_color db 0x0e
 instruction_color db 0x07
@@ -178,12 +179,6 @@ set_drive:
 
 set_gold_if_available:
     push ax
-
-    mov ah, 0xf
-    int 0x21
-    test al, al
-    jz .dont_set_pallete
-
     push bx
     push cx
     mov ah, 0x12
@@ -283,40 +278,26 @@ run_file:
 
     call clear_free
 
-    push es
-
+    mov dl, [drive]
     push ds
     call filename_from_number
-    mov ah, 0x7
+    mov ah, 0x15
+    mov bx, 0x5000
     int 0x21
     pop ds
-    test di, di
-    jz crash_floppy_error
-    mov ah, 0x8
-    mov dl, [drive]
-    lea bx, [0x5000]
-    mov es, bx
-    xor bx, bx
-    int 0x21
+    cmp al, 0x1
+    je crash_floppy_error
+    test al, al
+    jnz crash_unknown_format
 
-    mov ax, [es:0x0]
-    cmp ax, "ES"
-    jne crash_unknown_format
-    mov ax, [es:0x2]
+    mov word [starting_point], bx
+    mov word [starting_point+2], cx
+
     push ds
     push es
-    mov dl, [drive]
-    lea bx, [.after]
-    push cs
-    push bx
-    push es
-    push ax
-    retf
-.after:
+    call far [starting_point]
     pop es
     pop ds
-
-    pop es
 
     call set_gold_if_available
 
@@ -347,17 +328,13 @@ read_file:
 
     push ds
     call filename_from_number
-    mov ah, 0x7
+    mov ah, 0x16
+    mov bx, 0x5000
+    mov dl, [drive]
     int 0x21
     pop ds
-    test di, di
-    jz crash_floppy_error
-    mov ah, 0x8
-    mov dl, [drive]
-    lea bx, [0x5000]
-    mov es, bx
-    xor bx, bx
-    int 0x21
+    test al, al
+    jnz crash_floppy_error
 
     push ds
     mov ax, es

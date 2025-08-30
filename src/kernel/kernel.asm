@@ -34,7 +34,6 @@ next_appendation dw l_end
 
 cursor dw ?
 drive db ?
-vga_installed db ?
 write_mode db ?
 high_mem dw ? 
 
@@ -55,16 +54,6 @@ start:
     mov [drive], dl
 
 main:
-    mov byte [vga_installed], 0
-
-    mov ax, 0x12
-    int 0x10
-    mov ah, 0xf
-    int 0x10
-    cmp al, 0x12
-    jne .vga_not_installed
-    mov byte [vga_installed], 1
-.vga_not_installed:
     mov ax, 0x3
     int 0x10
 
@@ -1055,7 +1044,6 @@ drive_switch:
 ;   es:bx - segment:offset of program starting point
 executable_load:
     push es
-    push dx
     push ax
     push di
     call file_safe_get
@@ -1071,27 +1059,48 @@ executable_load:
     mov bx, [es:0x2]
     mov cx, es
     pop di
-    xor dl, dl
     pop ax
-    mov al, dl
-    pop dx
+    xor al, al
     pop es
     ret
 .err1:
     pop di
-    mov dl, 0x1
     pop ax
-    mov al, dl
-    pop dx
+    mov al, 0x1
     pop es
     ret
 .err2:
     pop di
-    mov dl, 0x2
     pop ax
-    mov al, dl
-    pop dx
+    mov al, 0x2
     pop es
+    ret
+
+; bx - segment to load file to (always offset 0)
+; dl - drive
+; ds:si - filename
+; returns:
+;   al - status byte (  0x0 - success
+;                       0x1 - file not exist    )
+;   es:bx - segment:offset of start of file
+file_read:
+    push ax
+    push di
+    call file_safe_get
+    test di, di
+    jz .err1
+    mov es, bx
+    xor bx, bx
+    call file_read_entry
+
+    pop di
+    pop ax
+    xor al, al
+    ret
+.err1:
+    pop di
+    pop ax
+    mov al, 0x1
     ret
 
 ;==============================================================================
@@ -1122,16 +1131,6 @@ clear_free:
     pop cx
     pop bx
     pop ax
-    ret
-
-check_vga:
-    push bx
-    push es
-    mov bx, cs
-    mov es, bx
-    mov al, [es:vga_installed]
-    pop es
-    pop bx
     ret
 
 ;==============================================================================
@@ -1228,7 +1227,6 @@ int21:
     route 0xc, read_cursor
     route 0xd, print_decimal_cx
     route 0xe, set_mode
-    route 0xf, check_vga
 .set2:
     route 0x10, clear_scrn
     route 0x11, get_pallete
@@ -1236,6 +1234,7 @@ int21:
     route 0x13, map_pallete
     route 0x14, newline
     route 0x15, executable_load
+    route 0x16, file_read
 .done:
     iret
 
@@ -1291,18 +1290,6 @@ fatal_exception:
     call puts_attr
     call get_error_message_from_code
     call puts_attr
-
-    mov al, 0xb6
-    out 0x43, al
-
-    mov ax, 1193182 / 880
-    out 0x42, al
-    mov al, ah
-    out 0x42, al
-
-    in al, 0x61
-    or al, 3
-    out 0x61, al
 
     jmp $
 

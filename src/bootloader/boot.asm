@@ -44,11 +44,6 @@ unreal_init:
     or al, 2
     out 0x92, al
 
-    ; just in case the pc speaker is still enabled from a reboot or something
-    in al, 0x61
-    and al, not 3
-    out 0x61, al
-
     mov [drive], dl
 
     push es

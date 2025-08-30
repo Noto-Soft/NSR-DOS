@@ -29,35 +29,35 @@ msg_sectors_used db endl, "Kilobytes used: ", 0
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
 msg_insert_diskette2 db ", then press any key", endl, 0
 
-str_commands db endl, "List of commands:", endl, 0
+str_commands db "List of commands:", endl, 0
 str_a db "a:", 0
-    db 0x1, "Set drive to drive A: (drive #0)", endl, 0
+    db " - Set drive to drive A: (drive #0)", endl, 0
 str_b db "b:", 0
-    db 0x1, "Set drive to drive B: (drive #1)", endl, 0
+    db " - Set drive to drive B: (drive #1)", endl, 0
 str_beep db "beep", 0
-    db 0x1, "Tests int 26h (beep interrupt)", endl, 0
+    db " - Tests int 26h (beep interrupt)", endl, 0
 str_cls db "cls", 0
-    db 0x1, "Clear console output", endl, 0
-str_del db "del", 0
-    db 0x1, "Deletes a file from the disk directory", endl, 0
+    db " - Clear console output", endl, 0
+str_del db "del", 0, " <filename>"
+    db " - Deletes a file from the disk directory", endl, 0
 str_dir db "dir", 0
-    db 0x1, "List files on the disk directory", endl, 0
-str_echo db "echo", 0
-    db 0x1, "Repeats what the user wants (useless because there's no piping)", endl, 0
+    db " - List files on the disk directory", endl, 0
+str_echo db "echo", 0, " <input>"
+    db " - Repeats inputted text", endl, 0
 str_help db "help", 0
-    db 0x1, ", "
+    db ", "
 str_cmds db "cmds", 0
-    db 0x1, "List available commands and their functions", endl, 0
+    db " - List available commands and their functions", endl, 0
 str_reboot db "reboot", 0
-    db 0x1, "Reboots the system", endl, 0
-str_throw db "throw", 0
-    db 0x1, "Throws specified error (hex code)", 0
+    db " - Reboots the system", endl, 0
+str_throw db "throw", 0, " <errorcode>"
+    db " - Throws specified error (hex code)", endl, 0
 str_ttyc db "tty/c", 0
-    db 0x1, "Set the tty mode to VGA", endl, 0
+    db " - Set the tty mode to VGA", endl, 0
 str_ttys db "tty/s", 0
-    db 0x1, "Set the tty mode to serial", endl, 0
-str_type db "type", 0
-    db 0x1, "Read a file out to the console", endl, 0
+    db " - Set the tty mode to serial", endl, 0
+str_type db "type", 0, " <filename>"
+    db " - Read a file out to the console", endl, 0
 db endl, 0
 db 0
 
@@ -648,26 +648,17 @@ floppy_error:
     int 0xff
 
 help:
+    mov ah, 0x14
+    int 0x21
     mov ah, 0x4
     mov bl, 0xf
     lea si, [str_commands]
-.loop:
+.l1:
     int 0x21
     mov al, [si]
     test al, al
     jz line
-    cmp al, 0x1
-    je .line_up
-    jmp .loop
-.line_up:
-    mov ah, 0xc
-    int 0x21
-    mov dl, 8
-    mov ah, 0xb
-    int 0x21
-    inc si
-    mov ah, 0x4
-    jmp .loop
+    jmp .l1
 
 echo:
     add si, 5
@@ -679,6 +670,9 @@ echo:
     jmp line
 
 exec:
+    xor ah, ah
+    int 0x24
+
     xor bp, bp
     jmp .anyways
 .loop:
@@ -742,33 +736,26 @@ type:
     push ds
     push es
 
-    add si, 5
-    mov ah, 0x7
-    int 0x21
-    test di, di
-    jz .not_exist
     xor ah, ah
     int 0x24
-    mov ah, 0x8
+    add si, 5
+    mov ah, 0x16
+    mov bx, 0x3000
     mov dl, [drive]
-    lea bx, [0x3000]
-    mov es, bx
-    xor bx, bx
     int 0x21
+    test al, al
+    jnz .not_exist
 
     mov ax, es
     mov ds, ax
 
     xor ah, ah
     mov bl, 0xf
-    lea si, [0x0]
+    xor si, si
     int 0x21
 
     jmp .done
 .not_exist:
-    mov ax, cs
-    mov ds, ax
-    
     xor ah, ah
     mov bl, 0x4
     lea si, [error_not_file]

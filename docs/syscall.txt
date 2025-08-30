@@ -16,13 +16,14 @@ _______________________________________________________________________________
  21h  | 0ch  | read_cursor
  21h  | 0dh  | print_decimal_cx
  21h  | 0eh  | set_mode
- 21h  | 0fh  | check_vga
+ 21h  | 0fh  | REMOVED
  21h  | 10h  | clear_scrn
  21h  | 11h  | get_pallete
  21h  | 12h  | set_pallete
  21h  | 13h  | map_pallete
  21h  | 14h  | newline
  21h  | 15h  | executable_load
+ 21h  | 16h  | file_read
       |      |
  22h  | xxh  | disk_read
       |      |
@@ -171,3 +172,13 @@ returns:
                          0x1 - file not exist
                          0x2 - invalid executable )
      cx:bx - segment:offset of program starting point
+
+file_read---------------
+reads a file yeh basic stuff
+bx - segment to load file to (always offset 0)
+dl - drive
+ds:si - filename
+returns:
+     al - status byte (  0x0 - success
+                         0x1 - file not exist     )
+     es:bx - segment:offset of start of file

@@ -1,5 +1,2 @@
 Notosoft rDOS
-Version 0.98
-
-(c) 2025 Notosoft Solutions
-
+Version 0.99 (c) 2025 Notosoft Solutions
