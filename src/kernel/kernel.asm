@@ -25,11 +25,6 @@ nsr_dos db "nsrDOS", 0
 fatal_exception_msg db endl, endl, "A fatal exception ", 0
 fatal_exception_part_2 db " has occured", endl, 0
 
-msg_patching_ivt db "Patching IVT...", 0
-msg_ivt_patched db "IVT patched!", endl, 0
-msg_init_serial db "Initializing serial port...", 0
-msg_serial_init db "Serial port initialized!", endl, 0
-
 vga_check db "Do you have a VGA card installed? [Y/n]", endl, 0
 
 command_exe db "COMMAND.SYS", 0
@@ -95,10 +90,6 @@ macro patch num, handler, rcs {
     mov word [es:num*4+2], rcs
 }
 
-    mov bl, 0xf
-    lea si, [msg_patching_ivt]
-    call puts_attr
-
     push es
     xor ax, ax
     mov es, ax
@@ -114,19 +105,7 @@ macro patch num, handler, rcs {
     patch 0xff, intff, ax
     pop es
 
-    mov bl, 0xa
-    lea si, [msg_ivt_patched]
-    call puts_attr
-
-    mov bl, 0xf
-    lea si, [msg_init_serial]
-    call puts_attr
-
     call init_serial
-
-    mov bl, 0xa
-    lea si, [msg_serial_init]
-    call puts_attr
 
     xor ah, ah
     int 0x1a

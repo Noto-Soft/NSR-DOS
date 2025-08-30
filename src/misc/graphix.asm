@@ -47,16 +47,6 @@ start:
     mov [pre_stack], sp
 
 main:
-    mov ah, 0xf
-    int 0x21
-    test al, al
-    jnz .prompt_filename
-    xor ah, ah
-    mov bl, 0x4
-    lea si, [err_vga_not_installed]
-    int 0x21
-    jmp .cancel
-.prompt_filename:
     xor ah, ah
     mov bl, 0x3
     lea si, [msg_choose_image]
@@ -261,7 +251,7 @@ main:
     mov bl, 0x4
     lea si, [msg_image_doesnt_exist]
     int 0x21
-.cancel:
+    
     mov sp, [pre_stack]
     retf
 

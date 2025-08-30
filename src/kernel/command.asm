@@ -24,7 +24,7 @@ db 20 dup(0)
 drive db ?
 
 msg_directory_of db "Directory of drive ", 0
-msg_command db "A:\>", 0
+msg_command db "A:/>", 0
 msg_sectors_used db endl, "Kilobytes used: ", 0
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
 msg_insert_diskette2 db ", then press any key", endl, 0
