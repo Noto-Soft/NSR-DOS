@@ -8,6 +8,7 @@ org 0x0
 endl equ 0xa
 include "src/inc/8086.inc"
 include "src/inc/write_mode.inc"
+include "src/inc/kerneldata.inc"
 
 ;==============================================================================
 ; Executable header
@@ -36,11 +37,11 @@ cursor dw ?
 drive db ?
 write_mode db ?
 high_mem dw ? 
-
-random_seed_base dw 25173
-random_seed_offset dw 13849
-
 strating_pont dd ?
+random_seed_base dw ?
+random_seed_offset dw ?
+
+initial_cursor_shape = 0x000f
 
 ;==============================================================================
 ; Main program
@@ -57,6 +58,9 @@ main:
     mov ax, 0x3
     int 0x10
 
+    mov [fs:cursor_shape], initial_cursor_shape
+    call enable_cursor
+
     mov bl, 0xf
     call clear_scrn_help
 
@@ -70,7 +74,6 @@ main:
 
     mov bl, 0xf
     mov si, [next_appendation]
-    call putsfz_attr
     call putsfz_attr
     mov [next_appendation], si
 
@@ -320,6 +323,44 @@ clear_scrn_help:
     
     pop edi
     pop dx
+    pop cx
+    ret
+
+set_cursor_shape:
+    push dx
+    push ax
+
+    mov dx, 0x3d4
+    mov al, 0xa
+    out dx, al
+
+    inc dx
+    mov al, ch
+    out dx, al
+
+    dec dx
+    mov al, 0xb
+    out dx, al
+
+    inc dx
+    mov al, cl
+    out dx, al
+
+    pop ax
+    pop dx
+    ret
+
+enable_cursor:
+    push cx
+    mov cx, [fs:cursor_shape]
+    call set_cursor_shape
+    pop cx
+    ret
+
+disable_cursor:
+    push cx
+    mov cx, 0x3f00
+    call set_cursor_shape
     pop cx
     ret
 
@@ -1235,6 +1276,8 @@ int21:
     route 0x14, newline
     route 0x15, executable_load
     route 0x16, file_read
+    route 0x17, enable_cursor
+    route 0x18, disable_cursor
 .done:
     iret
 

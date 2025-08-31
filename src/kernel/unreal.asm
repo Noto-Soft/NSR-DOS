@@ -7,6 +7,7 @@ org 0x0
 
 endl equ 0xa
 include "src/inc/8086.inc"
+include "src/inc/kerneldata.inc"
 
 ;==============================================================================
 ; Executable header
@@ -47,7 +48,7 @@ main:
     jnz .cx_has_mem
     mov cx, ax
 .cx_has_mem:
-    mov [fs:0x8f000], cx
+    mov [fs:highmem_amount], cx
 
     push cx
     mov ah, 0xd

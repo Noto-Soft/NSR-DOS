@@ -24,6 +24,8 @@ _______________________________________________________________________________
  21h  | 14h  | newline
  21h  | 15h  | executable_load
  21h  | 16h  | file_read
+ 21h  | 17h  | enable_cursor
+ 21h  | 18h  | disable_cursor
       |      |
  22h  | xxh  | disk_read
       |      |
@@ -182,3 +184,9 @@ returns:
      al - status byte (  0x0 - success
                          0x1 - file not exist     )
      es:bx - segment:offset of start of file
+
+enable_cursor-----------
+sets the cursor automatically to the cursor shape word located at 0x8f002
+
+disable_cursor----------
+disables the cursor

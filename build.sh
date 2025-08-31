@@ -103,7 +103,6 @@ if [ "$JUST_TEST" = false ]; then
 		src/misc/keystrk.asm \
 		src/misc/shapez.asm
 
-	catza assets/text/boot/logo.txt >> build/kernel.sys
 	catza assets/text/boot/text.txt >> build/kernel.sys
 	cat build/boot.bin >> build/chkhdr.exe
 

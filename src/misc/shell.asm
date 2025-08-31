@@ -65,9 +65,8 @@ start:
     mov [sp_save], sp
 
 main:
-    mov ah, 0x1
-    mov ch, 0x3f
-    int 0x10
+    mov ah, 0x18
+    int 0x21
 
     call set_gold_if_available
     mov word [selected], 1
@@ -133,9 +132,8 @@ main:
     mov bl, 0xf
     int 0x21
 
-    mov ah, 0x1
-    mov cx, 0x0607
-    int 0x10
+    mov ah, 0x17
+    int 0x21
 
     retf
 
@@ -144,9 +142,8 @@ set_drive:
     mov bl, 0xf
     int 0x21
 
-    mov ah, 0x1
-    mov cx, 0x0607
-    int 0x10
+    mov ah, 0x17
+    int 0x21
 
     mov byte [largest_text], 0
     mov byte [largest_size], 0
@@ -203,9 +200,8 @@ crash_drive_empty:
     mov bl, 0xf
     int 0x21
 
-    mov ah, 0x1
-    mov cx, 0x0607
-    int 0x10
+    mov ah, 0x17
+    int 0x21
 
     xor ah, ah
     mov bl, 0x4
@@ -224,9 +220,8 @@ crash_unknown_format:
     mov bl, 0xf
     int 0x21
 
-    mov ah, 0x1
-    mov cx, 0x0607
-    int 0x10
+    mov ah, 0x17
+    int 0x21
 
     xor ah, ah
     mov bl, 0x4
@@ -245,9 +240,8 @@ crash_floppy_error:
     mov bl, 0xf
     int 0x21
 
-    mov ah, 0x1
-    mov cx, 0x0607
-    int 0x10
+    mov ah, 0x17
+    int 0x21
 
     xor ah, ah
     mov bl, 0x4
@@ -272,10 +266,9 @@ run_file:
     mov bl, 0xf
     int 0x21
 
-    mov ah, 0x1
-    mov cx, 0x0607
-    int 0x10
-
+    mov ah, 0x17
+    int 0x21
+    
     call clear_free
 
     mov dl, [drive]
@@ -318,9 +311,8 @@ read_file:
     mov bl, 0xf
     int 0x21
 
-    mov ah, 0x1
-    mov cx, 0x0607
-    int 0x10
+    mov ah, 0x17
+    int 0x21
 
     call clear_free
 
