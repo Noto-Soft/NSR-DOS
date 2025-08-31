@@ -21,7 +21,7 @@ db 20 dup(0)
 ; Constants and variables
 ;==============================================================================
 
-title: center_text "nsrDOS Shell 0.80"
+title: center_text "nsrDOS Shell 0.81"
 instructon: center_text "Up and down arrows to select; Enter to run executable; Q/q to quit; a/b: drives"
 
 msg_insert_diskette db endl, "Insert a diskette into drive ", 0
@@ -263,7 +263,7 @@ run_file:
 .continue:
     pusha
     mov ah, 0x10
-    mov bl, 0xf
+    mov bl, 0x7
     int 0x21
 
     mov ah, 0x17
@@ -308,7 +308,7 @@ run_file:
 read_file:
     pusha
     mov ah, 0x10
-    mov bl, 0xf
+    mov bl, 0x7
     int 0x21
 
     mov ah, 0x17

@@ -3,14 +3,11 @@
 SAVE_TEMPS=false
 JUST_TEST=false
 NO_TEST=false
-WINDOWS=false
 for arg in "$@"; do
 	if [ "$arg" = "-save-temps" ]; then
 		SAVE_TEMPS=true
 	elif [ "$arg" = "-t" ]; then
 		JUST_TEST=true
-	elif [ "$arg" = "-w" ]; then
-		WINDOWS=true
 	elif [ "$arg" = "-n" ]; then
 		NO_TEST=true
 	fi
@@ -102,7 +99,7 @@ if [ "$JUST_TEST" = false ]; then
 		src/misc/shell.asm \
 		src/misc/music.asm \
 		src/misc/keystrk.asm \
-		src/misc/shapez.asm
+		src/misc/shapez.asm \
 
 	catza assets/text/boot/text.txt >> build/kernel.sys
 	cat build/boot.bin >> build/chkhdr.exe
@@ -121,7 +118,8 @@ if [ "$JUST_TEST" = false ]; then
 		build/shapez.exe \
 		build/music.exe \
 		$(find assets/speaker_music -maxdepth 1 -type f) \
-		assets/text/semi.txt
+		assets/text/semi.txt \
+
 	truncate -s 1440k nsr-dos.img
 
 	cp assets/images/preconverted/* build/bitmaps
@@ -131,7 +129,8 @@ if [ "$JUST_TEST" = false ]; then
 	add_to_disk disk-2.img \
 		build/basic.exe \
 		build/graphix.exe \
-		$(find build/bitmaps/ -type f)
+		$(find build/bitmaps/ -type f) \
+
 	truncate -s 1440k disk-2.img
 
 	if [ "$SAVE_TEMPS" = false ]; then
@@ -140,22 +139,13 @@ if [ "$JUST_TEST" = false ]; then
 fi
 
 if [ "$NO_TEST" = false ]; then
-	if [ "$WINDOWS" = true ]; then
-		qemu-system-i386.exe \
-			-drive file=A:/Noto-Soft/NSR-DOS/nsr-dos.img,if=floppy,format=raw \
-			-drive file=disk-2.img,if=floppy,format=raw \
-			-machine pcspk-audiodev=spk \
-			-audiodev sdl,id=spk \
-			
-	else
-		qemu-system-i386 \
-			-monitor stdio \
-			-cpu 486 \
-			-m 8M \
-			-drive file=nsr-dos.img,if=floppy,format=raw \
-			-drive file=disk-2.img,if=floppy,format=raw \
-			-machine pcspk-audiodev=spk \
-			-audiodev alsa,id=spk \
+	qemu-system-i386 \
+		-monitor stdio \
+		-cpu 486 \
+		-m 8M \
+		-drive file=nsr-dos.img,if=floppy,format=raw \
+		-drive file=disk-2.img,if=floppy,format=raw \
+		-machine pcspk-audiodev=spk \
+		-audiodev alsa,id=spk \
 
-	fi
 fi

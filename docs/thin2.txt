@@ -24,7 +24,7 @@ byte for the length in sectors
 32 byte directory name padded with zeros
 then a zero, just in case the filename took up the whole 32 bytes.
 [if jump flag is set]
-word for the lba to jump to, 0 if none
+word for the lba to jump to, 0 if no jump should be made (changed later for extensions)
 the 34 bytes to align to entry size are actually not necessary because the jump will stop the reading from this point
 this should be put at the end of entry sectors just to make sure that they can be continued in a different place
 ------------------------
