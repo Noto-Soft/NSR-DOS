@@ -773,13 +773,11 @@ find_zero:
 lba_to_chs:
     push ax
     push dx
-    push ds
 
     ; dx = 0
     xor dx, dx
-    mov ds, dx
     ; ax = LBA / SectorsPerTrack
-    div word [0x500]
+    div word [fs:0x500]
                                         ; dx = LBA % SectorsPerTrack
 
     ; dx = (LBA % SectorsPerTrack + 1) = sector
@@ -790,7 +788,7 @@ lba_to_chs:
     ; dx = 0
     xor dx, dx
     ; ax = (LBA / SectorsPerTrack) / Heads = cylinder
-    div word [0x502]
+    div word [fs:0x502]
                                         ; dx = (LBA / SectorsPerTrack) % Heads = head
     ; dh = head
     mov dh, dl
@@ -803,7 +801,6 @@ lba_to_chs:
     ; put upper 2 bits of cylinder in CL
     or cl, ah
 
-    pop ds
     pop ax
     ; restore DL
     mov dl, al
