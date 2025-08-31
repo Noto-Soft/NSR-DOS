@@ -25,3 +25,7 @@ header, data section, text section
 
 protocall for 3.0+::
 the segment the program is loaded in should always be zeroed. following free segments MAY be zeroed, but dont always count on it
+
+protocall for 3.1+::
+ds:si holds the pointer to the command at either the first space or the first zero. check whether or not its a space or zero. also copy this into your own program's memory, can be up to 128 bytes (use with repnz movsb)
+this can be used for command line arguments

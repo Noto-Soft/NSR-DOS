@@ -42,8 +42,6 @@ str_del db "del", 0, " <filename>"
     db " - Deletes a file from the disk directory", endl, 0
 str_dir db "dir", 0
     db " - List files on the disk directory", endl, 0
-str_echo db "echo", 0, " <input>"
-    db " - Repeats inputted text", endl, 0
 str_help db "help", 0
     db ", "
 str_cmds db "cmds", 0
@@ -68,10 +66,14 @@ error_invalid_executable db "Invalid executable file.", endl, 0
 
 start_point dd ?
 
-buffer db 56 dup(0)
+buffer db 128 dup(0)
 BUFFER_END = $
-    ; allow some extra space for .exe autofill
-db 4 dup(0)
+db 0
+
+buffer2 db 128 dup (0)
+db 0
+
+target_file db 32 dup(0)
 db 0
 BUFFER_SPACE_END = $
 
@@ -133,6 +135,11 @@ line_done:
     push di
 
     lea si, [buffer]
+    lea di, [buffer2]
+    mov cx, 128
+    cld
+    rep movsb
+    lea si, [buffer2]
     call case_down
 
     lea di, [str_dir]
@@ -151,12 +158,6 @@ line_done:
     call strcmp_until_delimiter
     test al, al
     jz del
-
-    lea di, [str_echo]
-    mov bl, " "
-    call strcmp_until_delimiter
-    test al, al
-    jz echo
 
     lea di, [str_throw]
     mov bl, " "
@@ -211,6 +212,25 @@ line_done:
     jz ttys
 
     pop di
+
+    mov cx, 32
+    lea si, [buffer]
+    lea di, [target_file]
+    cld 
+    rep movsb
+
+    lea si, [target_file]
+    mov bl, " "
+    call find_delimiter_or_zero
+    dec si
+    mov byte [si], 0
+
+    lea si, [buffer]
+    mov bl, " "
+    call find_delimiter_or_zero
+    dec si
+    mov di, si
+    lea si, [target_file]
 
     jmp exec
 
@@ -410,6 +430,21 @@ hex2byte:
     ret
 .bad:
     stc
+    ret
+
+; ds:si - string
+; bl - delimiter
+find_delimiter_or_zero:
+    push ax
+.loop:
+    lodsb
+    test al, al
+    jz .end
+    cmp al, bl
+    je .end
+    jmp .loop
+.end:
+    pop ax
     ret
 
 ;==============================================================================
@@ -660,15 +695,6 @@ help:
     jz line
     jmp .l1
 
-echo:
-    add si, 5
-    xor ah, ah
-    mov bl, 0x7
-    int 0x21
-    mov ah, 0x14
-    int 0x21
-    jmp line
-
 exec:
     xor ah, ah
     int 0x24
@@ -678,16 +704,8 @@ exec:
 .loop:
     mov bp, 0x1
 .anyways:
-    mov ax, cs
-    mov bx, 0x2000
-    cmp ax, bx
-    mov bx, 0x2000
-    cmp ax, bx
-    jne .c1
-    mov al, 0x4
-    int 0xff
-.c1:
     mov ah, 0x15
+    mov bx, 0x2000
     mov dl, [drive]
     int 0x21
     cmp al, 0x1
@@ -702,6 +720,7 @@ exec:
     jnz .e1
     mov word [start_point], bx
     mov word [start_point+2], cx
+    mov si, di
     push ds
     push es
     call far [start_point]

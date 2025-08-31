@@ -93,6 +93,7 @@ if [ "$JUST_TEST" = false ]; then
 		src/kernel/kernel.asm -esys \
 		src/kernel/command.asm -esys \
 		src/kernel/unreal.asm -esys \
+		src/kernel/echo.asm \
 		src/misc/helloworld.asm \
 		src/misc/graphix.asm \
 		src/misc/basic.asm \
@@ -111,6 +112,7 @@ if [ "$JUST_TEST" = false ]; then
 		build/kernel.sys \
 		build/command.sys \
 		build/unreal.sys \
+		build/echo.exe \
 		build/helloworld.exe \
 		build/allocator.exe \
 		build/shell.exe \
